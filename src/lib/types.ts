@@ -1,11 +1,8 @@
 export type GymScale = "compact" | "standard" | "serious";
 
-export type GearItem = {
+export type PostCategoryItem = {
   name: string;
-  maker: string;
-  price: number;
-  url: string;
-  category: string;
+  category: ProductCategory;
 };
 
 export type HomeGymPost = {
@@ -13,21 +10,71 @@ export type HomeGymPost = {
   slug: string;
   title: string;
   owner: string;
-  location: string;
+  ownerAvatarUrl?: string;
   scale: GymScale;
-  areaSqm: number;
+  areaTatami: number;
   budget: number;
-  monthlyMaintenance: number;
   tags: string[];
   summary: string;
-  highlights: string[];
   images: string[];
-  gear: GearItem[];
+  gear: PostCategoryItem[];
   sns: {
     instagram?: string;
-    youtube?: string;
+    tiktok?: string;
     x?: string;
   };
   likes: number;
-  saved: number;
+};
+
+export type ProductCategory =
+  | "multi-home-gym"
+  | "power-rack"
+  | "pull-up-stand"
+  | "adjustable-dumbbell"
+  | "bench"
+  | "floor-mat"
+  | "mirror"
+  | "cardio"
+  | "compact-gym"
+  | "accessory";
+
+export type RankingProduct = {
+  id: string;
+  rank: number;
+  overallRank?: number;
+  category: ProductCategory;
+  name: string;
+  maker: string;
+  price: number;
+  image: string;
+  rating: number;
+  summary: string;
+  bestFor: string;
+  pros: string[];
+  cons: string[];
+  productUrl: string;
+  affiliateUrl?: string;
+  isAffiliate: boolean;
+};
+
+export type BlogArticleBlock = {
+  heading: string;
+  paragraphs: string[];
+};
+
+export type BlogArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  keyword: string;
+  category: string;
+  imageUrl: string;
+  readingMinutes: number;
+  publishedAt: string;
+  updatedAt: string;
+  articleSource: string;
+  keywordSource: string;
+  blocks: BlogArticleBlock[];
+  metadata: Record<string, unknown>;
 };
