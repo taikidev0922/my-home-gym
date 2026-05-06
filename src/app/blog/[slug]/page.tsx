@@ -58,14 +58,14 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
+      <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
+        <Link href="/blog" className="mx-4 inline-flex items-center gap-2 text-sm font-bold text-[#3c4941] sm:mx-0">
           <ArrowLeft size={17} />
           ホームジムお助け記事へ
         </Link>
 
-        <article className="mt-6 overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm">
-          <div className="p-5 sm:p-8">
+        <article className="mt-5 overflow-hidden sm:mt-6 sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:shadow-sm">
+          <div className="px-4 pb-8 pt-2 sm:p-8">
             <div className="flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">
               <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
                 <Tag size={14} />
@@ -98,7 +98,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                     ))}
                   </div>
                   {block.visual?.imageUrl ? (
-                    <div className="mt-5 overflow-hidden rounded-lg">
+                    <div className="-mx-4 mt-5 overflow-hidden sm:mx-0 sm:rounded-lg">
                       <Image
                         src={block.visual.imageUrl}
                         alt={block.visual.alt || block.visual.title}
