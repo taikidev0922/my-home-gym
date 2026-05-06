@@ -238,7 +238,8 @@ ${visual?.brief ?? article.excerpt}
 
 Design requirements:
 - The image must directly explain the required content above.
-- Use a clean dark fitness media style matching a black home gym website.
+- Use a clean, bright editorial fitness style that fits a light home gym website.
+- Prefer white or warm off-white backgrounds, high contrast dark text, and orange accents.
 - Prefer simple icons, spatial diagrams, comparison columns, cost bars, or checklist layout as appropriate.
 - Japanese labels are allowed, but keep them short and large enough to read.
 - No brand logos, no fictional prices presented as official product prices, no watermarks.

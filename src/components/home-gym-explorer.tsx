@@ -181,16 +181,16 @@ export function HomeGymExplorer({
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-4 pb-3 pt-6 sm:px-6">
-        <div className="border-b border-[#ded6ca] pb-5">
-          <nav className="grid grid-cols-3 gap-1 md:hidden">
-            <a href="#feed" className="min-w-0 rounded-lg bg-[#e4572e] px-2 py-2 text-center text-[11px] font-bold leading-tight text-white">
+      <section className="mx-auto max-w-7xl px-4 pb-2 pt-3 sm:px-6 sm:pb-3 sm:pt-6">
+        <div className="border-b border-[#ded6ca] pb-3 sm:pb-5">
+          <nav className="flex items-center gap-1.5 md:hidden">
+            <a href="#feed" className="shrink-0 whitespace-nowrap rounded-lg bg-[#e4572e] px-2.5 py-2 text-center text-[11px] font-bold leading-none text-white">
               みんなのホームジム
             </a>
-            <Link href="/rankings" className="min-w-0 rounded-lg border border-[#ded6ca] bg-white px-2 py-2 text-center text-[11px] font-bold leading-tight text-[#4e5b52]">
+            <Link href="/rankings" className="shrink-0 whitespace-nowrap rounded-lg border border-[#ded6ca] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
               器具ランキング
             </Link>
-            <Link href="/blog" className="min-w-0 rounded-lg border border-[#ded6ca] bg-white px-2 py-2 text-center text-[11px] font-bold leading-tight text-[#4e5b52]">
+            <Link href="/blog" className="shrink-0 whitespace-nowrap rounded-lg border border-[#ded6ca] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
               ホームジムお助け記事
             </Link>
           </nav>
@@ -200,8 +200,8 @@ export function HomeGymExplorer({
         </div>
       </section>
 
-      <section id="feed" className="mx-auto grid max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[300px_1fr]">
-        <aside className="h-fit rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm lg:sticky lg:top-20">
+      <section id="feed" className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
+        <aside className="h-fit rounded-lg border border-[#ded6ca] bg-white p-3 shadow-sm sm:p-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-bold">
               <Filter size={18} />
@@ -340,8 +340,8 @@ export function HomeGymExplorer({
         </aside>
 
         <div>
-          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-            <div>
+          <div className="mb-3 flex flex-col justify-between gap-2 sm:mb-4 sm:flex-row sm:items-end sm:gap-3">
+            <div className="hidden sm:block">
               <h2 className="text-2xl font-bold">{totalPosts}件のホームジム</h2>
               {totalPosts > 0 ? (
                 <p className="mt-1 text-sm font-semibold text-[#69756d]">
