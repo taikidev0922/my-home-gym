@@ -67,25 +67,25 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
           <ArrowLeft size={17} />
           一覧に戻る
         </Link>
 
-        <section className="mt-6 border-b border-[#ded6ca] pb-5">
+        <section className="mt-4 border-b border-[#ded6ca] pb-4 sm:mt-6 sm:pb-5">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
         </section>
 
-        <section className="mt-6 rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
+        <section className="mt-4 rounded-lg border border-[#ded6ca] bg-white p-3 sm:mt-6 sm:p-5">
+          <div className="hidden items-center gap-2 text-sm font-bold text-[#69756d] sm:flex">
             <Tag size={16} />
             記事を絞り込む
           </div>
 
-          <div className="mt-4">
-            <p className="text-sm font-bold text-[#122018]">カテゴリ</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+          <div className="sm:mt-4">
+            <p className="hidden text-sm font-bold text-[#122018] sm:block">カテゴリ</p>
+            <div className="flex flex-wrap gap-1.5 sm:mt-2 sm:gap-2">
               <FilterChip href={blogHref({ tag: selectedTag })} active={!selectedCategory}>
                 すべて
               </FilterChip>
@@ -103,9 +103,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </div>
 
           {visibleTags.length > 0 ? (
-            <div className="mt-5">
-              <p className="text-sm font-bold text-[#122018]">タグ</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-3 sm:mt-5">
+              <p className="hidden text-sm font-bold text-[#122018] sm:block">タグ</p>
+              <div className="flex flex-wrap gap-1.5 sm:mt-2 sm:gap-2">
                 <FilterChip href={blogHref({ category: selectedCategory })} active={!selectedTag}>
                   すべて
                 </FilterChip>
@@ -124,9 +124,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           ) : null}
         </section>
 
-        <section className="mt-8">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
+        <section className="mt-4 sm:mt-8">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4">
+            <div className="hidden sm:block">
               <h2 className="text-2xl font-bold">記事一覧</h2>
               <p className="mt-1 text-sm font-semibold text-[#69756d]">
                 {articlePage.total === 0
@@ -265,8 +265,8 @@ function FilterChip({ href, active, children }: { href: string; active?: boolean
       href={href}
       className={
         active
-          ? "inline-flex items-center rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white"
-          : "inline-flex items-center rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60"
+          ? "inline-flex items-center rounded-lg bg-[#e4572e] px-2 py-1.5 text-xs font-bold text-white sm:px-3 sm:py-2 sm:text-sm"
+          : "inline-flex items-center rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-2 py-1.5 text-xs font-bold text-[#4e5b52] hover:border-[#e4572e]/60 sm:px-3 sm:py-2 sm:text-sm"
       }
     >
       {children}
