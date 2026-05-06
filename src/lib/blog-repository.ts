@@ -146,15 +146,44 @@ function normalizeBlocks(value: unknown): BlogArticleBlock[] {
   if (!Array.isArray(value)) return [];
 
   return value
-    .map((block) => {
+    .map((block): BlogArticleBlock | null => {
       if (!block || typeof block !== "object") return null;
-      const candidate = block as { heading?: unknown; paragraphs?: unknown };
+      const candidate = block as { heading?: unknown; paragraphs?: unknown; visual?: unknown };
       if (typeof candidate.heading !== "string" || !Array.isArray(candidate.paragraphs)) return null;
 
       return {
         heading: candidate.heading,
         paragraphs: candidate.paragraphs.filter((paragraph): paragraph is string => typeof paragraph === "string"),
+        visual: normalizeVisual(candidate.visual),
       };
     })
     .filter((block): block is BlogArticleBlock => Boolean(block));
+}
+
+function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as {
+    title?: unknown;
+    kind?: unknown;
+    brief?: unknown;
+    imageUrl?: unknown;
+    alt?: unknown;
+    caption?: unknown;
+  };
+  const title = typeof candidate.title === "string" ? candidate.title : "";
+  const brief = typeof candidate.brief === "string" ? candidate.brief : "";
+  const kind = typeof candidate.kind === "string" ? candidate.kind : "";
+
+  if (!title || !brief) return undefined;
+
+  return {
+    title,
+    kind: ["diagram", "table", "checklist", "comparison"].includes(kind)
+      ? (kind as NonNullable<BlogArticleBlock["visual"]>["kind"])
+      : "diagram",
+    brief,
+    imageUrl: typeof candidate.imageUrl === "string" ? candidate.imageUrl : undefined,
+    alt: typeof candidate.alt === "string" ? candidate.alt : undefined,
+    caption: typeof candidate.caption === "string" ? candidate.caption : undefined,
+  };
 }

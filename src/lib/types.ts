@@ -60,6 +60,14 @@ export type RankingProduct = {
 export type BlogArticleBlock = {
   heading: string;
   paragraphs: string[];
+  visual?: {
+    title: string;
+    kind: "diagram" | "table" | "checklist" | "comparison";
+    brief: string;
+    imageUrl?: string;
+    alt?: string;
+    caption?: string;
+  };
 };
 
 export type BlogArticle = {

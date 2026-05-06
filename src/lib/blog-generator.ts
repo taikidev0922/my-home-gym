@@ -19,20 +19,35 @@ const fallbackImages: Record<string, string> = {
   guide: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1400&auto=format&fit=crop",
 };
 
+const CLAUDE_MODEL = "claude-sonnet-4-5-20250929";
+const OPENAI_IMAGE_MODEL = "gpt-image-2";
+const OPENAI_IMAGE_QUALITY = "high";
+
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
   const article =
-    process.env.CLAUDE_ARTICLE_LIVE === "true" && process.env.ANTHROPIC_API_KEY
+    process.env.ANTHROPIC_API_KEY
       ? (await generateWithClaude(keyword)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
       : createFallbackArticle(keyword, "fallback");
 
-  const imageUrl = await generateAndStoreBlogImage(article);
+  const imageUrl = await generateAndStoreBlogImage(article, "hero");
+  const blocks = await generateAndAttachInlineVisuals(article);
+  const inlineVisualCount = blocks.filter((block) => block.visual?.imageUrl).length;
+
+  if (requiresGeneratedImages() && (!imageUrl || inlineVisualCount === 0)) {
+    throw new Error(
+      "Generated blog images are required, but gpt-image generation did not produce a hero image and inline visual image.",
+    );
+  }
 
   return {
     ...article,
+    blocks,
     imageUrl: imageUrl ?? article.imageUrl,
     metadata: {
       ...article.metadata,
-      imageSource: imageUrl ? "gpt-image-1" : "fallback",
+      imageModel: imageModel(),
+      imageSource: imageUrl ? imageModel() : "fallback",
+      inlineVisualCount,
     },
   };
 }
@@ -47,8 +62,8 @@ async function generateWithClaude(keyword: KeywordCandidate) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929",
-        max_tokens: 2800,
+        model: CLAUDE_MODEL,
+        max_tokens: 3400,
         temperature: 0.65,
         messages: [
           {
@@ -76,22 +91,27 @@ async function generateWithClaude(keyword: KeywordCandidate) {
   }
 }
 
-async function generateAndStoreBlogImage(article: Omit<BlogArticle, "id">) {
-  if (process.env.OPENAI_IMAGE_LIVE === "false") return null;
-  if (!process.env.OPENAI_API_KEY) return null;
+async function generateAndStoreBlogImage(
+  article: Omit<BlogArticle, "id">,
+  variant: "hero" | "inline",
+  visual?: NonNullable<BlogArticleBlock["visual"]>,
+) {
+  if (!openAiApiKey()) {
+    console.error("OPENAI_API_KEY is required for blog image generation.");
+    return null;
+  }
 
   try {
     const response = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${openAiApiKey()}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_IMAGE_MODEL || "gpt-image-1",
-        prompt: buildImagePrompt(article),
-        size: process.env.OPENAI_IMAGE_SIZE || "1536x1024",
-        quality: process.env.OPENAI_IMAGE_QUALITY || "medium",
+        model: imageModel(),
+        prompt: variant === "hero" ? buildHeroImagePrompt(article) : buildInlineVisualPrompt(article, visual),
+        quality: OPENAI_IMAGE_QUALITY,
         n: 1,
       }),
       cache: "no-store",
@@ -107,11 +127,41 @@ async function generateAndStoreBlogImage(article: Omit<BlogArticle, "id">) {
     const base64 = payload?.data?.[0]?.b64_json;
     if (typeof base64 !== "string") return null;
 
-    return uploadBlogImage(article.slug, base64);
+    return uploadBlogImage(`${article.slug}-${variant}${visual ? `-${createShortHash(visual.title)}` : ""}`, base64);
   } catch (error) {
     console.error("Failed to generate or store blog image", error);
     return null;
   }
+}
+
+async function generateAndAttachInlineVisuals(article: Omit<BlogArticle, "id">) {
+  const candidates = article.blocks.filter((block) => block.visual).slice(0, 2);
+
+  if (!candidates.length) {
+    return article.blocks;
+  }
+
+  const visualUrlByHeading = new Map<string, string>();
+
+  for (const block of candidates) {
+    if (!block.visual) continue;
+    const imageUrl = await generateAndStoreBlogImage(article, "inline", block.visual);
+    if (imageUrl) visualUrlByHeading.set(block.heading, imageUrl);
+  }
+
+  return article.blocks.map((block) => {
+    const imageUrl = visualUrlByHeading.get(block.heading);
+    if (!block.visual || !imageUrl) return block;
+
+    return {
+      ...block,
+      visual: {
+        ...block.visual,
+        imageUrl,
+        alt: block.visual.alt || `${article.title} - ${block.visual.title}`,
+      },
+    };
+  });
 }
 
 async function uploadBlogImage(slug: string, base64: string) {
@@ -157,20 +207,53 @@ JSON形式:
   "category": "guide | rack | dumbbell | bench | floor | compact のどれか",
   "readingMinutes": 4,
   "blocks": [
-    { "heading": "見出し", "paragraphs": ["本文段落", "本文段落"] }
+    {
+      "heading": "見出し",
+      "paragraphs": ["本文段落", "本文段落"],
+      "visual": {
+        "title": "図表タイトル",
+        "kind": "diagram | table | checklist | comparison",
+        "brief": "この記事の内容に合わせた図表の具体的な中身。数値、比較軸、チェック項目、配置を具体的に書く",
+        "alt": "画像の代替テキスト",
+        "caption": "画像下に表示する短い補足"
+      }
+    }
   ]
 }
 
-blocksは4から6個、各paragraphsは1から2段落にしてください。`;
+blocksは4から6個、各paragraphsは1から2段落にしてください。
+visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。
+visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。`;
 }
 
-function buildImagePrompt(article: Omit<BlogArticle, "id">) {
+function buildHeroImagePrompt(article: Omit<BlogArticle, "id">) {
   return `Photorealistic editorial hero image for a Japanese home gym blog.
 Theme: ${article.keyword}
 Article title: ${article.title}
 Category: ${article.category}
 
 Create a realistic, tidy home training space that fits the theme. Show practical details such as floor mats, compact storage, adjustable dumbbells, bench, rack, or resistance bands when relevant. Natural daylight, modern Japanese apartment or garage feeling, clean composition, no people, no logos, no readable text, no brand names, no watermarks. Wide horizontal composition for a blog hero image.`;
+}
+
+function buildInlineVisualPrompt(
+  article: Omit<BlogArticle, "id">,
+  visual?: NonNullable<BlogArticleBlock["visual"]>,
+) {
+  return `Create a high-quality editorial infographic image for a Japanese home gym article.
+Article keyword: ${article.keyword}
+Article title: ${article.title}
+Visual title: ${visual?.title ?? article.title}
+Visual kind: ${visual?.kind ?? "diagram"}
+Required content:
+${visual?.brief ?? article.excerpt}
+
+Design requirements:
+- The image must directly explain the required content above.
+- Use a clean dark fitness media style matching a black home gym website.
+- Prefer simple icons, spatial diagrams, comparison columns, cost bars, or checklist layout as appropriate.
+- Japanese labels are allowed, but keep them short and large enough to read.
+- No brand logos, no fictional prices presented as official product prices, no watermarks.
+- 16:9 horizontal infographic, polished, practical, not decorative.`;
 }
 
 function parseJson(text: string): ClaudeArticlePayload | null {
@@ -211,6 +294,7 @@ function normalizeGeneratedArticle(keyword: KeywordCandidate, payload: ClaudeArt
     blocks,
     metadata: {
       keywordMetrics: keyword.metrics,
+      keywordScore: keyword.score,
       generatedAt: now,
     },
   };
@@ -233,6 +317,14 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
       paragraphs: [
         "本体価格だけでなく、床材、防音マット、バーベル、プレート、送料、処分費も含めて見積もります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
       ],
+      visual: {
+        title: "ホームジム初期費用の内訳",
+        kind: "comparison",
+        brief:
+          "省スペース構成、ダンベル中心構成、ラック構成の3列比較。器具本体、床材、防音、配送や追加小物を含めて、予算を見るべき範囲を示す。",
+        alt: "ホームジムの初期費用を構成別に比較した図",
+        caption: "本体価格だけでなく床材や防音も含めて見ると予算感がつかみやすくなります。",
+      },
     },
     {
       heading: "最初の器具は種目から逆算する",
@@ -240,6 +332,14 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
         "ベンチプレス、スクワット、懸垂をやりたいならラック系が候補になります。ダンベルプレス、ローイング、ショルダープレスを中心にするなら可変式ダンベルとベンチでも十分に組めます。",
         "省スペース派はマット、チューブ、アブローラー、折りたたみベンチのように収納しやすいものから始めると続けやすくなります。",
       ],
+      visual: {
+        title: "種目から逆算する器具選び",
+        kind: "diagram",
+        brief:
+          "やりたい種目から必要器具へつながるフローチャート。ベンチプレス、スクワット、懸垂はラック系、ダンベルプレスやローイングは可変式ダンベルとベンチ、省スペース運動はマットとチューブへ分岐。",
+        alt: "トレーニング種目から必要なホームジム器具を選ぶフローチャート",
+        caption: "先に種目を決めると、買うべき器具の優先順位が整理できます。",
+      },
     },
     {
       heading: "写真付き投稿で近い条件を比較する",
@@ -264,6 +364,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     blocks,
     metadata: {
       keywordMetrics: keyword.metrics,
+      keywordScore: keyword.score,
       generatedAt: now,
     },
   };
@@ -273,9 +374,9 @@ function normalizeBlocks(value: unknown): BlogArticleBlock[] {
   if (!Array.isArray(value)) return [];
 
   return value
-    .map((block) => {
+    .map((block): BlogArticleBlock | null => {
       if (!block || typeof block !== "object") return null;
-      const candidate = block as { heading?: unknown; paragraphs?: unknown };
+      const candidate = block as { heading?: unknown; paragraphs?: unknown; visual?: unknown };
       if (typeof candidate.heading !== "string" || !Array.isArray(candidate.paragraphs)) return null;
 
       const paragraphs = candidate.paragraphs
@@ -288,9 +389,36 @@ function normalizeBlocks(value: unknown): BlogArticleBlock[] {
       return {
         heading: candidate.heading.trim(),
         paragraphs,
+        visual: normalizeVisual(candidate.visual),
       };
     })
     .filter((block): block is BlogArticleBlock => Boolean(block));
+}
+
+function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as {
+    title?: unknown;
+    kind?: unknown;
+    brief?: unknown;
+    alt?: unknown;
+    caption?: unknown;
+  };
+  const title = typeof candidate.title === "string" ? candidate.title.trim() : "";
+  const brief = typeof candidate.brief === "string" ? candidate.brief.trim() : "";
+  const kind = typeof candidate.kind === "string" ? candidate.kind.trim() : "";
+
+  if (!title || !brief) return undefined;
+
+  return {
+    title,
+    kind: ["diagram", "table", "checklist", "comparison"].includes(kind)
+      ? (kind as NonNullable<BlogArticleBlock["visual"]>["kind"])
+      : "diagram",
+    brief,
+    alt: typeof candidate.alt === "string" ? candidate.alt.trim() : undefined,
+    caption: typeof candidate.caption === "string" ? candidate.caption.trim() : undefined,
+  };
 }
 
 function createSlug(keyword: KeywordCandidate, value: string) {
@@ -324,4 +452,18 @@ function normalizeCategory(category: string) {
 
 function imageForCategory(category: string) {
   return fallbackImages[normalizeCategory(category)] ?? fallbackImages.guide;
+}
+
+function imageModel() {
+  return OPENAI_IMAGE_MODEL;
+}
+
+function openAiApiKey() {
+  const value = process.env.OPENAI_API_KEY?.trim();
+  if (!value || value === "\"\"" || value === "''") return "";
+  return value.replace(/^["']|["']$/g, "");
+}
+
+function requiresGeneratedImages() {
+  return true;
 }

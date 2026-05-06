@@ -2,7 +2,7 @@ import type { ProductCategory } from "@/lib/types";
 
 export const siteName = "マイホームジム";
 
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://my-home-gym.vercel.app";
+export const siteUrl = "https://my-home-gym.vercel.app";
 
 export const defaultSeoDescription =
   "ホームジムの写真投稿を、畳数・予算・器具カテゴリで比較できる共有サイト。パワーラック、可変式ダンベル、トレーニングベンチ、防音マット、床補強など自宅ジム作りの実例と用品ランキングを確認できます。";

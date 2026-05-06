@@ -4,7 +4,8 @@ import { generateHomeGymArticle } from "@/lib/blog-generator";
 import { markKeywordUsed, selectHomeGymKeyword } from "@/lib/blog-keywords";
 import { appendBlogArticle, getBlogArticles } from "@/lib/blog-repository";
 
-export const maxDuration = 120;
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function GET(request: NextRequest) {
   return publishBlogArticle(request);
@@ -58,9 +59,8 @@ function isAuthorized(request: NextRequest) {
   const expectedSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
   const querySecret = request.nextUrl.searchParams.get("secret");
-  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
 
-  if (!expectedSecret) return process.env.NODE_ENV !== "production" || isVercelCron;
+  if (!expectedSecret) return process.env.NODE_ENV !== "production";
 
-  return authHeader === `Bearer ${expectedSecret}` || querySecret === expectedSecret || isVercelCron;
+  return authHeader === `Bearer ${expectedSecret}` || querySecret === expectedSecret;
 }

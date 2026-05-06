@@ -2,6 +2,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { BlogArticle } from "@/lib/types";
 
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
+const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 
 const seedKeywords = [
   "ホームジム",
@@ -30,6 +31,7 @@ export type KeywordCandidate = {
   source: string;
   category: string;
   metrics: Record<string, unknown>;
+  score?: number;
 };
 
 export async function selectHomeGymKeyword(existingArticles: BlogArticle[]): Promise<KeywordCandidate> {
@@ -82,10 +84,6 @@ export async function markKeywordUsed(keyword: KeywordCandidate, article: { slug
 }
 
 async function fetchRakkoKeywordCandidates(existingArticles: BlogArticle[]) {
-  if (process.env.RAKKO_KEYWORD_LIVE !== "true") {
-    return { source: "rakko-disabled", candidates: [] as KeywordCandidate[] };
-  }
-
   const apiKey = process.env.RAKKO_KEYWORD_API_KEY;
   if (!apiKey) {
     return { source: "rakko-missing-key", candidates: [] as KeywordCandidate[] };
@@ -100,7 +98,7 @@ async function fetchRakkoKeywordCandidates(existingArticles: BlogArticle[]) {
     filter: {
       searchVolume: { min: 10 },
     },
-    limit: Number(process.env.RAKKO_KEYWORD_FETCH_LIMIT || 20),
+    limit: RAKKO_KEYWORD_FETCH_LIMIT,
   });
 
   if (!payload.ok) {
@@ -117,6 +115,11 @@ async function fetchRakkoKeywordCandidates(existingArticles: BlogArticle[]) {
       metrics: item.metrics ?? {},
     }))
     .filter(isHomeGymKeyword)
+    .map((item) => ({
+      ...item,
+      score: scoreKeywordCandidate(item),
+    }))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     .filter(
       (item, index, array) =>
         array.findIndex((entry) => normalizeKeyword(entry.keyword) === normalizeKeyword(item.keyword)) === index,
@@ -182,6 +185,30 @@ function isHomeGymKeyword(candidate: KeywordCandidate) {
     "防振",
     "筋トレ 部屋",
   ]);
+}
+
+function scoreKeywordCandidate(candidate: KeywordCandidate) {
+  const keyword = normalizeKeyword(candidate.keyword);
+  const metrics = candidate.metrics as {
+    searchVolume?: unknown;
+    monthlySearches?: unknown;
+    competition?: unknown;
+  };
+  const volume = Number(metrics.searchVolume ?? metrics.monthlySearches ?? 0);
+  const competition = Number(metrics.competition ?? 0);
+  const intentScore =
+    keywordIntentScore(keyword, ["おすすめ", "選び方", "費用", "予算", "広さ", "何畳", "6畳", "4畳", "賃貸", "防音", "床", "マット", "後悔", "注意", "比較"]) +
+    keywordIntentScore(keyword, ["パワーラック", "可変式ダンベル", "ベンチ", "マルチホームジム", "床材", "防振"]);
+  const longTailScore = keyword.length >= 8 ? 12 : 0;
+  const categoryScore = candidate.category === "guide" ? 2 : 8;
+  const volumeScore = Math.min(35, Math.log10(Math.max(volume, 1)) * 12);
+  const competitionPenalty = Number.isFinite(competition) ? Math.min(10, competition * 2) : 0;
+
+  return Math.round(volumeScore + intentScore + longTailScore + categoryScore - competitionPenalty);
+}
+
+function keywordIntentScore(keyword: string, terms: string[]) {
+  return terms.reduce((score, term) => score + (keyword.includes(term) ? 8 : 0), 0);
 }
 
 function inferCategory(keyword: string) {

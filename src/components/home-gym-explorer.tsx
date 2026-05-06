@@ -183,14 +183,14 @@ export function HomeGymExplorer({
 
       <section className="mx-auto max-w-7xl px-4 pb-3 pt-6 sm:px-6">
         <div className="border-b border-white/10 pb-5">
-          <nav className="flex items-center gap-2 overflow-x-auto md:hidden">
-            <a href="#feed" className="shrink-0 rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white">
+          <nav className="grid grid-cols-3 gap-1 md:hidden">
+            <a href="#feed" className="min-w-0 rounded-lg bg-[#e4572e] px-2 py-2 text-center text-[11px] font-bold leading-tight text-white">
               みんなのホームジム
             </a>
-            <Link href="/rankings" className="shrink-0 rounded-lg border border-white/10 bg-[#151515] px-3 py-2 text-sm font-bold text-[#d4d4d8]">
+            <Link href="/rankings" className="min-w-0 rounded-lg border border-white/10 bg-[#151515] px-2 py-2 text-center text-[11px] font-bold leading-tight text-[#d4d4d8]">
               器具ランキング
             </Link>
-            <Link href="/blog" className="shrink-0 rounded-lg border border-white/10 bg-[#151515] px-3 py-2 text-sm font-bold text-[#d4d4d8]">
+            <Link href="/blog" className="min-w-0 rounded-lg border border-white/10 bg-[#151515] px-2 py-2 text-center text-[11px] font-bold leading-tight text-[#d4d4d8]">
               ホームジムお助け記事
             </Link>
           </nav>
@@ -342,7 +342,6 @@ export function HomeGymExplorer({
         <div>
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <p className="text-sm font-semibold text-[#a1a1aa]">ホームジム一覧</p>
               <h2 className="text-2xl font-bold">{totalPosts}件のホームジム</h2>
               {totalPosts > 0 ? (
                 <p className="mt-1 text-sm font-semibold text-[#a1a1aa]">
@@ -591,7 +590,7 @@ function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin:
             <Bookmark size={18} />
           </button>
         </div>
-        <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#d4d4d8]">{post.summary}</p>
+        <p className="mt-3 line-clamp-1 text-sm leading-6 text-[#d4d4d8]">{post.summary}</p>
         <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
           <Info icon={<Ruler size={15} />} label="広さ" value={formatTatami(post.areaTatami)} />
           <Info icon={<WalletCards size={15} />} label="費用" value={yen.format(post.budget)} />

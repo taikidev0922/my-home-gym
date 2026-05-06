@@ -108,6 +108,18 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                       <p key={paragraph}>{paragraph}</p>
                     ))}
                   </div>
+                  {block.visual?.imageUrl ? (
+                    <div className="mt-5 overflow-hidden rounded-lg">
+                      <Image
+                        src={block.visual.imageUrl}
+                        alt={block.visual.alt || block.visual.title}
+                        width={1536}
+                        height={1024}
+                        className="h-auto w-full"
+                        sizes="(max-width: 896px) 100vw, 896px"
+                      />
+                    </div>
+                  ) : null}
                 </section>
               ))}
             </div>
