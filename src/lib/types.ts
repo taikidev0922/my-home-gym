@@ -77,6 +77,7 @@ export type BlogArticle = {
   excerpt: string;
   keyword: string;
   category: string;
+  tags: string[];
   imageUrl: string;
   readingMinutes: number;
   publishedAt: string;

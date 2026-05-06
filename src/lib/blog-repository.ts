@@ -9,6 +9,7 @@ type BlogArticleRow = {
   excerpt: string;
   keyword: string;
   category: string;
+  tags?: string[] | null;
   image_url: string | null;
   reading_minutes: number | null;
   published_at: string;
@@ -19,15 +20,32 @@ type BlogArticleRow = {
   metadata: Record<string, unknown> | null;
 };
 
+export type BlogArticleQuery = {
+  category?: string;
+  tag?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+const categoryTagById: Record<string, string> = {
+  guide: "作り方",
+  rack: "パワーラック",
+  dumbbell: "可変式ダンベル",
+  bench: "ベンチ",
+  floor: "床材・防音",
+  compact: "省スペース",
+};
+
 const fallbackArticles: BlogArticle[] = [
   {
     id: "fallback-home-gym-start",
     slug: "home-gym-start-budget-space",
     title: "ホームジム作りは広さと予算から決めると失敗しにくい",
     excerpt:
-      "パワーラックの本格派からヨガマット中心の省スペース派まで、最初に決めたい広さ、予算、器具の優先順位を整理します。",
+      "本格ラックから省スペース宅トレまで、最初に決めたい広さ、予算、器具の優先順位を整理します。",
     keyword: "ホームジム 予算 広さ",
     category: "guide",
+    tags: ["ホームジム", "作り方", "予算", "広さ"],
     imageUrl:
       "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1400&auto=format&fit=crop",
     readingMinutes: 5,
@@ -38,16 +56,16 @@ const fallbackArticles: BlogArticle[] = [
     metadata: {},
     blocks: [
       {
-        heading: "最初に決めるのは器具ではなく置ける面積",
+        heading: "最初に決めるのは器具ではなく置ける広さ",
         paragraphs: [
-          "ホームジムは欲しい器具から考え始めると、部屋に置いたあとで動線や騒音に困りがちです。まずは使える床面積、天井高、床の強さ、家族の生活動線を確認します。",
-          "1から2畳ならマット、チューブ、可変式ダンベルが中心。4畳以上あればベンチやラックも候補に入ります。",
+          "ホームジムは欲しい器具から考えると、部屋の動線や騒音で困りがちです。まずは使える畳数、天井高、床の強さ、家族の生活動線を確認します。",
+          "1畳から2畳ならマット、チューブ、可変式ダンベルが中心。3畳以上あればベンチやラックも候補に入ります。",
         ],
       },
       {
         heading: "予算は本体価格だけで見ない",
         paragraphs: [
-          "ラックやベンチを買う場合、床材、バーベル、プレート、配送費、処分費まで含めて考えると現実的です。",
+          "ラックやベンチを買う場合、床材、バーベル、プレート、送料、処分費まで含めて考えると現実的です。",
           "まずは最低限の種目を決め、あとから増やせる構成にしておくと失敗しにくくなります。",
         ],
       },
@@ -74,6 +92,66 @@ export async function getBlogArticles(): Promise<BlogArticle[]> {
   if (data.length === 0) return fallbackArticles;
 
   return data.map((row) => mapArticleRow(row as BlogArticleRow));
+}
+
+export async function getBlogArticlesPage(query: BlogArticleQuery = {}) {
+  const supabase = await createSupabaseServerClient();
+  const pageSize = Math.max(1, Math.min(query.pageSize ?? 9, 24));
+  const page = Math.max(1, query.page ?? 1);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  if (!supabase) {
+    const filtered = filterArticles(fallbackArticles, query);
+    return createPageResult(filtered.slice(from, to + 1), filtered.length, page, pageSize);
+  }
+
+  let request = supabase
+    .from("blog_articles")
+    .select("*", { count: "exact" })
+    .lte("published_at", new Date().toISOString());
+
+  if (query.category) request = request.eq("category", query.category);
+  if (query.tag) request = request.contains("tags", [query.tag]);
+
+  const { data, error, count } = await request.order("published_at", { ascending: false }).range(from, to);
+
+  if (error || !data) {
+    console.error("Failed to load blog articles", error);
+    const filtered = filterArticles(fallbackArticles, query);
+    return createPageResult(filtered.slice(from, to + 1), filtered.length, page, pageSize);
+  }
+
+  return createPageResult(
+    data.map((row) => mapArticleRow(row as BlogArticleRow)),
+    count ?? data.length,
+    page,
+    pageSize,
+  );
+}
+
+export async function getBlogArticleFacets() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) return createFacets(fallbackArticles);
+
+  const { data, error } = await supabase
+    .from("blog_articles")
+    .select("category,tags")
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Failed to load blog facets", error);
+    return createFacets(fallbackArticles);
+  }
+
+  return createFacets(
+    data.map((row) => ({
+      category: typeof row.category === "string" ? row.category : "guide",
+      tags: normalizeTags(row.tags, "", typeof row.category === "string" ? row.category : "guide"),
+    })),
+  );
 }
 
 export async function getBlogArticleBySlug(slug: string) {
@@ -106,6 +184,7 @@ export async function appendBlogArticle(article: Omit<BlogArticle, "id">) {
     excerpt: article.excerpt,
     keyword: article.keyword,
     category: article.category,
+    tags: article.tags,
     image_url: article.imageUrl,
     reading_minutes: article.readingMinutes,
     published_at: article.publishedAt,
@@ -121,7 +200,20 @@ export async function appendBlogArticle(article: Omit<BlogArticle, "id">) {
   return { skipped: false, slug: article.slug };
 }
 
+function createPageResult(articles: BlogArticle[], total: number, page: number, pageSize: number) {
+  return {
+    articles,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
 function mapArticleRow(row: BlogArticleRow): BlogArticle {
+  const blocks = normalizeBlocks(row.blocks);
+  const firstInlineImageUrl = blocks.find((block) => block.visual?.imageUrl)?.visual?.imageUrl;
+
   return {
     id: row.id,
     slug: row.slug,
@@ -129,7 +221,9 @@ function mapArticleRow(row: BlogArticleRow): BlogArticle {
     excerpt: row.excerpt,
     keyword: row.keyword,
     category: row.category,
+    tags: normalizeTags(row.tags, row.keyword, row.category),
     imageUrl:
+      firstInlineImageUrl ??
       row.image_url ??
       "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1400&auto=format&fit=crop",
     readingMinutes: row.reading_minutes ?? 5,
@@ -137,8 +231,31 @@ function mapArticleRow(row: BlogArticleRow): BlogArticle {
     updatedAt: row.updated_at ?? row.published_at,
     articleSource: row.article_source ?? "unknown",
     keywordSource: row.keyword_source ?? "unknown",
-    blocks: normalizeBlocks(row.blocks),
+    blocks,
     metadata: row.metadata ?? {},
+  };
+}
+
+function filterArticles(articles: BlogArticle[], query: BlogArticleQuery) {
+  return articles.filter((article) => {
+    if (query.category && article.category !== query.category) return false;
+    if (query.tag && !article.tags.includes(query.tag)) return false;
+    return true;
+  });
+}
+
+function createFacets(articles: Array<{ category: string; tags: string[] }>) {
+  const categoryCounts = new Map<string, number>();
+  const tagCounts = new Map<string, number>();
+
+  for (const article of articles) {
+    categoryCounts.set(article.category, (categoryCounts.get(article.category) ?? 0) + 1);
+    for (const tag of article.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
+
+  return {
+    categories: Array.from(categoryCounts, ([id, count]) => ({ id, count })),
+    tags: Array.from(tagCounts, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
   };
 }
 
@@ -186,4 +303,14 @@ function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined
     alt: typeof candidate.alt === "string" ? candidate.alt : undefined,
     caption: typeof candidate.caption === "string" ? candidate.caption : undefined,
   };
+}
+
+function normalizeTags(value: unknown, keyword: string, category: string) {
+  const tags = Array.isArray(value)
+    ? value.filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0).map((tag) => tag.trim())
+    : [];
+
+  if (tags.length > 0) return Array.from(new Set(tags));
+
+  return Array.from(new Set([keyword, categoryTagById[category]].filter(Boolean)));
 }

@@ -77,18 +77,18 @@ export function LoginForm() {
 
   return (
     <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-      <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#202020] p-1">
+      <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#f3efe7] p-1">
         <button
           type="button"
           onClick={() => setMode("sign-in")}
-          className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "sign-in" ? "bg-[#e4572e] text-white" : "text-[#c8c8cc]"}`}
+          className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "sign-in" ? "bg-[#e4572e] text-white" : "text-[#3c4941]"}`}
         >
           ログイン
         </button>
         <button
           type="button"
           onClick={() => setMode("sign-up")}
-          className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "sign-up" ? "bg-[#e4572e] text-white" : "text-[#c8c8cc]"}`}
+          className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "sign-up" ? "bg-[#e4572e] text-white" : "text-[#3c4941]"}`}
         >
           新規登録
         </button>
@@ -100,7 +100,7 @@ export function LoginForm() {
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-2 w-full rounded-lg border border-white/10 bg-[#202020] px-3 py-3 outline-none"
+          className="mt-2 w-full rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none"
           placeholder="you@example.com"
           required
         />
@@ -112,7 +112,7 @@ export function LoginForm() {
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-2 w-full rounded-lg border border-white/10 bg-[#202020] px-3 py-3 outline-none"
+          className="mt-2 w-full rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none"
           placeholder="8文字以上"
           minLength={8}
           required
@@ -132,14 +132,14 @@ export function LoginForm() {
         type="button"
         onClick={handleMagicLink}
         disabled={isLoading || !email}
-        className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-4 py-3 text-sm font-bold text-[#d4d4d8] disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#ded6ca] px-4 py-3 text-sm font-bold text-[#4e5b52] disabled:opacity-50"
       >
         <Mail size={18} />
         メールリンクでログイン
       </button>
 
       {message ? (
-        <p className="rounded-lg bg-[#1c241f] px-3 py-2 text-sm font-semibold text-[#d4d4d8]">
+        <p className="rounded-lg bg-[#eef7ee] px-3 py-2 text-sm font-semibold text-[#4e5b52]">
           {message}
         </p>
       ) : null}

@@ -76,8 +76,8 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
   if (!post) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#090909] p-6 text-[#f4f4f5]">
-        <div className="rounded-lg border border-white/10 bg-[#151515] p-8 text-center">
+      <main className="grid min-h-screen place-items-center bg-[#f7f3ed] p-6 text-[#122018]">
+        <div className="rounded-lg border border-[#ded6ca] bg-white p-8 text-center">
           <h1 className="text-2xl font-bold">投稿が見つかりません</h1>
           <Link href="/" className="mt-5 inline-flex rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white">
             一覧に戻る
@@ -88,9 +88,9 @@ export default async function PostDetail({ params }: PostDetailProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#090909] text-[#f4f4f5]">
+    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#c8c8cc] hover:text-white">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941] hover:text-[#122018]">
           <ArrowLeft size={17} />
           一覧に戻る
         </Link>
@@ -99,15 +99,13 @@ export default async function PostDetail({ params }: PostDetailProps) {
           <PostImageGallery images={post.images} title={post.title} />
 
           <aside className="grid h-fit gap-4 lg:sticky lg:top-6">
-            <div className="rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm">
+            <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="rounded-lg bg-[#e4572e] px-3 py-1.5 text-sm font-black text-white">
-                  {scaleLabels[post.scale]}
-                </span>
-                <span className="text-sm font-bold text-[#a1a1aa]">写真 {post.images.length}枚</span>
+                <span className="rounded-lg bg-[#e4572e] px-3 py-1.5 text-sm font-black text-white">{scaleLabels[post.scale]}</span>
+                <span className="text-sm font-bold text-[#69756d]">写真 {post.images.length}枚</span>
               </div>
               <h1 className="mt-4 text-3xl font-black leading-tight tracking-normal sm:text-4xl">{post.title}</h1>
-              <p className="mt-4 leading-8 text-[#d4d4d8]">{post.summary || "説明はまだありません。"}</p>
+              <p className="mt-4 leading-8 text-[#4e5b52]">{post.summary || "説明はまだありません。"}</p>
             </div>
 
             <AuthorCard post={post} />
@@ -120,7 +118,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-          <div className="rounded-lg border border-white/10 bg-[#151515] p-5">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <Tags size={20} />
               器具カテゴリ
@@ -128,30 +126,27 @@ export default async function PostDetail({ params }: PostDetailProps) {
             <div className="mt-4 flex flex-wrap gap-2">
               {post.gear.length ? (
                 post.gear.map((item) => (
-                  <span
-                    key={`${item.category}-${item.name}`}
-                    className="rounded-lg border border-white/10 bg-[#202020] px-3 py-2 text-sm font-bold text-[#d4d4d8]"
-                  >
+                  <span key={`${item.category}-${item.name}`} className="rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-bold text-[#4e5b52]">
                     {item.name}
                   </span>
                 ))
               ) : (
-                <p className="text-sm font-semibold text-[#a1a1aa]">カテゴリは未設定です。</p>
+                <p className="text-sm font-semibold text-[#69756d]">カテゴリは未設定です。</p>
               )}
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-[#151515] p-5">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
             <h2 className="text-xl font-bold">タグ</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.length ? (
                 post.tags.map((tag) => (
-                  <span key={tag} className="rounded-lg bg-[#202020] px-3 py-2 text-sm font-semibold text-[#c8c8cc]">
+                  <span key={tag} className="rounded-lg bg-[#f3efe7] px-3 py-2 text-sm font-semibold text-[#3c4941]">
                     {tag}
                   </span>
                 ))
               ) : (
-                <p className="text-sm font-semibold text-[#a1a1aa]">タグは未設定です。</p>
+                <p className="text-sm font-semibold text-[#69756d]">タグは未設定です。</p>
               )}
             </div>
           </div>
@@ -163,8 +158,8 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
 function AuthorCard({ post }: { post: HomeGymPost }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#151515] p-5">
-      <p className="text-sm font-bold text-[#a1a1aa]">投稿者</p>
+    <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
+      <p className="text-sm font-bold text-[#69756d]">投稿者</p>
       <div className="mt-3 flex items-center gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-black text-white">
           {post.ownerAvatarUrl ? (
@@ -185,12 +180,12 @@ function AuthorCard({ post }: { post: HomeGymPost }) {
 function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
   const links = [
     { key: "instagram", label: "Instagram", href: sns.instagram, icon: <InstagramIcon />, className: "text-[#e4405f]" },
-    { key: "x", label: "X", href: sns.x, icon: <XIcon />, className: "text-white" },
+    { key: "x", label: "X", href: sns.x, icon: <XIcon />, className: "text-black" },
     { key: "tiktok", label: "TikTok", href: sns.tiktok, icon: <TikTokIcon />, className: "" },
   ].filter((item): item is (typeof item) & { href: string } => Boolean(item.href));
 
   if (!links.length) {
-    return <p className="mt-1 text-sm font-semibold text-[#71717a]">SNSリンク未設定</p>;
+    return <p className="mt-1 text-sm font-semibold text-[#7a817b]">SNSリンク未設定</p>;
   }
 
   return (
@@ -202,7 +197,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
           target="_blank"
           rel="noreferrer"
           aria-label={item.label}
-          className={`grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-[#202020] hover:border-[#e4572e] ${item.className}`}
+          className={`grid h-9 w-9 place-items-center rounded-lg border border-[#ded6ca] bg-[#f3efe7] hover:border-[#e4572e] ${item.className}`}
         >
           {item.icon}
         </a>
@@ -233,7 +228,7 @@ function TikTokIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[21px] w-[21px]" fill="none">
       <path d="M15.9 3.8c.3 2.3 1.7 3.6 4 3.9v2.8c-1.4.1-2.6-.3-3.9-1v5.4c0 6.8-7.5 8.9-10.5 4-1.9-3.1-.7-8.7 5.5-8.9v3.1c-.5.1-.9.2-1.4.4-1.4.6-2.1 1.9-1.7 3.2.7 2.6 5 2.1 4.7-1.6V3.8h3.3Z" fill="#25F4EE" />
-      <path d="M14.8 3c.3 2.4 1.7 3.9 4.1 4.1v3.2c-1.4.1-2.7-.3-4-1.1V15c0 7.3-8 9.6-11.2 4.3-2.1-3.4-.8-9.4 5.9-9.6v3.4c-.5.1-1 .2-1.5.4-1.5.6-2.3 2-1.9 3.5.8 2.8 5.4 2.3 5-1.7V3h3.6Z" fill="#fff" />
+      <path d="M14.8 3c.3 2.4 1.7 3.9 4.1 4.1v3.2c-1.4.1-2.7-.3-4-1.1V15c0 7.3-8 9.6-11.2 4.3-2.1-3.4-.8-9.4 5.9-9.6v3.4c-.5.1-1 .2-1.5.4-1.5.6-2.3 2-1.9 3.5.8 2.8 5.4 2.3 5-1.7V3h3.6Z" fill="#111111" />
       <path d="M17.6 7.4c.4.1.8.2 1.3.2v2.8c-1.4.1-2.7-.3-4-1.1v.7c.8.5 1.7.7 2.7.8V7.4ZM9.6 9.8v3.4c-.5.1-1 .2-1.5.4-.8.3-1.4.9-1.7 1.5-.2-2.8 1.2-5.1 3.2-5.3Z" fill="#FE2C55" />
     </svg>
   );
@@ -241,8 +236,8 @@ function TikTokIcon() {
 
 function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#151515] p-3">
-      <p className="flex items-center gap-1 text-xs font-bold text-[#a1a1aa]">
+    <div className="rounded-lg border border-[#ded6ca] bg-white p-3">
+      <p className="flex items-center gap-1 text-xs font-bold text-[#69756d]">
         {icon}
         {label}
       </p>

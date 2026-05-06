@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps) {
   return {
     title: article.title,
     description: article.excerpt,
-    keywords: [...baseSeoKeywords, article.keyword, article.category, "ホームジム ブログ"],
+    keywords: [...baseSeoKeywords, article.keyword, article.category, "ホームジム お助け記事"],
     alternates: {
       canonical: absoluteUrl(`/blog/${article.slug}`),
     },
@@ -57,36 +57,25 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   if (!article) notFound();
 
   return (
-    <main className="min-h-screen bg-[#090909] text-[#f4f4f5]">
+    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-[#c8c8cc]">
+        <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
           <ArrowLeft size={17} />
-          ブログ一覧へ
+          ホームジムお助け記事へ
         </Link>
 
-        <article className="mt-6 overflow-hidden rounded-lg border border-white/10 bg-[#151515] shadow-sm">
-          <div className="relative aspect-[16/9] bg-[#202020]">
-            <Image
-              src={article.imageUrl}
-              alt={article.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 896px) 100vw, 896px"
-              priority
-            />
-          </div>
-
+        <article className="mt-6 overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm">
           <div className="p-5 sm:p-8">
-            <div className="flex flex-wrap gap-2 text-xs font-bold text-[#a1a1aa]">
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#202020] px-2 py-1">
+            <div className="flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
                 <Tag size={14} />
                 {article.keyword}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#202020] px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
                 <CalendarDays size={14} />
                 {dateFormatter.format(new Date(article.publishedAt))}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#202020] px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
                 <Clock size={14} />
                 {article.readingMinutes}分
               </span>
@@ -95,7 +84,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             <h1 className="mt-4 text-3xl font-bold leading-tight tracking-normal sm:text-5xl">
               {article.title}
             </h1>
-            <p className="mt-5 text-lg leading-9 text-[#d4d4d8]">{article.excerpt}</p>
+            <p className="mt-5 text-lg leading-9 text-[#4e5b52]">{article.excerpt}</p>
 
             <div className="mt-8 grid gap-8">
               {article.blocks.map((block) => (
@@ -103,7 +92,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                   <h2 className="border-l-4 border-[#e4572e] pl-3 text-2xl font-bold leading-tight">
                     {block.heading}
                   </h2>
-                  <div className="mt-4 grid gap-4 text-base leading-8 text-[#d4d4d8]">
+                  <div className="mt-4 grid gap-4 text-base leading-8 text-[#4e5b52]">
                     {block.paragraphs.map((paragraph) => (
                       <p key={paragraph}>{paragraph}</p>
                     ))}

@@ -1,8 +1,8 @@
 ﻿@import "tailwindcss";
 
 :root {
-  --background: #090909;
-  --foreground: #f4f4f5;
+  --background: #f7f3ed;
+  --foreground: #122018;
 }
 
 @theme inline {
@@ -10,6 +10,10 @@
   --color-foreground: var(--foreground);
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+html {
+  background: var(--background);
 }
 
 body {

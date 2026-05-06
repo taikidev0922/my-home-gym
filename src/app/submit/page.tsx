@@ -15,13 +15,13 @@ export default async function SubmitPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#090909] px-4 py-6 text-[#f4f4f5] sm:px-6">
+    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#122018] sm:px-6">
       <div className="mx-auto max-w-4xl">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#c8c8cc]">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
           <ArrowLeft size={17} />
           一覧に戻る
         </Link>
-        <div className="mt-6 rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm sm:p-7">
+        <div className="mt-6 rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm sm:p-7">
           <div>
             <h1 className="text-3xl font-bold">ホームジムを投稿</h1>
           </div>

@@ -25,14 +25,14 @@ export default async function MyPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-[#090909] px-4 py-6 text-[#f4f4f5] sm:px-6">
+    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#122018] sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#c8c8cc]">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
           <ArrowLeft size={17} />
           一覧に戻る
         </Link>
 
-        <section className="mt-6 rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm sm:p-7">
+        <section className="mt-6 rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm sm:p-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-2xl font-bold text-white">
               {profile.avatarUrl ? (
@@ -44,18 +44,18 @@ export default async function MyPage() {
             <div>
               <p className="text-sm font-bold text-[#e4572e]">マイページ</p>
               <h1 className="text-3xl font-bold">{profile.displayName}</h1>
-              <p className="mt-1 text-sm text-[#a1a1aa]">{user.email}</p>
+              <p className="mt-1 text-sm text-[#69756d]">{user.email}</p>
             </div>
           </div>
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <Settings size={20} />
               プロフィール・SNS設定
             </h2>
-            <p className="mt-2 text-sm leading-6 text-[#a1a1aa]">
+            <p className="mt-2 text-sm leading-6 text-[#69756d]">
               投稿詳細やカードに表示する名前、アイコン、SNSリンクを設定できます。
             </p>
             <div className="mt-5">
@@ -89,8 +89,8 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm">
-      <p className="flex items-center gap-2 text-sm font-bold text-[#a1a1aa]">{icon}{label}</p>
+    <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
+      <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">{icon}{label}</p>
       <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
@@ -108,12 +108,12 @@ function PostList({
   posts: HomeGymPost[];
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-[#151515] p-5 shadow-sm">
+    <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-sm font-semibold text-[#a1a1aa]">{description}</p>
+      <p className="mt-1 text-sm font-semibold text-[#69756d]">{description}</p>
       <div className="mt-4 grid gap-3">
         {posts.length ? posts.map((post) => <MiniPost key={post.id} post={post} />) : (
-          <p className="rounded-lg bg-[#202020] p-4 text-sm font-semibold text-[#a1a1aa]">{empty}</p>
+          <p className="rounded-lg bg-[#f3efe7] p-4 text-sm font-semibold text-[#69756d]">{empty}</p>
         )}
       </div>
     </div>
@@ -122,13 +122,13 @@ function PostList({
 
 function MiniPost({ post }: { post: HomeGymPost }) {
   return (
-    <Link href={`/posts/${post.slug}`} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-white/10 p-2 hover:bg-[#202020]">
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#202020]">
+    <Link href={`/posts/${post.slug}`} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#ded6ca] p-2 hover:bg-[#eee8df]">
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#f3efe7]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="88px" />
       </div>
       <div className="min-w-0 py-1">
         <p className="truncate font-bold">{post.title}</p>
-        <p className="mt-1 text-sm text-[#a1a1aa]">{formatTatami(post.areaTatami)} / {post.budget.toLocaleString("ja-JP")}円</p>
+        <p className="mt-1 text-sm text-[#69756d]">{formatTatami(post.areaTatami)} / {post.budget.toLocaleString("ja-JP")}円</p>
         <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#e4572e]">
           詳細を見る
           <ExternalLink size={13} />

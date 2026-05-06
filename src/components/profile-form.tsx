@@ -83,7 +83,7 @@ export function ProfileForm({
       <Field name="displayName" label="表示名" defaultValue={profile.displayName} placeholder="Ken / Strength Log" />
       <label className="block">
         <span className="text-sm font-bold">アイコン画像</span>
-        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-white/10 bg-[#202020] p-3 sm:flex-row sm:items-center">
+        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-3 sm:flex-row sm:items-center">
           <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-bold text-white">
             {avatarPreview || avatarUrl ? (
               <Image src={avatarPreview || avatarUrl} alt={profile.displayName} width={64} height={64} className="h-full w-full object-cover" />
@@ -92,7 +92,7 @@ export function ProfileForm({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#d4d4d8]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#4e5b52]">
               <ImagePlus size={17} />
               画像をアップロード
             </div>
@@ -113,7 +113,7 @@ export function ProfileForm({
         <Save size={17} />
         {isSaving ? "保存中..." : "保存する"}
       </button>
-      {message ? <p className="rounded-lg bg-[#1c241f] px-3 py-2 text-sm font-semibold text-[#d4d4d8]">{message}</p> : null}
+      {message ? <p className="rounded-lg bg-[#eef7ee] px-3 py-2 text-sm font-semibold text-[#4e5b52]">{message}</p> : null}
     </form>
   );
 
@@ -144,7 +144,7 @@ function Field({
       <input
         name={name}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-lg border border-white/10 bg-[#202020] px-3 py-3 outline-none"
+        className="mt-2 w-full rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none"
         placeholder={placeholder}
       />
     </label>

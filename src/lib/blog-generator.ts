@@ -29,24 +29,25 @@ export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise
       ? (await generateWithClaude(keyword)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
       : createFallbackArticle(keyword, "fallback");
 
-  const imageUrl = await generateAndStoreBlogImage(article, "hero");
   const blocks = await generateAndAttachInlineVisuals(article);
   const inlineVisualCount = blocks.filter((block) => block.visual?.imageUrl).length;
+  const firstInlineImageUrl = blocks.find((block) => block.visual?.imageUrl)?.visual?.imageUrl;
 
-  if (requiresGeneratedImages() && (!imageUrl || inlineVisualCount === 0)) {
+  if (requiresGeneratedImages() && inlineVisualCount < 2) {
     throw new Error(
-      "Generated blog images are required, but gpt-image generation did not produce a hero image and inline visual image.",
+      "Generated blog images are required, but gpt-image generation did not produce two inline visual images.",
     );
   }
 
   return {
     ...article,
     blocks,
-    imageUrl: imageUrl ?? article.imageUrl,
+    tags: article.tags.length ? article.tags : createArticleTags(keyword.keyword, article.category),
+    imageUrl: firstInlineImageUrl ?? article.imageUrl,
     metadata: {
       ...article.metadata,
       imageModel: imageModel(),
-      imageSource: imageUrl ? imageModel() : "fallback",
+      imageSource: firstInlineImageUrl ? `${imageModel()} inline visual` : "fallback",
       inlineVisualCount,
     },
   };
@@ -93,7 +94,7 @@ async function generateWithClaude(keyword: KeywordCandidate) {
 
 async function generateAndStoreBlogImage(
   article: Omit<BlogArticle, "id">,
-  variant: "hero" | "inline",
+  variant: "inline",
   visual?: NonNullable<BlogArticleBlock["visual"]>,
 ) {
   if (!openAiApiKey()) {
@@ -110,7 +111,7 @@ async function generateAndStoreBlogImage(
       },
       body: JSON.stringify({
         model: imageModel(),
-        prompt: variant === "hero" ? buildHeroImagePrompt(article) : buildInlineVisualPrompt(article, visual),
+        prompt: buildInlineVisualPrompt(article, visual),
         quality: OPENAI_IMAGE_QUALITY,
         n: 1,
       }),
@@ -187,7 +188,6 @@ async function uploadBlogImage(slug: string, base64: string) {
 
 function buildArticlePrompt(keyword: KeywordCandidate) {
   return `あなたは日本語のホームジム専門メディア「みんなのホームジム」の編集者です。
-
 検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 
@@ -195,7 +195,7 @@ function buildArticlePrompt(keyword: KeywordCandidate) {
 - これから自宅にトレーニングスペースを作る人向けに書く
 - 広さ、予算、器具、床材、防音、安全性、購入前の確認ポイントを具体的に含める
 - パワーラック、可変式ダンベル、ベンチ、マットなど必要に応じて触れる
-- アフィリエイト商品比較に自然につながるが、露骨な販売文にしない
+- アフィリエイト商品比較に自然につながるが、過剰な販売文にしない
 - 本文は日本語
 - 誇張、医療効果、断定的な安全保証は避ける
 - JSONだけを返す。Markdownや説明文は不要
@@ -213,7 +213,7 @@ JSON形式:
       "visual": {
         "title": "図表タイトル",
         "kind": "diagram | table | checklist | comparison",
-        "brief": "この記事の内容に合わせた図表の具体的な中身。数値、比較軸、チェック項目、配置を具体的に書く",
+        "brief": "この記事内容に合う図表の具体的な中身。数値、比較軸、チェック項目、配置を具体的に書く",
         "alt": "画像の代替テキスト",
         "caption": "画像下に表示する短い補足"
       }
@@ -221,18 +221,7 @@ JSON形式:
   ]
 }
 
-blocksは4から6個、各paragraphsは1から2段落にしてください。
-visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。
-visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。`;
-}
-
-function buildHeroImagePrompt(article: Omit<BlogArticle, "id">) {
-  return `Photorealistic editorial hero image for a Japanese home gym blog.
-Theme: ${article.keyword}
-Article title: ${article.title}
-Category: ${article.category}
-
-Create a realistic, tidy home training space that fits the theme. Show practical details such as floor mats, compact storage, adjustable dumbbells, bench, rack, or resistance bands when relevant. Natural daylight, modern Japanese apartment or garage feeling, clean composition, no people, no logos, no readable text, no brand names, no watermarks. Wide horizontal composition for a blog hero image.`;
+blocksは4から6個、各paragraphsは1から2段落にしてください。visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。`;
 }
 
 function buildInlineVisualPrompt(
@@ -285,6 +274,7 @@ function normalizeGeneratedArticle(keyword: KeywordCandidate, payload: ClaudeArt
     excerpt,
     keyword: keyword.keyword,
     category,
+    tags: createArticleTags(keyword.keyword, category),
     imageUrl: imageForCategory(category),
     readingMinutes: Number(payload.readingMinutes) || estimateReadingMinutes(blocks),
     publishedAt: now,
@@ -306,7 +296,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
   const title = `${keyword.keyword}で考えるホームジム作りの現実的な手順`;
   const blocks: BlogArticleBlock[] = [
     {
-      heading: "まずは置ける面積を測る",
+      heading: "まずは置ける広さを測る",
       paragraphs: [
         "ホームジム作りでは、器具より先に部屋の広さと動線を確認します。マットだけなら1畳前後でも始められますが、ベンチやラックを置くなら周囲に移動できる余白が必要です。",
         "パワーラックやハーフラックは高さも重要です。天井、照明、エアコン、扉の開閉位置まで確認してから候補を絞ると、購入後の失敗を減らせます。",
@@ -322,7 +312,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
         kind: "comparison",
         brief:
           "省スペース構成、ダンベル中心構成、ラック構成の3列比較。器具本体、床材、防音、配送や追加小物を含めて、予算を見るべき範囲を示す。",
-        alt: "ホームジムの初期費用を構成別に比較した図",
+        alt: "ホームジムの初期費用を構成別に比較した表",
         caption: "本体価格だけでなく床材や防音も含めて見ると予算感がつかみやすくなります。",
       },
     },
@@ -330,13 +320,13 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
       heading: "最初の器具は種目から逆算する",
       paragraphs: [
         "ベンチプレス、スクワット、懸垂をやりたいならラック系が候補になります。ダンベルプレス、ローイング、ショルダープレスを中心にするなら可変式ダンベルとベンチでも十分に組めます。",
-        "省スペース派はマット、チューブ、アブローラー、折りたたみベンチのように収納しやすいものから始めると続けやすくなります。",
+        "省スペース派はマット、チューブ、折りたたみベンチのように収納しやすいものから始めると続けやすくなります。",
       ],
       visual: {
         title: "種目から逆算する器具選び",
         kind: "diagram",
         brief:
-          "やりたい種目から必要器具へつながるフローチャート。ベンチプレス、スクワット、懸垂はラック系、ダンベルプレスやローイングは可変式ダンベルとベンチ、省スペース運動はマットとチューブへ分岐。",
+          "やりたい種目から必要器具へつながるフローチャート。ベンチプレス、スクワット、懸垂はラック系、ダンベルプレスやローイングは可変式ダンベルとベンチ、有酸素や省スペース運動はマットとチューブへ分岐。",
         alt: "トレーニング種目から必要なホームジム器具を選ぶフローチャート",
         caption: "先に種目を決めると、買うべき器具の優先順位が整理できます。",
       },
@@ -344,7 +334,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     {
       heading: "写真付き投稿で近い条件を比較する",
       paragraphs: [
-        "同じ予算でも、賃貸、戸建て、ガレージ、ワンルームでは最適解が変わります。広さ、費用、器具構成が近い投稿を比較すると、自分の家で再現できるか判断しやすくなります。",
+        "同じ予算でも、賃貸、戸建て、ガレージ、ワンルームでは最適解が変わります。広さ、費用、器具カテゴリが近い投稿を比較すると、自分の家で再現できるか判断しやすくなります。",
       ],
     },
   ];
@@ -355,6 +345,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     excerpt: `${keyword.keyword}をテーマに、広さ、予算、器具選び、床材までホームジム作りの判断ポイントを整理します。`,
     keyword: keyword.keyword,
     category,
+    tags: createArticleTags(keyword.keyword, category),
     imageUrl: imageForCategory(category),
     readingMinutes: estimateReadingMinutes(blocks),
     publishedAt: now,
@@ -452,6 +443,19 @@ function normalizeCategory(category: string) {
 
 function imageForCategory(category: string) {
   return fallbackImages[normalizeCategory(category)] ?? fallbackImages.guide;
+}
+
+function createArticleTags(keyword: string, category: string) {
+  const categoryTagById: Record<string, string> = {
+    guide: "作り方",
+    rack: "パワーラック",
+    dumbbell: "可変式ダンベル",
+    bench: "ベンチ",
+    floor: "床材・防音",
+    compact: "省スペース",
+  };
+  const candidates = [keyword, categoryTagById[normalizeCategory(category)]].filter(Boolean);
+  return Array.from(new Set(candidates)).slice(0, 5);
 }
 
 function imageModel() {

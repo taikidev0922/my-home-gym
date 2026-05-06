@@ -19,7 +19,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-[#151515] text-left ring-1 ring-white/10"
+          className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-white text-left ring-1 ring-[#ded6ca]"
         >
           <Image src={activeImage} alt={title} fill priority className="object-cover transition duration-300 group-hover:scale-[1.02]" sizes="(max-width: 1024px) 100vw, 58vw" />
           <span className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-lg bg-black/75 px-3 py-2 text-sm font-bold text-white">
@@ -35,8 +35,8 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
                 key={`${image}-${index}`}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-[#151515] ring-1 ${
-                  activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-white/10"
+                className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-white ring-1 ${
+                  activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-[#ded6ca]"
                 }`}
                 aria-label={`${index + 1}枚目の写真を表示`}
               >
@@ -52,7 +52,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20"
+            className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
             aria-label="閉じる"
           >
             <X size={22} />
@@ -62,7 +62,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               <button
                 type="button"
                 onClick={() => move(-1)}
-                className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20"
+                className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
                 aria-label="前の写真"
               >
                 <ChevronLeft size={24} />
@@ -70,7 +70,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               <button
                 type="button"
                 onClick={() => move(1)}
-                className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20"
+                className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
                 aria-label="次の写真"
               >
                 <ChevronRight size={24} />
