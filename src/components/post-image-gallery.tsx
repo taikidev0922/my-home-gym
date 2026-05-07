@@ -15,27 +15,27 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
 
   return (
     <>
-      <div className="grid gap-3">
+      <div className="min-w-0 grid gap-2 sm:gap-3">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-white text-left ring-1 ring-[#ded6ca]"
+          className="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-white text-left ring-1 ring-[#ded6ca]"
         >
           <Image src={activeImage} alt={title} fill priority className="object-cover transition duration-300 group-hover:scale-[1.02]" sizes="(max-width: 1024px) 100vw, 58vw" />
-          <span className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-lg bg-black/75 px-3 py-2 text-sm font-bold text-white">
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs font-bold text-white sm:bottom-4 sm:right-4 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
             <Maximize2 size={16} />
             拡大
           </span>
         </button>
 
         {images.length > 1 ? (
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+          <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
             {images.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-white ring-1 ${
+                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-white ring-1 sm:h-auto sm:w-auto sm:aspect-[4/3] ${
                   activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-[#ded6ca]"
                 }`}
                 aria-label={`${index + 1}枚目の写真を表示`}
@@ -48,11 +48,11 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
       </div>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/90 p-4">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/90 p-2 sm:p-4">
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
+            className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:right-4 sm:top-4 sm:h-11 sm:w-11"
             aria-label="閉じる"
           >
             <X size={22} />
@@ -62,7 +62,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               <button
                 type="button"
                 onClick={() => move(-1)}
-                className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
+                className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:left-4 sm:h-11 sm:w-11"
                 aria-label="前の写真"
               >
                 <ChevronLeft size={24} />
@@ -70,14 +70,14 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               <button
                 type="button"
                 onClick={() => move(1)}
-                className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70"
+                className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:right-4 sm:h-11 sm:w-11"
                 aria-label="次の写真"
               >
                 <ChevronRight size={24} />
               </button>
             </>
           ) : null}
-          <div className="relative h-[82vh] w-full max-w-6xl">
+          <div className="relative h-[78vh] w-full max-w-6xl sm:h-[82vh]">
             <Image src={activeImage} alt={title} fill className="object-contain" sizes="100vw" />
           </div>
           <p className="mt-4 text-sm font-bold text-white/70">

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bookmark,
   Camera,
@@ -15,13 +15,14 @@ import {
   Heart,
   LayoutGrid,
   LayoutList,
+  Menu,
   Ruler,
   Search,
   SlidersHorizontal,
   Trophy,
   WalletCards,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { formatTatami } from "@/lib/area";
 import { scaleLabels } from "@/lib/gym-data";
 import type { PostSearchFilters } from "@/lib/gym-repository";
@@ -65,6 +66,7 @@ export function HomeGymExplorer({
   initialFilters: PostSearchFilters;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialFilters.query ?? "");
   const [scale, setScale] = useState<"all" | GymScale>(initialFilters.scale ?? "all");
   const [maxBudget, setMaxBudget] = useState(initialFilters.maxBudget ?? BUDGET_FILTER_MAX);
@@ -73,10 +75,23 @@ export function HomeGymExplorer({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(Boolean(initialFilters.categories?.length));
   const [viewMode, setViewMode] = useState<ViewMode>("detail");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [isSearchPending, startSearchTransition] = useTransition();
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const searchRequestedRef = useRef(false);
   const totalPages = Math.max(1, Math.ceil(totalPosts / perPage));
   const startIndex = totalPosts === 0 ? 0 : (page - 1) * perPage + 1;
   const endIndex = Math.min(totalPosts, page * perPage);
+  const isSearching = isSearchPending || isSearchLoading;
+
+  useEffect(() => {
+    if (!isSearchPending && searchRequestedRef.current) {
+      searchRequestedRef.current = false;
+      setIsSearchLoading(false);
+      setIsFilterOpen(false);
+    }
+  }, [isSearchPending, posts, searchParams, totalPosts]);
 
   function toggleGear(id: string) {
     setSelectedGear((current) =>
@@ -102,10 +117,16 @@ export function HomeGymExplorer({
   }
 
   function handleSearch() {
+    if (isSearching) return;
+
     const params = buildSearchParams();
     const search = params.toString();
-    router.push(search ? `/?${search}#feed` : "/#feed");
+    searchRequestedRef.current = true;
+    setIsSearchLoading(true);
     setIsFilterOpen(false);
+    startSearchTransition(() => {
+      router.push(search ? `/?${search}#feed` : "/#feed");
+    });
   }
 
   function handlePageChange(nextPage: number) {
@@ -131,7 +152,7 @@ export function HomeGymExplorer({
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
-      <header className="sticky top-0 z-30 border-b border-[#ded6ca] bg-[#f7f3ed]/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-[#ded6ca] bg-[#f7f3ed]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -173,17 +194,47 @@ export function HomeGymExplorer({
                 ログイン
               </Link>
             )}
-            <Link href="/submit" onClick={handleSubmitNav} className="inline-flex items-center gap-2 rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-semibold text-white shadow-sm">
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((value) => !value)}
+              className="grid h-10 w-10 place-items-center rounded-lg border border-[#ded6ca] bg-white text-[#122018] md:hidden"
+              aria-label="メニュー"
+              aria-expanded={isMenuOpen}
+            >
+              <Menu size={20} />
+            </button>
+            <Link href="/submit" onClick={handleSubmitNav} className="hidden items-center gap-2 rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-semibold text-white shadow-sm sm:inline-flex">
               <Camera size={16} />
               投稿
             </Link>
           </div>
         </div>
+        {isMenuOpen ? (
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[1px] md:hidden"
+              aria-label="メニューを閉じる"
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <nav className="fixed right-4 top-16 z-50 grid w-[min(280px,calc(100vw-2rem))] gap-1 rounded-2xl border border-[#ded6ca] bg-white p-2 text-sm font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
+            <a href="#feed" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+              みんなのホームジム
+            </a>
+            <Link href="/rankings" className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+              器具ランキング
+            </Link>
+            <Link href="/blog" className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+              ホームジムお助け記事
+            </Link>
+            </nav>
+          </>
+        ) : null}
       </header>
 
-      <section className="mx-auto max-w-7xl px-4 pb-2 pt-3 sm:px-6 sm:pb-3 sm:pt-6">
-        <div className="border-b border-[#ded6ca] pb-3 sm:pb-5">
-          <nav className="flex items-center gap-1.5 md:hidden">
+      <section className="mx-auto max-w-7xl px-4 pb-1 pt-2 sm:px-6 sm:pb-3 sm:pt-6">
+        <div className="pb-1 sm:border-b sm:border-[#ded6ca] sm:pb-5">
+          <nav className="hidden">
             <a href="#feed" className="shrink-0 whitespace-nowrap rounded-lg bg-[#e4572e] px-2.5 py-2 text-center text-[11px] font-bold leading-none text-white">
               みんなのホームジム
             </a>
@@ -194,14 +245,14 @@ export function HomeGymExplorer({
               ホームジムお助け記事
             </Link>
           </nav>
-          <h1 className="hidden text-2xl font-bold leading-tight tracking-normal sm:text-4xl md:block">
-            みんなとホームジムを共有しよう
+          <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-4xl">
+            みんなでホームジムを共有しよう
           </h1>
         </div>
       </section>
 
       <section id="feed" className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
-        <aside className="h-fit rounded-lg border border-[#ded6ca] bg-white p-3 shadow-sm sm:p-4 lg:sticky lg:top-20">
+        <aside className="h-fit rounded-lg border border-[#ded6ca] bg-white px-3 py-2 shadow-sm sm:p-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-bold">
               <Filter size={18} />
@@ -210,7 +261,7 @@ export function HomeGymExplorer({
             <button
               type="button"
               onClick={() => setIsFilterOpen((value) => !value)}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-[#ded6ca] text-[#3c4941] lg:hidden"
+              className="grid h-8 w-8 place-items-center rounded-lg border border-[#ded6ca] text-[#3c4941] lg:hidden"
               aria-expanded={isFilterOpen}
               aria-label="検索条件を開閉"
             >
@@ -323,9 +374,22 @@ export function HomeGymExplorer({
             <button
               type="button"
               onClick={handleSearch}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#e4572e] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#f05f35]"
+              disabled={isSearching}
+              className="relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#e4572e] px-4 py-3 text-sm font-bold text-transparent shadow-sm transition hover:bg-[#f05f35] disabled:cursor-wait disabled:opacity-80"
             >
-              <Search size={17} />
+              {isSearching ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-transparent" />
+              ) : (
+                <Search size={17} className="text-white" />
+              )}
+              <span className="absolute inset-0 inline-flex items-center justify-center gap-2 text-white">
+                {isSearching ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  <Search size={17} />
+                )}
+                {isSearching ? "検索中..." : "この条件で検索"}
+              </span>
               この条件で検索
             </button>
 
@@ -350,7 +414,7 @@ export function HomeGymExplorer({
               ) : null}
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
-              <div className="inline-flex rounded-lg border border-[#ded6ca] bg-white p-1">
+              <div className="inline-flex bg-transparent p-0 sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:p-1">
                 <ViewModeButton
                   active={viewMode === "detail"}
                   icon={<LayoutList size={17} />}
@@ -368,8 +432,15 @@ export function HomeGymExplorer({
             </div>
           </div>
 
-          {viewMode === "detail" ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {isSearching ? (
+            <div className="flex min-h-32 items-center justify-center py-8 text-sm font-bold text-[#69756d]">
+              <span className="inline-flex items-center gap-3">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#e4572e]/30 border-t-[#e4572e]" />
+                読み込み中
+              </span>
+            </div>
+          ) : viewMode === "detail" ? (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
               {posts.length ? (
                 posts.map((post) => (
                   <PostCard key={post.id} post={post} onRequireLogin={requireLogin} />
@@ -400,7 +471,14 @@ export function HomeGymExplorer({
           />
         </div>
       </section>
-
+      <Link
+        href="/submit"
+        onClick={handleSubmitNav}
+        className="fixed bottom-5 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#e4572e] text-white shadow-xl shadow-black/20 sm:hidden"
+        aria-label="投稿"
+      >
+        <Camera size={22} />
+      </Link>
     </main>
   );
 }
@@ -420,7 +498,7 @@ function ViewModeButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-bold transition ${
+      className={`inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm font-bold transition sm:w-auto sm:px-3 ${
         active ? "bg-[#e4572e] text-white" : "text-[#69756d] hover:bg-[#eee8df] hover:text-[#122018]"
       }`}
       aria-pressed={active}
@@ -571,14 +649,17 @@ function PhotoGridItem({ post }: { post: HomeGymPost }) {
 function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin: (action: string) => void }) {
   return (
     <article className="overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm">
-      <Link href={`/posts/${post.slug}`} className="relative block aspect-[4/3] bg-[#f3efe7]">
-        <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
-        <div className="absolute left-3 top-3 rounded-lg bg-[#e4572e] px-3 py-1.5 text-sm font-black text-white shadow-lg shadow-black/30">
+      <Link href={`/posts/${post.slug}`} className="relative block aspect-square bg-[#f3efe7] sm:aspect-[4/3]">
+        <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
+        <div className="absolute left-2 top-2 rounded-lg bg-[#e4572e] px-2 py-1 text-xs font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
         </div>
-        <div className="absolute bottom-3 right-3 rounded-lg bg-black/70 px-2 py-1 text-xs font-bold text-white">写真 {post.images.length}枚</div>
+        <div className="absolute bottom-2 right-2 z-10 rounded-lg bg-black/70 px-2 py-1 text-[11px] font-bold text-white sm:bottom-3 sm:right-3 sm:text-xs">写真 {post.images.length}枚</div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-2 pt-10 sm:hidden">
+          <p className="line-clamp-1 pr-16 text-xs font-bold leading-5 text-white">{post.title}</p>
+        </div>
       </Link>
-      <div className="p-4">
+      <div className="hidden p-4 sm:block">
         <div className="flex items-start justify-between gap-3">
           <div>
             <Link href={`/posts/${post.slug}`} className="font-bold leading-6 hover:underline">

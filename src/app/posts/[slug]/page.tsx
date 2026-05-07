@@ -89,36 +89,36 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941] hover:text-[#122018]">
           <ArrowLeft size={17} />
           一覧に戻る
         </Link>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
+        <section className="mt-4 grid min-w-0 gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
           <PostImageGallery images={post.images} title={post.title} />
 
-          <aside className="grid h-fit gap-4 lg:sticky lg:top-6">
-            <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
+          <aside className="grid h-fit min-w-0 gap-3 sm:gap-4 lg:sticky lg:top-6">
+            <div className="min-w-0 rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="rounded-lg bg-[#e4572e] px-3 py-1.5 text-sm font-black text-white">{scaleLabels[post.scale]}</span>
                 <span className="text-sm font-bold text-[#69756d]">写真 {post.images.length}枚</span>
               </div>
-              <h1 className="mt-4 text-3xl font-black leading-tight tracking-normal sm:text-4xl">{post.title}</h1>
+              <h1 className="mt-4 break-words text-2xl font-black leading-tight tracking-normal sm:text-4xl">{post.title}</h1>
               <p className="mt-4 leading-8 text-[#4e5b52]">{post.summary || "説明はまだありません。"}</p>
             </div>
 
             <AuthorCard post={post} />
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <Stat icon={<Ruler size={17} />} label="広さ" value={formatTatami(post.areaTatami)} />
               <Stat icon={<WalletCards size={17} />} label="初期費用" value={yen.format(post.budget)} />
             </div>
           </aside>
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
+        <section className="mt-4 grid gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-[1fr_0.8fr]">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <Tags size={20} />
               器具カテゴリ
@@ -136,7 +136,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
             <h2 className="text-xl font-bold">タグ</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.length ? (
@@ -158,7 +158,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
 function AuthorCard({ post }: { post: HomeGymPost }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] bg-white p-5">
+    <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
       <p className="text-sm font-bold text-[#69756d]">投稿者</p>
       <div className="mt-3 flex items-center gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-black text-white">
@@ -236,12 +236,12 @@ function TikTokIcon() {
 
 function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] bg-white p-3">
+    <div className="min-w-0 rounded-lg border border-[#ded6ca] bg-white p-3">
       <p className="flex items-center gap-1 text-xs font-bold text-[#69756d]">
         {icon}
         {label}
       </p>
-      <p className="mt-1 truncate font-bold">{value}</p>
+      <p className="mt-1 break-words font-bold">{value}</p>
     </div>
   );
 }
