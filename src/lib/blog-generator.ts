@@ -250,7 +250,7 @@ JSON形式:
   ]
 }
 
-blocksは4から6個、各paragraphsは1から2段落にしてください。visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。`;
+blocksは4から6個、各paragraphsは1から2段落にしてください。visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。ただしスマホで一目で分かることを優先し、1枚の図表で扱う主題は1つ、主要な情報は3点以内に絞ってください。`;
 }
 
 function buildInlineVisualPrompt(
@@ -269,8 +269,11 @@ Design requirements:
 - The image must directly explain the required content above.
 - Use a clean, bright editorial fitness style that fits a light home gym website.
 - Prefer white or warm off-white backgrounds, high contrast dark text, and orange accents.
-- Prefer simple icons, spatial diagrams, comparison columns, cost bars, or checklist layout as appropriate.
-- Japanese labels are allowed, but keep them short and large enough to read.
+- Design mobile-first. It should be instantly understandable on a smartphone screen.
+- Reduce information density. Use one clear message per image and at most three main sections, cards, steps, or comparison columns.
+- Keep Japanese text very short: headline plus short labels only. Avoid paragraphs, dense tables, tiny annotations, footnotes, and long lists.
+- Use large readable typography, generous spacing, and big simple icons or shapes.
+- Prefer simple layouts: 3-step flow, 3-card comparison, one room layout diagram, or a short checklist with 3 items.
 - No brand logos, no fictional prices presented as official product prices, no watermarks.
 - 16:9 horizontal infographic, polished, practical, not decorative.`;
 }
@@ -341,7 +344,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
         title: "ホームジム初期費用の内訳",
         kind: "comparison",
         brief:
-          "省スペース構成、ダンベル中心構成、ラック構成の3列比較。器具本体、床材、防音、配送や追加小物を含めて、予算を見るべき範囲を示す。",
+          "省スペース、ダンベル中心、ラック構成の3カード比較。各カードは目安予算と一番大きい費用要因だけを大きく表示する。",
         alt: "ホームジムの初期費用を構成別に比較した表",
         caption: "本体価格だけでなく床材や防音も含めて見ると予算感がつかみやすくなります。",
       },
@@ -356,7 +359,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
         title: "種目から逆算する器具選び",
         kind: "diagram",
         brief:
-          "やりたい種目から必要器具へつながるフローチャート。ベンチプレス、スクワット、懸垂はラック系、ダンベルプレスやローイングは可変式ダンベルとベンチ、有酸素や省スペース運動はマットとチューブへ分岐。",
+          "やりたい種目から必要器具へつながる3分岐のシンプルな図。ラック系、可変式ダンベルとベンチ、マットとチューブの3つだけに絞る。",
         alt: "トレーニング種目から必要なホームジム器具を選ぶフローチャート",
         caption: "先に種目を決めると、買うべき器具の優先順位が整理できます。",
       },
