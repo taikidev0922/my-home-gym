@@ -131,6 +131,7 @@ async function generateAndStoreBlogImage(
         model: imageModel(),
         prompt: buildInlineVisualPrompt(article, visual),
         quality: OPENAI_IMAGE_QUALITY,
+        output_format: "webp",
         n: 1,
       }),
       cache: "no-store",
@@ -200,10 +201,10 @@ async function uploadBlogImage(slug: string, base64: string) {
   if (!supabase) return null;
 
   const bytes = Buffer.from(base64, "base64");
-  const path = `generated/${slug}.png`;
+  const path = `generated/${slug}.webp`;
 
   const { error } = await supabase.storage.from("blog-images").upload(path, bytes, {
-    contentType: "image/png",
+    contentType: "image/webp",
     upsert: true,
   });
 
