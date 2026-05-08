@@ -22,13 +22,17 @@ const fallbackImages: Record<string, string> = {
 const CLAUDE_MODEL = "claude-sonnet-4-5-20250929";
 const OPENAI_IMAGE_MODEL = "gpt-image-2";
 const OPENAI_IMAGE_QUALITY = "high";
+const CLAUDE_TIMEOUT_MS = 60_000;
+const IMAGE_TIMEOUT_MS = 260_000;
 
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
+  console.info("[blog-cron] start article generation", { keyword: keyword.keyword, category: keyword.category });
   const article =
     process.env.ANTHROPIC_API_KEY
       ? (await generateWithClaude(keyword)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
       : createFallbackArticle(keyword, "fallback");
 
+  console.info("[blog-cron] article text ready", { slug: article.slug, title: article.title });
   const blocks = await generateAndAttachInlineVisuals(article);
   const inlineVisualCount = blocks.filter((block) => block.visual?.imageUrl).length;
   const firstInlineImageUrl = blocks.find((block) => block.visual?.imageUrl)?.visual?.imageUrl;
@@ -38,6 +42,12 @@ export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise
       "Generated blog images are required, but gpt-image generation did not produce two inline visual images.",
     );
   }
+
+  console.info("[blog-cron] article generation complete", {
+    slug: article.slug,
+    inlineVisualCount,
+    imageModel: imageModel(),
+  });
 
   return {
     ...article,
@@ -74,6 +84,7 @@ async function generateWithClaude(keyword: KeywordCandidate) {
         ],
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
     });
 
     if (!response.ok) return null;
@@ -103,6 +114,13 @@ async function generateAndStoreBlogImage(
   }
 
   try {
+    console.info("[blog-cron] start image generation", {
+      slug: article.slug,
+      visualTitle: visual?.title,
+      model: imageModel(),
+      quality: OPENAI_IMAGE_QUALITY,
+    });
+
     const response = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: {
@@ -116,6 +134,7 @@ async function generateAndStoreBlogImage(
         n: 1,
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -128,7 +147,12 @@ async function generateAndStoreBlogImage(
     const base64 = payload?.data?.[0]?.b64_json;
     if (typeof base64 !== "string") return null;
 
-    return uploadBlogImage(`${article.slug}-${variant}${visual ? `-${createShortHash(visual.title)}` : ""}`, base64);
+    const publicUrl = await uploadBlogImage(
+      `${article.slug}-${variant}${visual ? `-${createShortHash(visual.title)}` : ""}`,
+      base64,
+    );
+    console.info("[blog-cron] image stored", { slug: article.slug, visualTitle: visual?.title, publicUrl });
+    return publicUrl;
   } catch (error) {
     console.error("Failed to generate or store blog image", error);
     return null;
@@ -142,13 +166,19 @@ async function generateAndAttachInlineVisuals(article: Omit<BlogArticle, "id">) 
     return article.blocks;
   }
 
-  const visualUrlByHeading = new Map<string, string>();
-
-  for (const block of candidates) {
-    if (!block.visual) continue;
-    const imageUrl = await generateAndStoreBlogImage(article, "inline", block.visual);
-    if (imageUrl) visualUrlByHeading.set(block.heading, imageUrl);
-  }
+  console.info("[blog-cron] inline visual candidates", { slug: article.slug, count: candidates.length });
+  const generatedVisuals = await Promise.all(
+    candidates.map(async (block) => {
+      if (!block.visual) return null;
+      const imageUrl = await generateAndStoreBlogImage(article, "inline", block.visual);
+      return imageUrl ? { heading: block.heading, imageUrl } : null;
+    }),
+  );
+  const visualUrlByHeading = new Map(
+    generatedVisuals
+      .filter((visual): visual is { heading: string; imageUrl: string } => Boolean(visual))
+      .map((visual) => [visual.heading, visual.imageUrl] as const),
+  );
 
   return article.blocks.map((block) => {
     const imageUrl = visualUrlByHeading.get(block.heading);
@@ -187,17 +217,16 @@ async function uploadBlogImage(slug: string, base64: string) {
 }
 
 function buildArticlePrompt(keyword: KeywordCandidate) {
-  return `あなたは日本語のホームジム専門メディア「みんなのホームジム」の編集者です。
-検索キーワード: ${keyword.keyword}
+  return `あなたは日本語のホームジム専門メディア「マイホームジム」の編集者です。検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 
 条件:
 - これから自宅にトレーニングスペースを作る人向けに書く
 - 広さ、予算、器具、床材、防音、安全性、購入前の確認ポイントを具体的に含める
 - パワーラック、可変式ダンベル、ベンチ、マットなど必要に応じて触れる
-- アフィリエイト商品比較に自然につながるが、過剰な販売文にしない
+- アフィリエイト商品比較につながるが、過剰な販売文にしない
 - 本文は日本語
-- 誇張、医療効果、断定的な安全保証は避ける
+- 誇張、断定的な効果、確定的な安全保証は避ける
 - JSONだけを返す。Markdownや説明文は不要
 
 JSON形式:
@@ -306,7 +335,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     {
       heading: "予算は周辺アイテムまで含める",
       paragraphs: [
-        "本体価格だけでなく、床材、防音マット、バーベル、プレート、送料、処分費も含めて見積もります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
+        "本体価格だけでなく、床材、防音マット、バーベル、プレート、送料、組み立て用品も含めて見積もります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
       ],
       visual: {
         title: "ホームジム初期費用の内訳",
@@ -335,7 +364,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     {
       heading: "写真付き投稿で近い条件を比較する",
       paragraphs: [
-        "同じ予算でも、賃貸、戸建て、ガレージ、ワンルームでは最適解が変わります。広さ、費用、器具カテゴリが近い投稿を比較すると、自分の家で再現できるか判断しやすくなります。",
+        "同じ予算でも、賃貸、持ち家、ガレージ、ワンルームでは最適解が変わります。広さ、費用、器具カテゴリが近い投稿を比較すると、自分の家で再現できるか判断しやすくなります。",
       ],
     },
   ];
@@ -472,3 +501,4 @@ function openAiApiKey() {
 function requiresGeneratedImages() {
   return true;
 }
+
