@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogArticles } from "@/lib/blog-repository";
+import { getBlogSitemapArticles } from "@/lib/blog-repository";
 import { getPublishedPosts } from "@/lib/gym-repository";
 import { getRankingCategories } from "@/lib/product-rankings";
 import { absoluteUrl } from "@/lib/seo";
@@ -8,7 +8,7 @@ const postPageSize = 48;
 const maxPostPages = 20;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, articles] = await Promise.all([getAllPublishedPosts(), getBlogArticles()]);
+  const [posts, articles] = await Promise.all([getAllPublishedPosts(), getBlogSitemapArticles()]);
   const now = new Date();
 
   return [

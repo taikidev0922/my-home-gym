@@ -1,9 +1,9 @@
-import Image from "next/image";
-import Link from "next/link";
+﻿import Image from "next/image";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { ArrowLeft, Ruler, Tags, WalletCards } from "lucide-react";
+import { Ruler, Tags, WalletCards } from "lucide-react";
 import { PostImageGallery } from "@/components/post-image-gallery";
+import { SiteHeader } from "@/components/site-header";
 import { formatTatami } from "@/lib/area";
 import { scaleLabels } from "@/lib/gym-data";
 import { getPublishedPostBySlug } from "@/lib/gym-repository";
@@ -76,12 +76,12 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
   if (!post) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#f7f3ed] p-6 text-[#122018]">
-        <div className="rounded-lg border border-[#ded6ca] bg-white p-8 text-center">
-          <h1 className="text-2xl font-bold">投稿が見つかりません</h1>
-          <Link href="/" className="mt-5 inline-flex rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white">
-            一覧に戻る
-          </Link>
+      <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+        <SiteHeader showMobilePostButton={false} />
+        <div className="grid min-h-[60vh] place-items-center p-6">
+          <div className="rounded-lg border border-[#ded6ca] bg-white p-8 text-center">
+            <h1 className="text-2xl font-bold">投稿が見つかりません</h1>
+          </div>
         </div>
       </main>
     );
@@ -89,13 +89,9 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941] hover:text-[#122018]">
-          <ArrowLeft size={17} />
-          一覧に戻る
-        </Link>
-
-        <section className="mt-4 grid min-w-0 gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
+        <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
           <PostImageGallery images={post.images} title={post.title} />
 
           <aside className="grid h-fit min-w-0 gap-3 sm:gap-4 lg:sticky lg:top-6">
@@ -245,3 +241,4 @@ function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: s
     </div>
   );
 }
+

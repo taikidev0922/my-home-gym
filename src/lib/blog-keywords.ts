@@ -4,6 +4,8 @@ import type { BlogArticle } from "@/lib/types";
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
 const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 
+type ExistingBlogKeyword = Pick<BlogArticle, "keyword">;
+
 const seedKeywords = [
   "ホームジム",
   "ホームジム 予算",
@@ -34,7 +36,7 @@ export type KeywordCandidate = {
   score?: number;
 };
 
-export async function selectHomeGymKeyword(existingArticles: BlogArticle[]): Promise<KeywordCandidate> {
+export async function selectHomeGymKeyword(existingArticles: ExistingBlogKeyword[]): Promise<KeywordCandidate> {
   const rakko = await fetchRakkoKeywordCandidates(existingArticles);
   const used = new Set(existingArticles.map((article) => normalizeKeyword(article.keyword)));
   const candidate = rakko.candidates.find((item) => !used.has(normalizeKeyword(item.keyword)));
@@ -83,7 +85,7 @@ export async function markKeywordUsed(keyword: KeywordCandidate, article: { slug
   );
 }
 
-async function fetchRakkoKeywordCandidates(existingArticles: BlogArticle[]) {
+async function fetchRakkoKeywordCandidates(existingArticles: ExistingBlogKeyword[]) {
   const apiKey = process.env.RAKKO_KEYWORD_API_KEY;
   if (!apiKey) {
     return { source: "rakko-missing-key", candidates: [] as KeywordCandidate[] };
@@ -197,8 +199,31 @@ function scoreKeywordCandidate(candidate: KeywordCandidate) {
   const volume = Number(metrics.searchVolume ?? metrics.monthlySearches ?? 0);
   const competition = Number(metrics.competition ?? 0);
   const intentScore =
-    keywordIntentScore(keyword, ["おすすめ", "選び方", "費用", "予算", "広さ", "何畳", "6畳", "4畳", "賃貸", "防音", "床", "マット", "後悔", "注意", "比較"]) +
-    keywordIntentScore(keyword, ["パワーラック", "可変式ダンベル", "ベンチ", "マルチホームジム", "床材", "防振"]);
+    keywordIntentScore(keyword, [
+      "おすすめ",
+      "選び方",
+      "費用",
+      "予算",
+      "広さ",
+      "何畳",
+      "6畳",
+      "4畳",
+      "賃貸",
+      "防音",
+      "床",
+      "マット",
+      "後悔",
+      "注意",
+      "比較",
+    ]) +
+    keywordIntentScore(keyword, [
+      "パワーラック",
+      "可変式ダンベル",
+      "ベンチ",
+      "マルチホームジム",
+      "床材",
+      "防振",
+    ]);
   const longTailScore = keyword.length >= 8 ? 12 : 0;
   const categoryScore = candidate.category === "guide" ? 2 : 8;
   const volumeScore = Math.min(35, Math.log10(Math.max(volume, 1)) * 12);

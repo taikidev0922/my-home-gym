@@ -20,6 +20,12 @@ type BlogArticleRow = {
   metadata: Record<string, unknown> | null;
 };
 
+type BlogSitemapArticleRow = {
+  slug: string;
+  published_at: string;
+  updated_at: string | null;
+};
+
 export type BlogArticleQuery = {
   category?: string;
   tag?: string;
@@ -41,13 +47,11 @@ const fallbackArticles: BlogArticle[] = [
     id: "fallback-home-gym-start",
     slug: "home-gym-start-budget-space",
     title: "ホームジム作りは広さと予算から決めると失敗しにくい",
-    excerpt:
-      "本格ラックから省スペース宅トレまで、最初に決めたい広さ、予算、器具の優先順位を整理します。",
+    excerpt: "本格ラックから省スペース宅トレまで、最初に決めたい広さ、予算、器具の優先順位を整理します。",
     keyword: "ホームジム 予算 広さ",
     category: "guide",
     tags: ["ホームジム", "作り方", "予算", "広さ"],
-    imageUrl:
-      "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1400&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1400&auto=format&fit=crop",
     readingMinutes: 5,
     publishedAt: new Date("2026-05-05T07:00:00+09:00").toISOString(),
     updatedAt: new Date("2026-05-05T07:00:00+09:00").toISOString(),
@@ -59,20 +63,19 @@ const fallbackArticles: BlogArticle[] = [
         heading: "最初に決めるのは器具ではなく置ける広さ",
         paragraphs: [
           "ホームジムは欲しい器具から考えると、部屋の動線や騒音で困りがちです。まずは使える畳数、天井高、床の強さ、家族の生活動線を確認します。",
-          "1畳から2畳ならマット、チューブ、可変式ダンベルが中心。3畳以上あればベンチやラックも候補に入ります。",
+          "1畳から2畳ならマット、チューブ、可変式ダンベルが中心です。3畳以上あればベンチやラックも候補に入ります。",
         ],
       },
       {
         heading: "予算は本体価格だけで見ない",
         paragraphs: [
-          "ラックやベンチを買う場合、床材、バーベル、プレート、送料、処分費まで含めて考えると現実的です。",
-          "まずは最低限の種目を決め、あとから増やせる構成にしておくと失敗しにくくなります。",
+          "ラックやベンチを買う場合、床材、バーベル、プレート、送料、追加パーツまで含めて考えると現実的です。",
+          "最初は最低限の種目を決め、あとから増やせる構成にしておくと失敗しにくくなります。",
         ],
       },
     ],
   },
 ];
-
 export async function getBlogArticles(): Promise<BlogArticle[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -130,6 +133,66 @@ export async function getBlogArticlesPage(query: BlogArticleQuery = {}) {
   );
 }
 
+export async function getBlogSitemapArticles(limit = 50000) {
+  const supabase = await createSupabaseServerClient();
+  const pageSize = Math.max(1, Math.min(limit, 50000));
+
+  if (!supabase) {
+    return fallbackArticles.slice(0, pageSize).map((article) => ({
+      slug: article.slug,
+      updatedAt: article.updatedAt,
+    }));
+  }
+
+  const { data, error } = await supabase
+    .from("blog_articles")
+    .select("slug,published_at,updated_at")
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false })
+    .limit(pageSize);
+
+  if (error || !data) {
+    console.error("Failed to load blog sitemap articles", error);
+    return fallbackArticles.slice(0, pageSize).map((article) => ({
+      slug: article.slug,
+      updatedAt: article.updatedAt,
+    }));
+  }
+
+  return data.map((row) => {
+    const article = row as BlogSitemapArticleRow;
+    return {
+      slug: article.slug,
+      updatedAt: article.updated_at ?? article.published_at,
+    };
+  });
+}
+
+export async function getBlogKeywordHistory(limit = 5000) {
+  const supabase = await createSupabaseServerClient();
+  const pageSize = Math.max(1, Math.min(limit, 5000));
+
+  if (!supabase) {
+    return fallbackArticles.slice(0, pageSize).map((article) => ({ keyword: article.keyword }));
+  }
+
+  const { data, error } = await supabase
+    .from("blog_articles")
+    .select("keyword")
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false })
+    .limit(pageSize);
+
+  if (error || !data) {
+    console.error("Failed to load blog keyword history", error);
+    return fallbackArticles.slice(0, pageSize).map((article) => ({ keyword: article.keyword }));
+  }
+
+  return data
+    .map((row) => ({ keyword: typeof row.keyword === "string" ? row.keyword : "" }))
+    .filter((row) => row.keyword.length > 0);
+}
+
 export async function getBlogArticleFacets() {
   const supabase = await createSupabaseServerClient();
 
@@ -155,8 +218,25 @@ export async function getBlogArticleFacets() {
 }
 
 export async function getBlogArticleBySlug(slug: string) {
-  const articles = await getBlogArticles();
-  return articles.find((article) => article.slug === slug) ?? null;
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return fallbackArticles.find((article) => article.slug === slug) ?? null;
+  }
+
+  const { data, error } = await supabase
+    .from("blog_articles")
+    .select("*")
+    .eq("slug", slug)
+    .lte("published_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load blog article by slug", error);
+    return null;
+  }
+
+  return data ? mapArticleRow(data as BlogArticleRow) : null;
 }
 
 export async function appendBlogArticle(article: Omit<BlogArticle, "id">) {

@@ -1,8 +1,9 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { BlogArticle } from "@/lib/types";
@@ -67,25 +68,69 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
-          <ArrowLeft size={17} />
-          一覧に戻る
-        </Link>
-
-        <section className="mt-4 border-b border-[#ded6ca] pb-4 sm:mt-6 sm:pb-5">
+        <section className="py-2 sm:py-3">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
         </section>
 
-        <section className="mt-4 rounded-lg border border-[#ded6ca] bg-white p-3 sm:mt-6 sm:p-5">
-          <div className="hidden items-center gap-2 text-sm font-bold text-[#69756d] sm:flex">
+        <details className="mt-2 rounded-lg border border-[#ded6ca] bg-white p-3 sm:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-bold text-[#122018]">
+            <span className="inline-flex items-center gap-2">
+              <Tag size={16} />
+              記事を絞り込む
+            </span>
+            <span className="text-xs text-[#69756d]">開く</span>
+          </summary>
+          <div className="mt-3">
+            <p className="text-xs font-bold text-[#69756d]">カテゴリ</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <FilterChip href={blogHref({ tag: selectedTag })} active={!selectedCategory}>
+                すべて
+              </FilterChip>
+              {visibleCategories.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  href={blogHref({ category: category.id, tag: selectedTag })}
+                  active={selectedCategory === category.id}
+                >
+                  {category.label}
+                  <span className="ml-1 text-xs opacity-70">{categoryCounts.get(category.id) ?? 0}</span>
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+          {visibleTags.length > 0 ? (
+            <div className="mt-3">
+              <p className="text-xs font-bold text-[#69756d]">タグ</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <FilterChip href={blogHref({ category: selectedCategory })} active={!selectedTag}>
+                  すべて
+                </FilterChip>
+                {visibleTags.map((tag) => (
+                  <FilterChip
+                    key={tag.name}
+                    href={blogHref({ category: selectedCategory, tag: tag.name })}
+                    active={selectedTag === tag.name}
+                  >
+                    {tag.name}
+                    <span className="ml-1 text-xs opacity-70">{tag.count}</span>
+                  </FilterChip>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </details>
+
+        <section className="mt-4 hidden rounded-lg border border-[#ded6ca] bg-white p-5 sm:block">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
             <Tag size={16} />
             記事を絞り込む
           </div>
 
-          <div className="sm:mt-4">
-            <p className="hidden text-sm font-bold text-[#122018] sm:block">カテゴリ</p>
-            <div className="flex flex-wrap gap-1.5 sm:mt-2 sm:gap-2">
+          <div className="mt-4">
+            <p className="text-sm font-bold text-[#122018]">カテゴリ</p>
+            <div className="mt-2 flex flex-wrap gap-2">
               <FilterChip href={blogHref({ tag: selectedTag })} active={!selectedCategory}>
                 すべて
               </FilterChip>
@@ -103,9 +148,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </div>
 
           {visibleTags.length > 0 ? (
-            <div className="mt-3 sm:mt-5">
-              <p className="hidden text-sm font-bold text-[#122018] sm:block">タグ</p>
-              <div className="flex flex-wrap gap-1.5 sm:mt-2 sm:gap-2">
+            <div className="mt-5">
+              <p className="text-sm font-bold text-[#122018]">タグ</p>
+              <div className="mt-2 flex flex-wrap gap-2">
                 <FilterChip href={blogHref({ category: selectedCategory })} active={!selectedTag}>
                   すべて
                 </FilterChip>
@@ -232,7 +277,7 @@ function ArticleCard({
               <Link
                 key={tag}
                 href={blogHref({ tag })}
-                className="rounded-full bg-[#1f2a23] px-2.5 py-1 text-xs font-bold text-[#244834] hover:bg-[#263a2d]"
+                className="rounded-full bg-[#143826] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#1f4a32]"
               >
                 {tag}
               </Link>
@@ -331,3 +376,4 @@ function getPageNumbers(current: number, total: number) {
   const end = Math.min(total, start + maxVisible - 1);
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
+

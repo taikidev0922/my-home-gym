@@ -1,7 +1,8 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
+import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
 import {
   getRankingCategories,
   getRankingProducts,
@@ -86,82 +87,40 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+      <SiteHeader showMobilePostButton={false} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(createRankingJsonLd(products, activeCategory)) }}
       />
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[#3c4941]">
-          <ArrowLeft size={17} />
-          一覧に戻る
-        </Link>
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+        <section className="grid gap-2">
+          <h1 className="text-3xl font-black leading-tight tracking-normal sm:text-5xl">{pageTitle}</h1>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(520px,1.1fr)]">
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex w-fit items-center gap-2 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-semibold text-[#3c4941]">
-              <Trophy size={16} />
-              {activeCategory ? productCategoryLabels[activeCategory] : "全カテゴリ"}
-            </div>
-            <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight tracking-normal sm:text-5xl">
-              {pageTitle}
-            </h1>
-            <p className="mt-4 leading-7 text-[#4e5b52]">
-              価格、向いている人、注意点を並べて、ホームジムに合う器具を比較できます。
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-2 text-sm sm:max-w-md">
-              <div className="rounded-lg bg-[#f3efe7] p-3">
-                <p className="text-[#69756d]">表示商品</p>
-                <p className="mt-1 text-xl font-black">{products.length}件</p>
-              </div>
-              <div className="rounded-lg bg-[#f3efe7] p-3">
-                <p className="text-[#69756d]">カテゴリ</p>
-                <p className="mt-1 truncate text-xl font-black">{activeCategory ? productCategoryLabels[activeCategory] : "すべて"}</p>
-              </div>
-            </div>
-          </div>
+          <details className="group rounded-lg border border-[#ded6ca] bg-white px-3 py-3 shadow-sm sm:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-[#122018]">
+              <span className="flex items-center gap-2">
+                <SearchCheck size={16} />
+                表示カテゴリ
+                <span className="rounded-full bg-[#f3efe7] px-2 py-0.5 text-xs text-[#69756d]">
+                  {activeCategory ? productCategoryLabels[activeCategory] : "すべて"}
+                </span>
+              </span>
+              <span className="text-[#69756d] transition group-open:rotate-180">⌄</span>
+            </summary>
+            <CategoryLinks categories={categories} activeCategory={activeCategory} />
+          </details>
 
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm sm:p-5">
+          <div className="hidden rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm sm:block sm:p-5">
             <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
               <SearchCheck size={16} />
               表示カテゴリ
             </p>
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              <Link
-                href="/rankings"
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                  !activeCategory
-                    ? "border-[#e4572e] bg-[#e4572e] text-white"
-                    : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
-                }`}
-              >
-                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${!activeCategory ? "border-white bg-white" : "border-[#d0c8bc] bg-white"}`}>
-                  {!activeCategory ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
-                </span>
-                <span className="block min-w-0 font-bold">すべて</span>
-              </Link>
-
-              {categories.map((item) => (
-                <Link
-                  key={item}
-                  href={`/rankings?category=${item}`}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                    activeCategory === item
-                      ? "border-[#e4572e] bg-[#e4572e] text-white"
-                      : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
-                  }`}
-                >
-                  <span className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${activeCategory === item ? "border-white bg-white" : "border-[#d0c8bc] bg-white"}`}>
-                    {activeCategory === item ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
-                  </span>
-                  <span className="block min-w-0 font-bold">{productCategoryLabels[item]}</span>
-                </Link>
-              ))}
-            </div>
+            <CategoryLinks categories={categories} activeCategory={activeCategory} />
           </div>
         </section>
 
-        <section className="mt-8">
-          <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+        <section className="mt-5 sm:mt-8">
+          <div className="mb-3 flex flex-col justify-between gap-1 sm:mb-4 sm:flex-row sm:items-end sm:gap-2">
             <div>
               <p className="text-sm font-bold text-[#e4572e]">
                 {activeCategory ? productCategoryLabels[activeCategory] : "全カテゴリ"}
@@ -261,6 +220,57 @@ function createRankingJsonLd(products: RankingProduct[], activeCategory: Product
   };
 }
 
+function CategoryLinks({
+  categories,
+  activeCategory,
+}: {
+  categories: ProductCategory[];
+  activeCategory: ProductCategory | null;
+}) {
+  return (
+    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <Link
+        href="/rankings"
+        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+          !activeCategory
+            ? "border-[#e4572e] bg-[#e4572e] text-white"
+            : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
+        }`}
+      >
+        <span
+          className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${
+            !activeCategory ? "border-white bg-white" : "border-[#d0c8bc] bg-white"
+          }`}
+        >
+          {!activeCategory ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
+        </span>
+        <span className="block min-w-0 font-bold">すべて</span>
+      </Link>
+
+      {categories.map((item) => (
+        <Link
+          key={item}
+          href={`/rankings?category=${item}`}
+          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+            activeCategory === item
+              ? "border-[#e4572e] bg-[#e4572e] text-white"
+              : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
+          }`}
+        >
+          <span
+            className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${
+              activeCategory === item ? "border-white bg-white" : "border-[#d0c8bc] bg-white"
+            }`}
+          >
+            {activeCategory === item ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
+          </span>
+          <span className="block min-w-0 font-bold">{productCategoryLabels[item]}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 function RankingCard({
   product,
   showCategory,
@@ -272,13 +282,17 @@ function RankingCard({
 }) {
   const outboundUrl = product.affiliateUrl ?? product.productUrl;
   const displayRank = showOverallRank ? (product.overallRank ?? product.rank) : product.rank;
+  const rankStyle = getRankStyle(displayRank);
 
   return (
     <article className="grid overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm lg:grid-cols-[260px_1fr]">
       <div className="relative min-h-64 bg-white">
         <Image src={product.image} alt={product.name} fill className="object-contain p-4" sizes="(max-width: 1024px) 100vw, 260px" />
-        <div className="absolute left-3 top-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[#e4572e] text-lg font-black text-white">
-          {displayRank}
+        <div
+          className={`absolute left-3 top-3 flex min-w-20 items-center justify-center gap-1 rounded-lg px-3 py-2 shadow-lg shadow-black/20 ${rankStyle}`}
+        >
+          <Trophy size={17} fill="currentColor" />
+          <span className="text-lg font-black">第{displayRank}位</span>
         </div>
         {showCategory ? (
           <div className="absolute bottom-3 left-3 rounded-lg bg-black/70 px-2 py-1 text-xs font-bold text-white">
@@ -330,6 +344,13 @@ function RankingCard({
       </div>
     </article>
   );
+}
+
+function getRankStyle(rank: number) {
+  if (rank === 1) return "bg-[#d9a441] text-[#1f1600]";
+  if (rank === 2) return "bg-[#b9c0c8] text-[#111820]";
+  if (rank === 3) return "bg-[#b87333] text-white";
+  return "bg-[#e4572e] text-white";
 }
 
 function List({ title, items }: { title: string; items: string[] }) {

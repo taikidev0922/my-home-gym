@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, Clock, Tag } from "lucide-react";
+import { CalendarDays, Clock, Tag } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 
@@ -58,13 +58,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
-        <Link href="/blog" className="mx-4 inline-flex items-center gap-2 text-sm font-bold text-[#3c4941] sm:mx-0">
-          <ArrowLeft size={17} />
-          ホームジムお助け記事へ
-        </Link>
-
-        <article className="mt-5 overflow-hidden sm:mt-6 sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:shadow-sm">
+        <article className="overflow-hidden sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:shadow-sm">
           <div className="px-4 pb-8 pt-2 sm:p-8">
             <div className="flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">
               <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">

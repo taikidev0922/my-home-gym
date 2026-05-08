@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { generateHomeGymArticle } from "@/lib/blog-generator";
 import { markKeywordUsed, selectHomeGymKeyword } from "@/lib/blog-keywords";
-import { appendBlogArticle, getBlogArticles } from "@/lib/blog-repository";
+import { appendBlogArticle, getBlogKeywordHistory } from "@/lib/blog-repository";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -21,7 +21,7 @@ async function publishBlogArticle(request: NextRequest) {
   }
 
   try {
-    const existingArticles = await getBlogArticles();
+    const existingArticles = await getBlogKeywordHistory();
     const keyword = await selectHomeGymKeyword(existingArticles);
     const article = await generateHomeGymArticle(keyword);
     const result = await appendBlogArticle(article);
