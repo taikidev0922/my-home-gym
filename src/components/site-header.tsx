@@ -66,7 +66,7 @@ export function SiteHeader({
                 href="/login"
                 className="inline-flex h-10 items-center rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white shadow-sm"
               >
-                <span className="sm:hidden">登録</span>
+                <span className="sm:hidden">ログイン</span>
                 <span className="hidden sm:inline">ログイン</span>
               </Link>
             )}
@@ -108,7 +108,7 @@ export function SiteHeader({
                 onClick={() => setIsMenuOpen(false)}
                 className="rounded-lg bg-[#e4572e] px-3 py-2 text-white hover:bg-[#d64d28]"
               >
-                会員登録・ログイン
+                ログイン
               </Link>
             ) : (
               <Link

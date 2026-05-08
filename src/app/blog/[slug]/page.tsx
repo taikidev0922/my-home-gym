@@ -1,8 +1,9 @@
 ﻿import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, Tag } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
-import { getBlogArticleBySlug } from "@/lib/blog-repository";
+import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 
 type BlogArticlePageProps = {
@@ -56,6 +57,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   if (!article) notFound();
 
+  const relatedPage = await getBlogArticlesPage({ category: article.category, page: 1, pageSize: 4 });
+  const relatedArticles = relatedPage.articles.filter((related) => related.slug !== article.slug).slice(0, 3);
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
 
@@ -125,6 +128,55 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 </section>
               ))}
             </div>
+
+            <footer className="mt-10 border-t border-[#ded6ca] pt-6">
+              {relatedArticles.length > 0 ? (
+                <section>
+                  <h2 className="text-xl font-bold">関連記事</h2>
+                  <div className="mt-3 grid gap-2">
+                    {relatedArticles.map((related) => (
+                      <Link
+                        key={related.slug}
+                        href={`/blog/${related.slug}`}
+                        className="group flex items-center justify-between gap-3 rounded-lg border border-[#ded6ca] bg-[#f7f3ed] px-3 py-3 text-sm font-bold hover:border-[#e4572e]/60"
+                      >
+                        <span className="line-clamp-2">{related.title}</span>
+                        <ArrowRight
+                          size={16}
+                          className="shrink-0 text-[#e4572e] transition group-hover:translate-x-0.5"
+                        />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              <section className={relatedArticles.length > 0 ? "mt-6" : ""}>
+                <h2 className="text-xl font-bold">次に見る</h2>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <Link
+                    href="/"
+                    className="rounded-lg border border-[#ded6ca] bg-[#f7f3ed] p-4 hover:border-[#e4572e]/60"
+                  >
+                    <p className="text-sm font-bold text-[#e4572e]">投稿を見る</p>
+                    <p className="mt-1 text-lg font-bold">みんなでホームジムを共有する</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4e5b52]">
+                      広さ、費用、器具カテゴリから実例を探せます。
+                    </p>
+                  </Link>
+                  <Link
+                    href="/rankings"
+                    className="rounded-lg border border-[#ded6ca] bg-[#f7f3ed] p-4 hover:border-[#e4572e]/60"
+                  >
+                    <p className="text-sm font-bold text-[#e4572e]">器具選び</p>
+                    <p className="mt-1 text-lg font-bold">ホームジム用品ランキング</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4e5b52]">
+                      ラック、ダンベル、ベンチなどの候補を比較できます。
+                    </p>
+                  </Link>
+                </div>
+              </section>
+            </footer>
           </div>
         </article>
       </div>
