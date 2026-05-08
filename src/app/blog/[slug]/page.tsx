@@ -56,6 +56,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   if (!article) notFound();
 
+  const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
+  const firstVisualImageUrl = firstVisual?.imageUrl;
+
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
@@ -82,6 +85,20 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             </h1>
             <p className="mt-5 text-lg leading-9 text-[#4e5b52]">{article.excerpt}</p>
 
+            {firstVisualImageUrl ? (
+              <div className="-mx-4 mt-6 overflow-hidden sm:mx-0 sm:rounded-lg">
+                <Image
+                  src={firstVisualImageUrl}
+                  alt={firstVisual.alt || firstVisual.title}
+                  width={1536}
+                  height={1024}
+                  className="h-auto w-full"
+                  priority
+                  sizes="(max-width: 896px) 100vw, 896px"
+                />
+              </div>
+            ) : null}
+
             <div className="mt-8 grid gap-8">
               {article.blocks.map((block) => (
                 <section key={block.heading}>
@@ -93,7 +110,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                       <p key={paragraph}>{paragraph}</p>
                     ))}
                   </div>
-                  {block.visual?.imageUrl ? (
+                  {block.visual?.imageUrl && block.visual.imageUrl !== firstVisualImageUrl ? (
                     <div className="-mx-4 mt-5 overflow-hidden sm:mx-0 sm:rounded-lg">
                       <Image
                         src={block.visual.imageUrl}
