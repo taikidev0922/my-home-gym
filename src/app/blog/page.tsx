@@ -255,7 +255,7 @@ function ArticleCard({
           src={article.imageUrl}
           alt={article.title}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="(max-width: 640px) 100vw, 220px"
         />
       </Link>
