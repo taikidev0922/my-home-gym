@@ -61,7 +61,15 @@ export function SiteHeader({
                   )}
                 </span>
               </Link>
-            ) : null}
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex h-10 items-center rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white shadow-sm"
+              >
+                <span className="sm:hidden">登録</span>
+                <span className="hidden sm:inline">ログイン</span>
+              </Link>
+            )}
 
             <button
               type="button"
@@ -94,6 +102,23 @@ export function SiteHeader({
             onClick={() => setIsMenuOpen(false)}
           />
           <nav className="fixed right-4 top-16 z-50 grid w-[min(280px,calc(100vw-2rem))] gap-1 rounded-2xl border border-[#ded6ca] bg-white p-2 text-sm font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
+            {!currentUser ? (
+              <Link
+                href="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-lg bg-[#e4572e] px-3 py-2 text-white hover:bg-[#d64d28]"
+              >
+                会員登録・ログイン
+              </Link>
+            ) : (
+              <Link
+                href="/me"
+                onClick={() => setIsMenuOpen(false)}
+                className="rounded-lg bg-[#f3efe7] px-3 py-2 text-[#122018] hover:bg-[#ebe3d7]"
+              >
+                マイページ
+              </Link>
+            )}
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
               みんなのホームジム
             </Link>
