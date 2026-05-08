@@ -250,7 +250,10 @@ function ArticleCard({
 }) {
   return (
     <article className="grid overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm transition hover:border-[#e4572e]/50 sm:grid-cols-[220px_1fr]">
-      <Link href={`/blog/${article.slug}`} className="relative block aspect-video bg-[#f3efe7] sm:aspect-video">
+      <Link
+        href={`/blog/${article.slug}`}
+        className="relative block aspect-video border-b border-[#ded6ca] bg-[#f3efe7] sm:aspect-video sm:border-b-0 sm:border-r"
+      >
         <Image
           src={article.imageUrl}
           alt={article.title}
