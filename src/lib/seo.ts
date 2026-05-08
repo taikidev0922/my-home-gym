@@ -2,10 +2,10 @@ import type { ProductCategory } from "@/lib/types";
 
 export const siteName = "マイホームジム";
 
-export const siteUrl = "https://my-home-gym.vercel.app";
+export const siteUrl = "https://www.my-home-gym.jp";
 
 export const defaultSeoDescription =
-  "ホームジムの写真投稿を、畳数・予算・器具カテゴリで比較できる共有サイト。パワーラック、可変式ダンベル、トレーニングベンチ、防音マット、床補強など自宅ジム作りの実例と用品ランキングを確認できます。";
+  "ホームジムの写真投稿を、畳数・予算・器具カテゴリで比較できる共有サイト。パワーラック、可変式ダンベル、トレーニングベンチ、防音マット、床補強など、自宅ジム作りの実例と用品ランキングを確認できます。";
 
 export const baseSeoKeywords = [
   "ホームジム",
@@ -19,7 +19,7 @@ export const baseSeoKeywords = [
   "ホームジム 6畳",
   "ホームジム レイアウト",
   "ホームジム 床補強",
-  "ホームジム 後悔",
+  "ホームジム 防音",
   "ホームジム おしゃれ",
   "ホームジム 写真",
   "ホームジム 実例",
