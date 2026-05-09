@@ -29,20 +29,20 @@ export function SiteHeader({
     <>
       <header className="sticky top-0 z-30 border-b border-[#ded6ca] bg-[#f7f3ed]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="min-w-0">
+          <div className="min-w-0 shrink-0">
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
               <Image
                 src="/brand/logo.svg"
                 alt="My Home Gym"
-                width={172}
-                height={50}
+                width={186}
+                height={40}
                 priority
-                className="h-8 w-auto sm:h-10"
+                className="h-8 w-[148px] object-contain sm:h-9 sm:w-[168px]"
               />
             </Link>
           </div>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium text-[#3c4941] md:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-4 text-sm font-medium text-[#3c4941] md:flex lg:gap-5">
             <Link href="/">みんなのホームジム</Link>
             <Link href="/rankings">器具ランキング</Link>
             <Link href="/blog">ホームジムお助け記事</Link>
