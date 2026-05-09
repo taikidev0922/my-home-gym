@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Camera, Dumbbell, Menu } from "lucide-react";
+import { Camera, Menu } from "lucide-react";
 import type { MouseEvent } from "react";
 import { useState } from "react";
 
@@ -30,11 +30,15 @@ export function SiteHeader({
       <header className="sticky top-0 z-30 border-b border-[#ded6ca] bg-[#f7f3ed]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#e4572e] text-white">
-                <Dumbbell size={19} />
-              </span>
-              <span className="truncate text-lg">マイホームジム</span>
+            <Link href="/" className="flex items-center" aria-label="マイホームジム">
+              <Image
+                src="/brand/logo.png"
+                alt="My Home Gym"
+                width={172}
+                height={50}
+                priority
+                className="h-8 w-auto sm:h-10"
+              />
             </Link>
           </div>
 
