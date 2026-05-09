@@ -32,7 +32,7 @@ export function SiteHeader({
           <div className="min-w-0">
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
               <Image
-                src="/brand/logo.png"
+                src="/brand/logo.svg"
                 alt="My Home Gym"
                 width={172}
                 height={50}

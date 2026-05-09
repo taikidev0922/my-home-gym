@@ -29,6 +29,14 @@ export const metadata: Metadata = {
   publisher: siteName,
   category: "fitness",
   keywords: [...baseSeoKeywords, ...rankingSeoKeywords],
+  icons: {
+    icon: [
+      { url: "/brand/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/brand/favicon.svg",
+    apple: "/brand/favicon.svg",
+  },
   alternates: {
     canonical: absoluteUrl("/"),
   },
