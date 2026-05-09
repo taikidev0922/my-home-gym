@@ -1,5 +1,8 @@
 import { auth0 } from "@/lib/auth0";
 
+export const defaultDisplayName = "匿名";
+export const defaultAvatarUrl = "/brand/default-user.svg";
+
 export type CurrentAuthUser = {
   id: string;
   email: string;
@@ -16,17 +19,11 @@ export async function getCurrentAuthUser(): Promise<CurrentAuthUser | null> {
   }
 
   const email = typeof user.email === "string" ? user.email : "";
-  const name =
-    (typeof user.name === "string" && user.name.trim()) ||
-    (typeof user.nickname === "string" && user.nickname.trim()) ||
-    email.split("@")[0] ||
-    "ユーザー";
-  const avatarUrl = typeof user.picture === "string" ? user.picture : "";
 
   return {
     id: user.sub,
     email,
-    name,
-    avatarUrl,
+    name: defaultDisplayName,
+    avatarUrl: defaultAvatarUrl,
   };
 }

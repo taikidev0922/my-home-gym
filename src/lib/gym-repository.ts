@@ -1,3 +1,4 @@
+import { defaultAvatarUrl, defaultDisplayName } from "@/lib/auth-user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { GymScale, HomeGymPost, PostCategoryItem, ProductCategory } from "@/lib/types";
@@ -266,13 +267,14 @@ export async function getProfile(
   fallbackDisplayName?: string,
   fallbackAvatarUrl?: string,
 ): Promise<ProfileData> {
-  const fallbackName = fallbackDisplayName || fallbackEmail?.split("@")[0] || "ユーザー";
+  const fallbackName = getSafeDisplayName(fallbackDisplayName, fallbackEmail);
+  const fallbackAvatar = fallbackAvatarUrl || defaultAvatarUrl;
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return {
       displayName: fallbackName,
-      avatarUrl: fallbackAvatarUrl ?? "",
+      avatarUrl: fallbackAvatar,
       instagramUrl: "",
       tiktokUrl: "",
       xUrl: "",
@@ -286,8 +288,8 @@ export async function getProfile(
     .maybeSingle();
 
   return {
-    displayName: data?.display_name ?? fallbackName,
-    avatarUrl: data?.avatar_url ?? fallbackAvatarUrl ?? "",
+    displayName: getSafeDisplayName(data?.display_name, fallbackEmail),
+    avatarUrl: getSafeAvatarUrl(data?.avatar_url) ?? fallbackAvatar,
     instagramUrl: data?.instagram_url ?? "",
     tiktokUrl: data?.tiktok_url ?? "",
     xUrl: data?.x_url ?? "",
@@ -308,8 +310,8 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    owner: row.profiles?.display_name ?? "投稿者",
-    ownerAvatarUrl: row.profiles?.avatar_url ?? undefined,
+    owner: getSafeDisplayName(row.profiles?.display_name),
+    ownerAvatarUrl: getSafeAvatarUrl(row.profiles?.avatar_url) ?? defaultAvatarUrl,
     scale: row.scale,
     areaTatami: Number(row.area_tatami),
     budget: row.budget,
@@ -324,4 +326,22 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
     },
     likes: row.post_likes?.length ?? 0,
   };
+}
+
+function getSafeDisplayName(value?: string | null, fallbackEmail?: string) {
+  const name = value?.trim();
+  if (!name || name === fallbackEmail || name.includes("@")) {
+    return defaultDisplayName;
+  }
+
+  return name;
+}
+
+function getSafeAvatarUrl(value?: string | null) {
+  const url = value?.trim();
+  if (!url || /gravatar|cdn\.auth0|auth0/i.test(url)) {
+    return null;
+  }
+
+  return url;
 }

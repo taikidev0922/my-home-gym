@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return NextResponse.json({ error: "Supabaseの管理キーが未設定です。" }, { status: 500 });
+    return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
   }
 
   const formData = await request.formData();

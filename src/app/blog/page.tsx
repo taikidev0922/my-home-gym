@@ -59,10 +59,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   ]);
 
   const categoryCounts = new Map(facets.categories.map((category) => [category.id, category.count]));
-  const visibleCategories = blogCategories.filter(
-    (category) => categoryCounts.has(category.id) || selectedCategory === category.id,
-  );
-  const visibleTags = facets.tags.slice(0, 24);
+  const visibleCategories = blogCategories;
+  const visibleTags = facets.tags.slice(0, 6);
   const latestSlug = latestPage.articles[0]?.slug;
   const pageNumbers = getPageNumbers(articlePage.page, articlePage.totalPages);
 
@@ -190,7 +188,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </div>
 
           {articlePage.articles.length > 0 ? (
-            <div className="grid gap-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {articlePage.articles.map((article) => (
                 <ArticleCard
                   key={article.slug}
@@ -249,20 +247,20 @@ function ArticleCard({
   categoryLabel: string;
 }) {
   return (
-    <article className="grid overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm transition hover:border-[#e4572e]/50 sm:grid-cols-[220px_1fr]">
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm transition hover:border-[#e4572e]/50">
       <Link
         href={`/blog/${article.slug}`}
-        className="relative block aspect-video border-b border-[#ded6ca] bg-[#f3efe7] sm:aspect-video sm:border-b-0 sm:border-r"
+        className="relative block aspect-video border-b border-[#ded6ca] bg-[#f3efe7]"
       >
         <Image
           src={article.imageUrl}
           alt={article.title}
           fill
           className="object-contain"
-          sizes="(max-width: 640px) 100vw, 220px"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </Link>
-      <div className="min-w-0 p-4">
+      <div className="flex min-w-0 flex-1 flex-col p-4">
         <div className="flex flex-wrap gap-2">
           {isLatest ? (
             <span className="rounded-full bg-[#e4572e] px-3 py-1 text-xs font-bold text-white">最新</span>
@@ -275,7 +273,7 @@ function ArticleCard({
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4e5b52]">{article.excerpt}</p>
         <ArticleMeta article={article} />
         {article.tags.length > 0 ? (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-auto flex flex-wrap gap-2 pt-3">
             {article.tags.slice(0, 5).map((tag) => (
               <Link
                 key={tag}
