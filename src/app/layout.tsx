@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { absoluteUrl, baseSeoKeywords, defaultSeoDescription, rankingSeoKeywords, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
@@ -13,10 +14,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const defaultTitle = `${siteName} | ホームジム実例と器具ランキング`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${siteName} | ホームジム実例と用品ランキング`,
+    default: defaultTitle,
     template: `%s | ${siteName}`,
   },
   description: defaultSeoDescription,
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
     canonical: absoluteUrl("/"),
   },
   openGraph: {
-    title: `${siteName} | ホームジム実例と用品ランキング`,
+    title: defaultTitle,
     description: defaultSeoDescription,
     url: absoluteUrl("/"),
     siteName,
@@ -39,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: `${siteName} | ホームジム実例と用品ランキング`,
+    title: defaultTitle,
     description: defaultSeoDescription,
   },
   robots: {
@@ -62,7 +65,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-41RHRTCWKW" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-41RHRTCWKW');
+          `}
+        </Script>
+      </body>
     </html>
   );
 }

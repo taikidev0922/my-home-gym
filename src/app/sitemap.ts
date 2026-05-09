@@ -1,14 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getBlogSitemapArticles } from "@/lib/blog-repository";
-import { getPublishedPosts } from "@/lib/gym-repository";
+import { getPublishedPostSitemapEntries } from "@/lib/gym-repository";
 import { getRankingCategories } from "@/lib/product-rankings";
 import { absoluteUrl } from "@/lib/seo";
 
-const postPageSize = 48;
-const maxPostPages = 20;
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, articles] = await Promise.all([getAllPublishedPosts(), getBlogSitemapArticles()]);
+  const [posts, articles] = await Promise.all([getPublishedPostSitemapEntries(), getBlogSitemapArticles()]);
   const now = new Date();
 
   return [
@@ -44,24 +41,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...posts.map((post) => ({
       url: absoluteUrl(`/posts/${post.slug}`),
-      lastModified: now,
+      lastModified: new Date(post.lastModified),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
   ];
-}
-
-async function getAllPublishedPosts() {
-  const posts = [];
-
-  for (let page = 1; page <= maxPostPages; page += 1) {
-    const result = await getPublishedPosts({ page, perPage: postPageSize });
-    posts.push(...result.posts);
-
-    if (posts.length >= result.total || result.posts.length === 0) {
-      break;
-    }
-  }
-
-  return posts;
 }

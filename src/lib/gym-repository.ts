@@ -55,6 +55,11 @@ export type PublishedPostsResult = {
   perPage: number;
 };
 
+export type PostSitemapEntry = {
+  slug: string;
+  lastModified: string;
+};
+
 const postSelect = `
   id,
   title,
@@ -173,6 +178,41 @@ export async function getPublishedPostBySlug(slug: string) {
   }
 
   return mapPostRow(data as unknown as GymPostRow);
+}
+
+export async function getPublishedPostSitemapEntries(limit = 50000): Promise<PostSitemapEntry[]> {
+  const supabase = await createSupabaseServerClient();
+  const entries: PostSitemapEntry[] = [];
+  const pageSize = 1000;
+  const maxRows = Math.max(1, Math.min(limit, 50000));
+
+  if (!supabase) return entries;
+
+  for (let from = 0; from < maxRows; from += pageSize) {
+    const to = Math.min(from + pageSize - 1, maxRows - 1);
+    const { data, error } = await supabase
+      .from("gym_posts")
+      .select("slug,created_at")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error || !data) {
+      console.error("Failed to load post sitemap entries", error);
+      break;
+    }
+
+    entries.push(
+      ...data.map((row) => ({
+        slug: String(row.slug),
+        lastModified: String(row.created_at),
+      })),
+    );
+
+    if (data.length < pageSize) break;
+  }
+
+  return entries;
 }
 
 export async function getUserPosts(userId: string): Promise<HomeGymPost[]> {
