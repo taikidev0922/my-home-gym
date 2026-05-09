@@ -4,14 +4,11 @@ import Image from "next/image";
 import { ImagePlus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { ProfileData } from "@/lib/gym-repository";
 
 export function ProfileForm({
-  userId,
   profile,
 }: {
-  userId: string;
   profile: ProfileData;
 }) {
   const router = useRouter();
@@ -26,54 +23,26 @@ export function ProfileForm({
     setIsSaving(true);
     setMessage("");
 
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setMessage("Supabaseの環境変数が未設定です。");
-      setIsSaving(false);
-      return;
-    }
-
     const formData = new FormData(form);
-    const avatarFile = formData.get("avatarFile");
-    let nextAvatarUrl = avatarUrl;
-
-    if (avatarFile instanceof File && avatarFile.size > 0) {
-      const ext = avatarFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${userId}/avatar-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("profile-avatars")
-        .upload(path, avatarFile, { upsert: false });
-
-      if (uploadError) {
-        setMessage(uploadError.message);
-        setIsSaving(false);
-        return;
-      }
-
-      const { data } = supabase.storage.from("profile-avatars").getPublicUrl(path);
-      nextAvatarUrl = data.publicUrl;
-      setAvatarUrl(nextAvatarUrl);
-      if (avatarPreview) {
-        URL.revokeObjectURL(avatarPreview);
-        setAvatarPreview("");
-      }
-    }
-
-    const { error } = await supabase.from("profiles").upsert({
-      id: userId,
-      display_name: String(formData.get("displayName") ?? ""),
-      avatar_url: nextAvatarUrl,
-      instagram_url: String(formData.get("instagramUrl") ?? ""),
-      tiktok_url: String(formData.get("tiktokUrl") ?? ""),
-      x_url: String(formData.get("xUrl") ?? ""),
+    const response = await fetch("/api/profile", {
+      method: "POST",
+      body: formData,
     });
+    const result = (await response.json().catch(() => null)) as { error?: string; avatarUrl?: string } | null;
 
     setIsSaving(false);
-    if (error) {
-      setMessage(error.message);
+    if (!response.ok) {
+      setMessage(result?.error ?? "プロフィールの保存に失敗しました。");
       return;
     }
 
+    if (result?.avatarUrl) {
+      setAvatarUrl(result.avatarUrl);
+    }
+    if (avatarPreview) {
+      URL.revokeObjectURL(avatarPreview);
+      setAvatarPreview("");
+    }
     setMessage("プロフィールを保存しました。");
     router.refresh();
   }

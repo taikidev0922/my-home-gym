@@ -5,29 +5,26 @@ import { SiteHeader } from "@/components/site-header";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
 import { formatTatami } from "@/lib/area";
+import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getLikedPosts, getProfile, getUserPosts } from "@/lib/gym-repository";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { HomeGymPost } from "@/lib/types";
 
 export default async function MyPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const user = await getCurrentAuthUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   const [profile, myPosts, likedPosts] = await Promise.all([
-    getProfile(user.id, user.email),
+    getProfile(user.id, user.email, user.name, user.avatarUrl),
     getUserPosts(user.id),
     getLikedPosts(user.id),
   ]);
 
   return (
     <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
-      <SiteHeader currentUser={{ email: user.email ?? "", name: profile.displayName, avatarUrl: profile.avatarUrl }} showMobilePostButton={false} />
+      <SiteHeader currentUser={{ email: user.email, name: profile.displayName, avatarUrl: profile.avatarUrl || user.avatarUrl }} showMobilePostButton={false} />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <section className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm sm:p-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -56,7 +53,7 @@ export default async function MyPage() {
               投稿詳細やカードに表示する名前、アイコン、SNSリンクを設定できます。
             </p>
             <div className="mt-5">
-              <ProfileForm userId={user.id} profile={profile} />
+              <ProfileForm profile={profile} />
             </div>
           </div>
 

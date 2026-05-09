@@ -4,9 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Tags, X } from "lucide-react";
 import { useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { productCategoryLabels } from "@/lib/product-rankings";
-import type { GymScale, ProductCategory } from "@/lib/types";
+import type { ProductCategory } from "@/lib/types";
 
 const gearCategories: ProductCategory[] = [
   "power-rack",
@@ -37,104 +36,21 @@ export function SubmitForm() {
     setIsSaving(true);
     setMessage("");
 
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setMessage("Supabaseの環境変数が未設定です。");
-      setIsSaving(false);
-      return;
-    }
-
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
-    if (!user) {
-      setMessage("投稿にはログインが必要です。");
-      setIsSaving(false);
-      return;
-    }
-
     const formData = new FormData(form);
-    const title = String(formData.get("title") ?? "").trim();
-    const areaTatami = Number(formData.get("areaTatami") ?? 0);
-    const slug = `${slugify(title)}-${Date.now()}`;
-    const files = formData.getAll("images").filter((file): file is File => file instanceof File && file.size > 0);
+    formData.set("tags", JSON.stringify([...tags, ...splitTags(tagInput)]));
+    formData.set("categories", JSON.stringify(selectedCategories));
+    formData.set("thumbnailIndex", String(thumbnailIndex));
 
-    const { error: profileError } = await supabase.from("profiles").upsert({
-      id: user.id,
-      display_name: user.email?.split("@")[0] ?? "投稿者",
+    const response = await fetch("/api/posts", {
+      method: "POST",
+      body: formData,
     });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
 
-    if (profileError) {
-      setMessage(profileError.message);
+    if (!response.ok) {
+      setMessage(result?.error ?? "投稿の保存に失敗しました。");
       setIsSaving(false);
       return;
-    }
-
-    const { data: post, error: postError } = await supabase
-      .from("gym_posts")
-      .insert({
-        user_id: user.id,
-        title,
-        slug,
-        scale: String(formData.get("scale") ?? "compact") as GymScale,
-        area_tatami: areaTatami,
-        budget: Number(formData.get("budget") ?? 0),
-        summary: String(formData.get("description") ?? "").trim(),
-        tags: [...tags, ...splitTags(tagInput)],
-        published: true,
-      })
-      .select("id")
-      .single();
-
-    if (postError || !post) {
-      setMessage(postError?.message ?? "投稿の保存に失敗しました。");
-      setIsSaving(false);
-      return;
-    }
-
-    const orderedFiles = files
-      .map((file, index) => ({ file, index }))
-      .sort((a, b) => {
-        if (a.index === thumbnailIndex) return -1;
-        if (b.index === thumbnailIndex) return 1;
-        return a.index - b.index;
-      });
-
-    const imageRows = [];
-    for (const [sortOrder, item] of orderedFiles.entries()) {
-      const file = item.file;
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/${post.id}/${sortOrder}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("gym-post-images").upload(path, file, { upsert: true });
-      if (uploadError) {
-        setMessage(uploadError.message);
-        setIsSaving(false);
-        return;
-      }
-      const { data } = supabase.storage.from("gym-post-images").getPublicUrl(path);
-      imageRows.push({ post_id: post.id, storage_path: data.publicUrl, alt: title, sort_order: sortOrder });
-    }
-
-    if (imageRows.length) {
-      const { error } = await supabase.from("gym_post_images").insert(imageRows);
-      if (error) {
-        setMessage(error.message);
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    const categoryRows = selectedCategories.map((category) => ({
-      post_id: post.id,
-      category,
-    }));
-
-    if (categoryRows.length) {
-      const { error } = await supabase.from("gym_post_categories").insert(categoryRows);
-      if (error) {
-        setMessage(error.message);
-        setIsSaving(false);
-        return;
-      }
     }
 
     form.reset();
@@ -374,17 +290,6 @@ function TextArea({ name, label, placeholder, required = false }: { name: string
       <span className="text-sm font-bold">{label}</span>
       <textarea name={name} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-3 outline-none" placeholder={placeholder} />
     </label>
-  );
-}
-
-function slugify(value: string) {
-  return (
-    value
-      .toLowerCase()
-      .trim()
-      .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "home-gym"
   );
 }
 

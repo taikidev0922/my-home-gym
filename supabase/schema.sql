@@ -1,5 +1,5 @@
 create table profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id text primary key,
   display_name text not null,
   avatar_url text,
   instagram_url text,
@@ -10,7 +10,7 @@ create table profiles (
 
 create table gym_posts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id text not null references profiles(id) on delete cascade,
   title text not null,
   slug text unique not null,
   scale text not null check (scale in ('compact', 'standard', 'serious')),
@@ -38,7 +38,7 @@ create table gym_post_categories (
 );
 
 create table post_likes (
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id text not null references profiles(id) on delete cascade,
   post_id uuid not null references gym_posts(id) on delete cascade,
   created_at timestamptz not null default now(),
   primary key (user_id, post_id)
@@ -89,58 +89,27 @@ values
 on conflict (id) do nothing;
 
 create policy "Public profiles are readable" on profiles for select using (true);
-create policy "Users upsert own profile" on profiles for insert with check (auth.uid() = id);
-create policy "Users update own profile" on profiles for update using (auth.uid() = id);
 
 create policy "Published posts are readable" on gym_posts for select using (published = true);
-create policy "Users read own posts" on gym_posts for select using (auth.uid() = user_id);
-create policy "Users create own posts" on gym_posts for insert with check (auth.uid() = user_id);
-create policy "Users update own posts" on gym_posts for update using (auth.uid() = user_id);
 
 create policy "Published images are readable" on gym_post_images for select using (
   exists (select 1 from gym_posts where gym_posts.id = gym_post_images.post_id and gym_posts.published = true)
-);
-create policy "Users read images for own posts" on gym_post_images for select using (
-  exists (select 1 from gym_posts where gym_posts.id = gym_post_images.post_id and gym_posts.user_id = auth.uid())
-);
-create policy "Users create images for own posts" on gym_post_images for insert with check (
-  exists (select 1 from gym_posts where gym_posts.id = gym_post_images.post_id and gym_posts.user_id = auth.uid())
 );
 
 create policy "Published categories are readable" on gym_post_categories for select using (
   exists (select 1 from gym_posts where gym_posts.id = gym_post_categories.post_id and gym_posts.published = true)
 );
-create policy "Users read categories for own posts" on gym_post_categories for select using (
-  exists (select 1 from gym_posts where gym_posts.id = gym_post_categories.post_id and gym_posts.user_id = auth.uid())
-);
-create policy "Users create categories for own posts" on gym_post_categories for insert with check (
-  exists (select 1 from gym_posts where gym_posts.id = gym_post_categories.post_id and gym_posts.user_id = auth.uid())
-);
 
 create policy "Post likes are publicly readable" on post_likes for select using (
   exists (select 1 from gym_posts where gym_posts.id = post_likes.post_id and gym_posts.published = true)
 );
-create policy "Users create own likes" on post_likes for insert with check (auth.uid() = user_id);
-create policy "Users delete own likes" on post_likes for delete using (auth.uid() = user_id);
 
 create policy "Blog articles are publicly readable" on blog_articles for select using (true);
 create policy "Blog keywords are publicly readable" on blog_keyword_candidates for select using (true);
 
 create policy "Public gym images are readable" on storage.objects for select using (bucket_id = 'gym-post-images');
-create policy "Users upload own gym images" on storage.objects for insert with check (
-  bucket_id = 'gym-post-images' and auth.uid()::text = (storage.foldername(name))[1]
-);
-create policy "Users update own gym images" on storage.objects for update using (
-  bucket_id = 'gym-post-images' and auth.uid()::text = (storage.foldername(name))[1]
-);
 
 create policy "Public profile avatars are readable" on storage.objects for select using (bucket_id = 'profile-avatars');
-create policy "Users upload own profile avatars" on storage.objects for insert with check (
-  bucket_id = 'profile-avatars' and auth.uid()::text = (storage.foldername(name))[1]
-);
-create policy "Users update own profile avatars" on storage.objects for update using (
-  bucket_id = 'profile-avatars' and auth.uid()::text = (storage.foldername(name))[1]
-);
 
 create policy "Public blog images are readable" on storage.objects for select using (bucket_id = 'blog-images');
 

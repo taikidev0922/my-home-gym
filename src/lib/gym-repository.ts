@@ -260,14 +260,19 @@ export async function getLikedPosts(userId: string): Promise<HomeGymPost[]> {
     .map(mapPostRow);
 }
 
-export async function getProfile(userId: string, fallbackEmail?: string): Promise<ProfileData> {
-  const fallbackName = fallbackEmail?.split("@")[0] ?? "ユーザー";
+export async function getProfile(
+  userId: string,
+  fallbackEmail?: string,
+  fallbackDisplayName?: string,
+  fallbackAvatarUrl?: string,
+): Promise<ProfileData> {
+  const fallbackName = fallbackDisplayName || fallbackEmail?.split("@")[0] || "ユーザー";
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return {
       displayName: fallbackName,
-      avatarUrl: "",
+      avatarUrl: fallbackAvatarUrl ?? "",
       instagramUrl: "",
       tiktokUrl: "",
       xUrl: "",
@@ -282,7 +287,7 @@ export async function getProfile(userId: string, fallbackEmail?: string): Promis
 
   return {
     displayName: data?.display_name ?? fallbackName,
-    avatarUrl: data?.avatar_url ?? "",
+    avatarUrl: data?.avatar_url ?? fallbackAvatarUrl ?? "",
     instagramUrl: data?.instagram_url ?? "",
     tiktokUrl: data?.tiktok_url ?? "",
     xUrl: data?.x_url ?? "",

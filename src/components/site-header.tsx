@@ -63,7 +63,7 @@ export function SiteHeader({
               </Link>
             ) : (
               <Link
-                href="/login"
+                href="/auth/login"
                 className="inline-flex h-10 items-center rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white shadow-sm"
               >
                 ログイン

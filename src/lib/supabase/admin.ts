@@ -1,18 +1,24 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 
-export function createSupabaseAdminClient() {
-  const url = SUPABASE_URL;
+let adminClient: SupabaseClient | null = null;
+
+export function getSupabaseAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !serviceRoleKey) {
+  if (!SUPABASE_URL || !serviceRoleKey) {
     return null;
   }
 
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
+  if (!adminClient) {
+    adminClient = createClient(SUPABASE_URL, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+      },
+    });
+  }
+
+  return adminClient;
 }
+
+export const createSupabaseAdminClient = getSupabaseAdminClient;

@@ -1,7 +1,7 @@
 import { HomeGymExplorer } from "@/components/home-gym-explorer";
 import { getRankingCategories } from "@/lib/product-rankings";
+import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getProfile, getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { GymScale, ProductCategory } from "@/lib/types";
 
 type PageSearchParams = Record<string, string | string[] | undefined>;
@@ -18,14 +18,11 @@ export default async function Home({
   searchParams: Promise<PageSearchParams>;
 }) {
   const filters = parsePostSearchFilters(await searchParams);
-  const [postResult, supabase] = await Promise.all([
+  const [postResult, user] = await Promise.all([
     getPublishedPosts(filters),
-    createSupabaseServerClient(),
+    getCurrentAuthUser(),
   ]);
-  const {
-    data: { user },
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  const profile = user ? await getProfile(user.id, user.email) : null;
+  const profile = user ? await getProfile(user.id, user.email, user.name, user.avatarUrl) : null;
 
   return (
     <HomeGymExplorer
@@ -39,7 +36,7 @@ export default async function Home({
           ? {
               email: user.email ?? "",
               name: profile.displayName,
-              avatarUrl: profile.avatarUrl,
+              avatarUrl: profile.avatarUrl || user.avatarUrl,
             }
           : null
       }
