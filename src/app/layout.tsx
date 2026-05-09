@@ -31,11 +31,11 @@ export const metadata: Metadata = {
   keywords: [...baseSeoKeywords, ...rankingSeoKeywords],
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/brand/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/brand/favicon.svg",
-    apple: "/brand/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   alternates: {
     canonical: absoluteUrl("/"),
