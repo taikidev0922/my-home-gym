@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const xUrl = normalizeUrl(formData.get("xUrl"));
   const avatarFile = formData.get("avatarFile");
 
-  let avatarUrl: string | null | undefined;
+  let avatarUrl: string | undefined;
   if (avatarFile instanceof File && avatarFile.size > 0 && avatarFile.type.startsWith("image/")) {
     const extension = getImageExtension(avatarFile);
     const storagePath = `${safeStorageKey(user.id)}/avatar.${extension}`;

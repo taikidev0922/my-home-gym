@@ -37,7 +37,7 @@ export function SiteHeader({
                 width={186}
                 height={40}
                 priority
-                className="h-8 w-[148px] object-contain sm:h-9 sm:w-[168px]"
+                className="h-9 w-[166px] object-contain sm:h-10 sm:w-[190px]"
               />
             </Link>
           </div>

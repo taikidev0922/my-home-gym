@@ -2,9 +2,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
+import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
+import { getAffiliateProductById, type AffiliateProduct } from "@/lib/affiliate-products";
 
 type BlogArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -15,6 +17,78 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   month: "long",
   day: "numeric",
 });
+
+function renderInlineLinks(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(linkPattern)) {
+    const index = match.index ?? 0;
+    const [fullText, label, href] = match;
+
+    if (index > lastIndex) {
+      nodes.push(text.slice(lastIndex, index));
+    }
+
+    nodes.push(
+      <a
+        key={`${href}-${index}`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="font-bold text-[#e4572e] underline underline-offset-4"
+      >
+        {label}
+      </a>,
+    );
+
+    lastIndex = index + fullText.length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes.length ? nodes : [text];
+}
+
+function getAffiliateProductMarker(text: string) {
+  const match = text.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/);
+  if (!match) return null;
+
+  return getAffiliateProductById(match[1]) ?? null;
+}
+
+function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
+  return (
+    <a
+      href={product.affiliateUrl}
+      target="_blank"
+      rel="noopener noreferrer sponsored"
+      className="group grid overflow-hidden rounded-lg border border-[#ded6ca] bg-[#fbf8f2] shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[180px_1fr]"
+    >
+      <div className="flex min-h-40 items-center justify-center border-b border-[#ded6ca] bg-white p-4 sm:border-b-0 sm:border-r">
+        <Image
+          src={product.imageUrl}
+          alt={product.name}
+          width={360}
+          height={260}
+          className="max-h-36 w-full object-contain"
+          sizes="(max-width: 640px) 100vw, 180px"
+        />
+      </div>
+      <div className="p-4">
+        <p className="text-xs font-bold text-[#e4572e]">{product.genre}</p>
+        <p className="mt-1 text-lg font-bold leading-snug text-[#122018]">{product.name}</p>
+        <p className="mt-2 text-sm text-[#69756d]">{product.maker}</p>
+        <span className="mt-4 inline-flex rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white transition group-hover:bg-[#cf4925]">
+          商品を見る
+        </span>
+      </div>
+    </a>
+  );
+}
 
 export async function generateMetadata({ params }: BlogArticlePageProps) {
   const { slug } = await params;
@@ -109,9 +183,15 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                     {block.heading}
                   </h2>
                   <div className="mt-4 grid gap-4 text-base leading-8 text-[#4e5b52]">
-                    {block.paragraphs.map((paragraph) => (
-                      <p key={paragraph}>{paragraph}</p>
-                    ))}
+                    {block.paragraphs.map((paragraph) => {
+                      const product = getAffiliateProductMarker(paragraph);
+
+                      if (product) {
+                        return <AffiliateProductCard key={paragraph} product={product} />;
+                      }
+
+                      return <p key={paragraph}>{renderInlineLinks(paragraph)}</p>;
+                    })}
                   </div>
                   {block.visual?.imageUrl && block.visual.imageUrl !== firstVisualImageUrl ? (
                     <div className="-mx-4 mt-5 overflow-hidden sm:mx-0 sm:rounded-lg">

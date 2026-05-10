@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
 import type { BlogArticle, BlogArticleBlock } from "@/lib/types";
+import { buildAffiliatePromptSection } from "@/lib/affiliate-products";
 
 type ClaudeArticlePayload = {
   title?: unknown;
@@ -220,6 +221,7 @@ async function uploadBlogImage(slug: string, base64: string) {
 function buildArticlePrompt(keyword: KeywordCandidate) {
   return `あなたは日本語のホームジム専門メディア「マイホームジム」の編集者です。検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
+${buildAffiliatePromptSection()}
 
 条件:
 - これから自宅にトレーニングスペースを作る人向けに書く

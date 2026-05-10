@@ -8,7 +8,9 @@
     "prebuild": "npm run check:mojibake",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "blog:affiliate-links": "node scripts/enrich-blog-affiliate-links.mjs",
+    "blog:affiliate-links:apply": "node scripts/enrich-blog-affiliate-links.mjs --apply"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.20.0",

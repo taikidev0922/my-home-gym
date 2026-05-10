@@ -1,4 +1,5 @@
 import type { ProductCategory, RankingProduct } from "@/lib/types";
+import { getAffiliateUrlById } from "@/lib/affiliate-products";
 
 export const productCategoryLabels: Record<ProductCategory, string> = {
   "multi-home-gym": "マルチホームジム",
@@ -75,7 +76,7 @@ const allRankingProducts = [
     pros: ["とにかく安い", "ベンチプレス・懸垂・スクワットに対応", "ハーフラックなので省スペース", "ディップスやロー系の種目も組みやすい"],
     cons: ["バーベルとベンチは別売り", "高さ209cm/220cmなので天井高を確認したい", "本体耐荷重150kgの範囲で使う必要がある"],
     productUrl: "https://www.amazon.co.jp/WASAI-%E7%AD%8B%E5%8A%9B%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0-%E3%83%91%E3%83%AF%E3%83%BC%E3%82%B1%E3%83%BC%E3%82%B8-%E3%83%99%E3%83%B3%E3%83%81%E3%83%97%E3%83%AC%E3%82%B9-MK780-%E6%9C%AC%E4%BD%93/dp/B0833K5KCM",
-    affiliateUrl: "https://www.amazon.co.jp/WASAI-%E7%AD%8B%E5%8A%9B%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0-%E3%83%91%E3%83%AF%E3%83%BC%E3%82%B1%E3%83%BC%E3%82%B8-%E3%83%99%E3%83%B3%E3%83%81%E3%83%97%E3%83%AC%E3%82%B9-MK780-%E6%9C%AC%E4%BD%93/dp/B0833K5KCM?tag=myhomegym-22",
+    affiliateUrl: getAffiliateUrlById("wasai-mk780-half-rack") ?? "https://amzn.to/4uDapmU",
     isAffiliate: true,
   },
   {
@@ -176,7 +177,7 @@ const allRankingProducts = [
     pros: ["1kg刻みで細かく重量調整できる", "40kgまで対応して伸びしろが大きい", "膝に置いても痛くなりにくい形状", "メタル感があり見た目がかっこいい"],
     cons: ["価格は高め", "1個42.5kg相当なので搬入と設置場所に注意", "プレートの向きや扱いは丁寧に確認したい"],
     productUrl: "https://www.amazon.co.jp/%E3%83%A9%E3%82%A4%E3%82%B7%E3%83%B3-%E3%83%98%E3%83%AA%E3%83%83%E3%82%AF%E3%82%B9%E3%83%9F%E3%83%A9%E3%83%BC-1kg%E5%88%BB%E3%81%BF-2%E5%80%8B%E3%82%BB%E3%83%83%E3%83%88-%E3%83%A1%E3%82%BF%E3%83%AB%E3%83%80%E3%83%B3%E3%83%99%E3%83%AB/dp/B0DTH36WT5",
-    affiliateUrl: "https://www.amazon.co.jp/%E3%83%A9%E3%82%A4%E3%82%B7%E3%83%B3-%E3%83%98%E3%83%AA%E3%83%83%E3%82%AF%E3%82%B9%E3%83%9F%E3%83%A9%E3%83%BC-1kg%E5%88%BB%E3%81%BF-2%E5%80%8B%E3%82%BB%E3%83%83%E3%83%88-%E3%83%A1%E3%82%BF%E3%83%AB%E3%83%80%E3%83%B3%E3%83%99%E3%83%AB/dp/B0DTH36WT5?tag=myhomegym-22",
+    affiliateUrl: getAffiliateUrlById("lysin-helixmirror-40kg") ?? "https://amzn.to/3QYDL0G",
     isAffiliate: true,
   },
   {
@@ -227,24 +228,24 @@ const allRankingProducts = [
     pros: ["価格がかなり安い", "4WAYで種目の幅を増やしやすい", "折りたたみ収納できる", "耐荷重500kg表記で安心感がある"],
     cons: ["本格ジム用ベンチほどの重量感はない", "高重量ダンベルを扱う人は安定感を確認したい", "保証期間は長期ではない"],
     productUrl: "https://www.amazon.co.jp/BARWING-%E3%83%90%E3%83%BC%E3%82%A6%E3%82%A3%E3%83%B3%E3%82%B0-%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0%E3%83%99%E3%83%B3%E3%83%81-%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81-%E3%83%87%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81/dp/B0CTBY5221",
-    affiliateUrl: "https://www.amazon.co.jp/BARWING-%E3%83%90%E3%83%BC%E3%82%A6%E3%82%A3%E3%83%B3%E3%82%B0-%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0%E3%83%99%E3%83%B3%E3%83%81-%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81-%E3%83%87%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81/dp/B0CTBY5221?tag=myhomegym-22",
+    affiliateUrl: getAffiliateUrlById("barwing-bw-ajb06-bench") ?? "https://amzn.to/4tsU3fP",
     isAffiliate: true,
   },
   {
     id: "airhop-joint-mat",
     rank: 1,
     category: "floor-mat",
-    name: "AIRHOP ジョイントマット系",
+    name: "AIRHOP 24枚 8.92m² ジョイントマット",
     maker: "AIRHOP",
-    price: 3999,
-    image: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=900&auto=format&fit=crop",
+    price: 14999,
+    image: "https://m.media-amazon.com/images/I/71zQ+bDShsL._AC_SL1500_.jpg",
     rating: 4.4,
-    summary: "低予算で床保護を始められるジョイントマット系。ホームジムの最初の追加購入に向く。",
-    bestFor: "ダンベルやベンチ下の床傷を防ぎたい人",
-    pros: ["安い", "必要枚数だけ増やせる", "防音・衝撃吸収を始めやすい"],
-    cons: ["高重量ラック下には厚み不足の場合あり", "ズレ対策も考えたい"],
-    productUrl: "https://www.amazon.co.jp/s?k=AIRHOP+%E3%82%B8%E3%83%A0%E3%83%9E%E3%83%83%E3%83%88",
-    affiliateUrl: "https://www.amazon.co.jp/s?k=AIRHOP+%E3%82%B8%E3%83%A0%E3%83%9E%E3%83%83%E3%83%88&tag=myhomegym-22",
+    summary: "24枚で約8.92m²を敷けるEVAジョイントマット。1.2cm厚で床保護、防音、衝撃吸収をまとめて始めやすいホームジム用マット。",
+    bestFor: "ラックやダンベルを置く前に、床の傷・音・衝撃対策をまとめて整えたい人",
+    pros: ["24枚で広めに敷ける", "1.2cm厚で床保護と衝撃吸収に使いやすい", "部屋に合わせてカット・レイアウトしやすい", "掃除しやすいEVA素材"],
+    cons: ["本格的な高重量ラック下ではゴムマットも検討したい", "設置直後はにおい対策として換気したい", "動きの大きい種目ではジョイント部のズレを確認したい"],
+    productUrl: "https://amzn.to/4tuL4uC",
+    affiliateUrl: getAffiliateUrlById("airhop-joint-mat") ?? "https://amzn.to/4tuL4uC",
     isAffiliate: true,
   },
   {
@@ -365,7 +366,7 @@ const allRankingProducts = [
 ] satisfies RankingProduct[];
 
 export const rankingProducts = allRankingProducts.filter((product) =>
-  ["wasai-mk780-half-rack", "lysin-helixmirror-40kg", "barwing-bw-ajb06-bench"].includes(product.id),
+  ["wasai-mk780-half-rack", "lysin-helixmirror-40kg", "barwing-bw-ajb06-bench", "airhop-joint-mat"].includes(product.id),
 );
 
 export function getRankingCategories() {

@@ -339,7 +339,16 @@ function getSafeDisplayName(value?: string | null, fallbackEmail?: string) {
 
 function getSafeAvatarUrl(value?: string | null) {
   const url = value?.trim();
-  if (!url || /gravatar|cdn\.auth0|auth0/i.test(url)) {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const host = new URL(url, "https://example.com").hostname.toLowerCase();
+    if (host.includes("gravatar") || host === "cdn.auth0.com" || host.endsWith(".auth0.com")) {
+      return null;
+    }
+  } catch {
     return null;
   }
 
