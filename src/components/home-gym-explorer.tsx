@@ -362,7 +362,12 @@ export function HomeGymExplorer({
             <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
               {posts.length ? (
                 posts.map((post) => (
-                  <PostCard key={post.id} post={post} onRequireLogin={requireLogin} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onOpen={() => router.push(`/posts/${post.slug}`)}
+                    onRequireLogin={requireLogin}
+                  />
                 ))
               ) : (
                 <div className="rounded-lg border border-dashed border-[#cfd8cf] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-2 xl:col-span-3">
@@ -557,10 +562,29 @@ function PhotoGridItem({ post }: { post: HomeGymPost }) {
   );
 }
 
-function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin: (action: string) => void }) {
+function PostCard({
+  post,
+  onOpen,
+  onRequireLogin,
+}: {
+  post: HomeGymPost;
+  onOpen: () => void;
+  onRequireLogin: (action: string) => void;
+}) {
   return (
-    <article className="overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm">
-      <Link href={`/posts/${post.slug}`} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
+    <article
+      className="pressable-card cursor-pointer overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+    >
+      <Link href={`/posts/${post.slug}`} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
         <div className="absolute left-2 top-2 rounded-lg bg-[#e4572e] px-2 py-1 text-xs font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
@@ -573,12 +597,20 @@ function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin:
       <div className="hidden p-4 sm:block">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Link href={`/posts/${post.slug}`} className="font-bold leading-6 hover:underline">
+            <Link href={`/posts/${post.slug}`} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
               {post.title}
             </Link>
             <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>
           </div>
-          <button type="button" onClick={() => onRequireLogin("お気に入り登録")} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cfd8cf]" aria-label="お気に入り">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRequireLogin("お気に入り登録");
+            }}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cfd8cf]"
+            aria-label="お気に入り"
+          >
             <Bookmark size={18} />
           </button>
         </div>
@@ -600,7 +632,14 @@ function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin:
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between border-t border-[#cfd8cf] pt-4">
-          <button type="button" onClick={() => onRequireLogin("いいね")} className="inline-flex items-center gap-2 text-sm font-bold text-[#e4572e]">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRequireLogin("いいね");
+            }}
+            className="inline-flex items-center gap-2 text-sm font-bold text-[#e4572e]"
+          >
             <Heart size={17} />
             {post.likes}
           </button>
@@ -631,6 +670,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
           target="_blank"
           rel="noreferrer"
           aria-label={item.label}
+          onClick={(event) => event.stopPropagation()}
           className="grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-white hover:border-[#e4572e]"
         >
           {item.icon}

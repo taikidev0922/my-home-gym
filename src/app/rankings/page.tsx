@@ -289,7 +289,12 @@ function RankingCard({
   const rankStyle = getRankStyle(displayRank);
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm lg:grid-cols-[260px_1fr]">
+    <a
+      href={outboundUrl}
+      target="_blank"
+      rel="nofollow sponsored noopener noreferrer"
+      className="pressable-card grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm lg:grid-cols-[260px_1fr]"
+    >
       <div className="relative min-h-64 bg-white">
         <Image src={product.image} alt={product.name} fill className="object-contain p-4" sizes="(max-width: 1024px) 100vw, 260px" />
         <div
@@ -335,18 +340,13 @@ function RankingCard({
         </div>
 
         <div className="mt-5 flex justify-end border-t border-[#cfd8cf] pt-4">
-          <a
-            href={outboundUrl}
-            target="_blank"
-            rel="nofollow sponsored noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#e4572e] px-4 py-3 text-sm font-bold text-white"
-          >
+          <span className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#e4572e] px-4 py-3 text-sm font-bold text-white">
             商品をチェック
             <ExternalLink size={16} />
-          </a>
+          </span>
         </div>
       </div>
-    </article>
+    </a>
   );
 }
 

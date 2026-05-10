@@ -247,11 +247,11 @@ function ArticleCard({
   categoryLabel: string;
 }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/50">
-      <Link
-        href={`/blog/${article.slug}`}
-        className="relative block aspect-video border-b border-[#cfd8cf] bg-[#f7f8f5]"
-      >
+    <Link
+      href={`/blog/${article.slug}`}
+      className="pressable-card flex h-full flex-col overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/50"
+    >
+      <div className="relative block aspect-video border-b border-[#cfd8cf] bg-[#f7f8f5]">
         <Image
           src={article.imageUrl}
           alt={article.title}
@@ -259,7 +259,7 @@ function ArticleCard({
           className="object-contain"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-      </Link>
+      </div>
       <div className="flex min-w-0 flex-1 flex-col p-4">
         <div className="flex flex-wrap gap-2">
           {isLatest ? (
@@ -267,26 +267,25 @@ function ArticleCard({
           ) : null}
           <span className="rounded-full bg-[#f7f8f5] px-3 py-1 text-xs font-bold text-[#4e5b52]">{categoryLabel}</span>
         </div>
-        <Link href={`/blog/${article.slug}`} className="mt-3 block text-xl font-bold leading-7 hover:underline">
+        <h2 className="mt-3 text-xl font-bold leading-7">
           {article.title}
-        </Link>
+        </h2>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#4e5b52]">{article.excerpt}</p>
         <ArticleMeta article={article} />
         {article.tags.length > 0 ? (
           <div className="mt-auto flex flex-wrap gap-2 pt-3">
             {article.tags.slice(0, 5).map((tag) => (
-              <Link
+              <span
                 key={tag}
-                href={blogHref({ tag })}
                 className="rounded-full bg-[#143826] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#1f4a32]"
               >
                 {tag}
-              </Link>
+              </span>
             ))}
           </div>
         ) : null}
       </div>
-    </article>
+    </Link>
   );
 }
 

@@ -52,6 +52,24 @@ button:disabled {
   filter: none;
 }
 
+.pressable-card {
+  transition-property: border-color, box-shadow, filter, transform;
+  transition-duration: 140ms;
+  transition-timing-function: ease;
+}
+
+.pressable-card:has(a[href]:active),
+.pressable-card:has(button:active) {
+  filter: brightness(0.96) saturate(1.04);
+  transform: translateY(1px) scale(0.99);
+}
+
+.pressable-card a[href]:active,
+.pressable-card button:active {
+  filter: none;
+  transform: none;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
