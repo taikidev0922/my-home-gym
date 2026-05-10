@@ -66,9 +66,9 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
       href={product.affiliateUrl}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className="group grid overflow-hidden rounded-lg border border-[#ded6ca] bg-[#fbf8f2] shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[180px_1fr]"
+      className="group grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-[#ffffff] shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[180px_1fr]"
     >
-      <div className="flex min-h-40 items-center justify-center border-b border-[#ded6ca] bg-white p-4 sm:border-b-0 sm:border-r">
+      <div className="flex min-h-40 items-center justify-center border-b border-[#cfd8cf] bg-white p-4 sm:border-b-0 sm:border-r">
         <Image
           src={product.imageUrl}
           alt={product.name}
@@ -137,21 +137,21 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const firstVisualImageUrl = firstVisual?.imageUrl;
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
-        <article className="overflow-hidden sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:shadow-sm">
+        <article className="overflow-hidden sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:shadow-sm">
           <div className="px-4 pb-8 pt-2 sm:p-8">
             <div className="flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f7f8f5] px-2 py-1">
                 <Tag size={14} />
                 {article.keyword}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f7f8f5] px-2 py-1">
                 <CalendarDays size={14} />
                 {dateFormatter.format(new Date(article.publishedAt))}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#f7f8f5] px-2 py-1">
                 <Clock size={14} />
                 {article.readingMinutes}分
               </span>
@@ -209,7 +209,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
               ))}
             </div>
 
-            <footer className="mt-10 border-t border-[#ded6ca] pt-6">
+            <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
               {relatedArticles.length > 0 ? (
                 <section>
                   <h2 className="text-xl font-bold">関連記事</h2>
@@ -218,7 +218,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                       <Link
                         key={related.slug}
                         href={`/blog/${related.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-lg border border-[#ded6ca] bg-[#f7f3ed] px-3 py-3 text-sm font-bold hover:border-[#e4572e]/60"
+                        className="group flex items-center justify-between gap-3 rounded-lg border border-[#cfd8cf] bg-[#eef2ed] px-3 py-3 text-sm font-bold hover:border-[#e4572e]/60"
                       >
                         <span className="line-clamp-2">{related.title}</span>
                         <ArrowRight
@@ -236,7 +236,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Link
                     href="/"
-                    className="rounded-lg border border-[#ded6ca] bg-[#f7f3ed] p-4 hover:border-[#e4572e]/60"
+                    className="rounded-lg border border-[#cfd8cf] bg-[#eef2ed] p-4 hover:border-[#e4572e]/60"
                   >
                     <p className="text-sm font-bold text-[#e4572e]">投稿を見る</p>
                     <p className="mt-1 text-lg font-bold">みんなでホームジムを共有する</p>
@@ -246,7 +246,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                   </Link>
                   <Link
                     href="/rankings"
-                    className="rounded-lg border border-[#ded6ca] bg-[#f7f3ed] p-4 hover:border-[#e4572e]/60"
+                    className="rounded-lg border border-[#cfd8cf] bg-[#eef2ed] p-4 hover:border-[#e4572e]/60"
                   >
                     <p className="text-sm font-bold text-[#e4572e]">器具選び</p>
                     <p className="mt-1 text-lg font-bold">ホームジム用品ランキング</p>

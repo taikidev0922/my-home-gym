@@ -52,7 +52,7 @@ export function ProfileForm({
       <Field name="displayName" label="表示名" defaultValue={profile.displayName} placeholder="Ken / Strength Log" />
       <label className="block">
         <span className="text-sm font-bold">アイコン画像</span>
-        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-3 sm:flex-row sm:items-center">
+        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 sm:flex-row sm:items-center">
           <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-bold text-white">
             {avatarPreview || avatarUrl ? (
               <Image src={avatarPreview || avatarUrl} alt={profile.displayName} width={64} height={64} className="h-full w-full object-cover" />
@@ -113,7 +113,7 @@ function Field({
       <input
         name={name}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none"
+        className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none"
         placeholder={placeholder}
       />
     </label>

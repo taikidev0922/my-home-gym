@@ -86,7 +86,7 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
   const pageTitle = activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "ホームジム用品ランキング";
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
       <script
         type="application/ld+json"
@@ -96,12 +96,12 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
         <section className="grid gap-2">
           <h1 className="text-3xl font-black leading-tight tracking-normal sm:text-5xl">{pageTitle}</h1>
 
-          <details className="group rounded-lg border border-[#ded6ca] bg-white px-3 py-3 shadow-sm sm:hidden">
+          <details className="group rounded-lg border border-[#cfd8cf] bg-white px-3 py-3 shadow-sm sm:hidden">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-[#122018]">
               <span className="flex items-center gap-2">
                 <SearchCheck size={16} />
                 表示カテゴリ
-                <span className="rounded-full bg-[#f3efe7] px-2 py-0.5 text-xs text-[#69756d]">
+                <span className="rounded-full bg-[#f7f8f5] px-2 py-0.5 text-xs text-[#69756d]">
                   {activeCategory ? productCategoryLabels[activeCategory] : "すべて"}
                 </span>
               </span>
@@ -110,7 +110,7 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
             <CategoryLinks categories={categories} activeCategory={activeCategory} />
           </details>
 
-          <div className="hidden rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm sm:block sm:p-5">
+          <div className="hidden rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm sm:block sm:p-5">
             <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
               <SearchCheck size={16} />
               表示カテゴリ
@@ -141,14 +141,14 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-[#ded6ca] bg-white p-5 sm:p-6">
+        <section className="mt-8 rounded-lg border border-[#cfd8cf] bg-white p-5 sm:p-6">
           <div className="max-w-3xl">
             <p className="text-sm font-bold text-[#e4572e]">ホームジム用品の選び方</p>
             <h2 className="mt-2 text-2xl font-bold">畳数、予算、騒音リスクから逆算する</h2>
           </div>
           <div className="mt-5 grid gap-3 lg:grid-cols-3">
             {rankingFaqs.map((item) => (
-              <div key={item.question} className="rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-4">
+              <div key={item.question} className="rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-4">
                 <h3 className="font-bold leading-7">{item.question}</h3>
                 <p className="mt-2 text-sm leading-7 text-[#3c4941]">{item.answer}</p>
               </div>
@@ -234,12 +234,12 @@ function CategoryLinks({
         className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
           !activeCategory
             ? "border-[#e4572e] bg-[#e4572e] text-white"
-            : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
+            : "border-[#cfd8cf] bg-[#f7f8f5] text-[#4e5b52] hover:border-[#e4572e]"
         }`}
       >
         <span
           className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${
-            !activeCategory ? "border-white bg-white" : "border-[#d0c8bc] bg-white"
+            !activeCategory ? "border-white bg-white" : "border-[#c4cec4] bg-white"
           }`}
         >
           {!activeCategory ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
@@ -254,12 +254,12 @@ function CategoryLinks({
           className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
             activeCategory === item
               ? "border-[#e4572e] bg-[#e4572e] text-white"
-              : "border-[#ded6ca] bg-[#f3efe7] text-[#4e5b52] hover:border-[#e4572e]"
+              : "border-[#cfd8cf] bg-[#f7f8f5] text-[#4e5b52] hover:border-[#e4572e]"
           }`}
         >
           <span
             className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${
-              activeCategory === item ? "border-white bg-white" : "border-[#d0c8bc] bg-white"
+              activeCategory === item ? "border-white bg-white" : "border-[#c4cec4] bg-white"
             }`}
           >
             {activeCategory === item ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
@@ -285,7 +285,7 @@ function RankingCard({
   const rankStyle = getRankStyle(displayRank);
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm lg:grid-cols-[260px_1fr]">
+    <article className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm lg:grid-cols-[260px_1fr]">
       <div className="relative min-h-64 bg-white">
         <Image src={product.image} alt={product.name} fill className="object-contain p-4" sizes="(max-width: 1024px) 100vw, 260px" />
         <div
@@ -307,7 +307,7 @@ function RankingCard({
             <h3 className="mt-1 text-2xl font-bold">{product.name}</h3>
             <p className="mt-3 leading-7 text-[#3c4941]">{product.summary}</p>
           </div>
-          <div className="shrink-0 rounded-lg bg-[#f3efe7] p-3 md:min-w-40">
+          <div className="shrink-0 rounded-lg bg-[#f7f8f5] p-3 md:min-w-40">
             <p className="text-xs font-bold text-[#69756d]">目安価格</p>
             <p className="mt-1 text-xl font-bold">{yen.format(product.price)}</p>
             <p className="mt-2 flex items-center gap-1 text-sm font-bold text-[#e4572e]">
@@ -330,7 +330,7 @@ function RankingCard({
           <List title="注意点" items={product.cons} />
         </div>
 
-        <div className="mt-5 flex justify-end border-t border-[#ded6ca] pt-4">
+        <div className="mt-5 flex justify-end border-t border-[#cfd8cf] pt-4">
           <a
             href={outboundUrl}
             target="_blank"
@@ -355,7 +355,7 @@ function getRankStyle(rank: number) {
 
 function List({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] p-3">
+    <div className="rounded-lg border border-[#cfd8cf] p-3">
       <p className="text-sm font-bold">{title}</p>
       <ul className="mt-2 grid gap-2 text-sm leading-6 text-[#4e5b52]">
         {items.map((item) => (

@@ -76,10 +76,10 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
   if (!post) {
     return (
-      <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+      <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
         <SiteHeader showMobilePostButton={false} />
         <div className="grid min-h-[60vh] place-items-center p-6">
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-8 text-center">
+          <div className="rounded-lg border border-[#cfd8cf] bg-white p-8 text-center">
             <h1 className="text-2xl font-bold">投稿が見つかりません</h1>
           </div>
         </div>
@@ -88,14 +88,14 @@ export default async function PostDetail({ params }: PostDetailProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
           <PostImageGallery images={post.images} title={post.title} />
 
           <aside className="grid h-fit min-w-0 gap-3 sm:gap-4 lg:sticky lg:top-6">
-            <div className="min-w-0 rounded-lg border border-[#ded6ca] bg-white p-4 shadow-sm sm:p-5">
+            <div className="min-w-0 rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="rounded-lg bg-[#e4572e] px-3 py-1.5 text-sm font-black text-white">{scaleLabels[post.scale]}</span>
                 <span className="text-sm font-bold text-[#69756d]">写真 {post.images.length}枚</span>
@@ -114,7 +114,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
         </section>
 
         <section className="mt-4 grid gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-[1fr_0.8fr]">
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
+          <div className="rounded-lg border border-[#cfd8cf] bg-white p-4 sm:p-5">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <Tags size={20} />
               器具カテゴリ
@@ -122,7 +122,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
             <div className="mt-4 flex flex-wrap gap-2">
               {post.gear.length ? (
                 post.gear.map((item) => (
-                  <span key={`${item.category}-${item.name}`} className="rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-bold text-[#4e5b52]">
+                  <span key={`${item.category}-${item.name}`} className="rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#4e5b52]">
                     {item.name}
                   </span>
                 ))
@@ -132,12 +132,12 @@ export default async function PostDetail({ params }: PostDetailProps) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
+          <div className="rounded-lg border border-[#cfd8cf] bg-white p-4 sm:p-5">
             <h2 className="text-xl font-bold">タグ</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.length ? (
                 post.tags.map((tag) => (
-                  <span key={tag} className="rounded-lg bg-[#f3efe7] px-3 py-2 text-sm font-semibold text-[#3c4941]">
+                  <span key={tag} className="rounded-lg bg-[#f7f8f5] px-3 py-2 text-sm font-semibold text-[#3c4941]">
                     {tag}
                   </span>
                 ))
@@ -154,7 +154,7 @@ export default async function PostDetail({ params }: PostDetailProps) {
 
 function AuthorCard({ post }: { post: HomeGymPost }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] bg-white p-4 sm:p-5">
+    <div className="rounded-lg border border-[#cfd8cf] bg-white p-4 sm:p-5">
       <p className="text-sm font-bold text-[#69756d]">投稿者</p>
       <div className="mt-3 flex items-center gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-black text-white">
@@ -193,7 +193,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
           target="_blank"
           rel="noreferrer"
           aria-label={item.label}
-          className={`grid h-9 w-9 place-items-center rounded-lg border border-[#ded6ca] bg-[#f3efe7] hover:border-[#e4572e] ${item.className}`}
+          className={`grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] hover:border-[#e4572e] ${item.className}`}
         >
           {item.icon}
         </a>
@@ -232,7 +232,7 @@ function TikTokIcon() {
 
 function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-lg border border-[#ded6ca] bg-white p-3">
+    <div className="min-w-0 rounded-lg border border-[#cfd8cf] bg-white p-3">
       <p className="flex items-center gap-1 text-xs font-bold text-[#69756d]">
         {icon}
         {label}

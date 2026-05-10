@@ -11,7 +11,11 @@ export type CurrentAuthUser = {
 };
 
 export async function getCurrentAuthUser(): Promise<CurrentAuthUser | null> {
-  const session = await auth0.getSession();
+  if (!auth0) {
+    return null;
+  }
+
+  const session = await auth0.getSession().catch(() => null);
   const user = session?.user;
 
   if (!user?.sub) {

@@ -65,14 +65,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const pageNumbers = getPageNumbers(articlePage.page, articlePage.totalPages);
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <section className="py-2 sm:py-3">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
         </section>
 
-        <details className="mt-2 rounded-lg border border-[#ded6ca] bg-white p-3 sm:hidden">
+        <details className="mt-2 rounded-lg border border-[#cfd8cf] bg-white p-3 sm:hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-bold text-[#122018]">
             <span className="inline-flex items-center gap-2">
               <Tag size={16} />
@@ -120,7 +120,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           ) : null}
         </details>
 
-        <section className="mt-4 hidden rounded-lg border border-[#ded6ca] bg-white p-5 sm:block">
+        <section className="mt-4 hidden rounded-lg border border-[#cfd8cf] bg-white p-5 sm:block">
           <div className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
             <Tag size={16} />
             記事を絞り込む
@@ -181,7 +181,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               </p>
             </div>
             {(selectedCategory || selectedTag) ? (
-              <Link href="/blog" className="rounded-lg border border-[#ded6ca] px-3 py-2 text-sm font-bold text-[#4e5b52]">
+              <Link href="/blog" className="rounded-lg border border-[#cfd8cf] px-3 py-2 text-sm font-bold text-[#4e5b52]">
                 絞り込みを解除
               </Link>
             ) : null}
@@ -199,7 +199,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-[#d8d0c4] bg-white p-6 text-sm font-semibold text-[#69756d]">
+            <div className="rounded-lg border border-dashed border-[#cfd8cf] bg-white p-6 text-sm font-semibold text-[#69756d]">
               条件に合う記事はまだありません。
             </div>
           )}
@@ -247,10 +247,10 @@ function ArticleCard({
   categoryLabel: string;
 }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm transition hover:border-[#e4572e]/50">
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/50">
       <Link
         href={`/blog/${article.slug}`}
-        className="relative block aspect-video border-b border-[#ded6ca] bg-[#f3efe7]"
+        className="relative block aspect-video border-b border-[#cfd8cf] bg-[#f7f8f5]"
       >
         <Image
           src={article.imageUrl}
@@ -265,7 +265,7 @@ function ArticleCard({
           {isLatest ? (
             <span className="rounded-full bg-[#e4572e] px-3 py-1 text-xs font-bold text-white">最新</span>
           ) : null}
-          <span className="rounded-full bg-[#f3efe7] px-3 py-1 text-xs font-bold text-[#4e5b52]">{categoryLabel}</span>
+          <span className="rounded-full bg-[#f7f8f5] px-3 py-1 text-xs font-bold text-[#4e5b52]">{categoryLabel}</span>
         </div>
         <Link href={`/blog/${article.slug}`} className="mt-3 block text-xl font-bold leading-7 hover:underline">
           {article.title}
@@ -293,11 +293,11 @@ function ArticleCard({
 function ArticleMeta({ article }: { article: BlogArticle }) {
   return (
     <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">
-      <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
+      <span className="inline-flex items-center gap-1 rounded-lg bg-[#f7f8f5] px-2 py-1">
         <CalendarDays size={14} />
         {dateFormatter.format(new Date(article.publishedAt))}
       </span>
-      <span className="inline-flex items-center gap-1 rounded-lg bg-[#f3efe7] px-2 py-1">
+      <span className="inline-flex items-center gap-1 rounded-lg bg-[#f7f8f5] px-2 py-1">
         <Clock size={14} />
         {article.readingMinutes}分
       </span>
@@ -312,7 +312,7 @@ function FilterChip({ href, active, children }: { href: string; active?: boolean
       className={
         active
           ? "inline-flex items-center rounded-lg bg-[#e4572e] px-2 py-1.5 text-xs font-bold text-white sm:px-3 sm:py-2 sm:text-sm"
-          : "inline-flex items-center rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-2 py-1.5 text-xs font-bold text-[#4e5b52] hover:border-[#e4572e]/60 sm:px-3 sm:py-2 sm:text-sm"
+          : "inline-flex items-center rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-2 py-1.5 text-xs font-bold text-[#4e5b52] hover:border-[#e4572e]/60 sm:px-3 sm:py-2 sm:text-sm"
       }
     >
       {children}
@@ -333,7 +333,7 @@ function PageLink({
 }) {
   if (disabled) {
     return (
-      <span className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-[#ded6ca] px-3 text-sm font-bold text-[#9b948a]">
+      <span className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#9b948a]">
         {children}
       </span>
     );
@@ -345,7 +345,7 @@ function PageLink({
       className={
         active
           ? "inline-flex min-h-10 items-center gap-1 rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white"
-          : "inline-flex min-h-10 items-center gap-1 rounded-lg border border-[#ded6ca] bg-white px-3 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60"
+          : "inline-flex min-h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] bg-white px-3 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60"
       }
     >
       {children}

@@ -23,10 +23,10 @@ export default async function MyPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader currentUser={{ email: user.email, name: profile.displayName, avatarUrl: profile.avatarUrl || user.avatarUrl }} showMobilePostButton={false} />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <section className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm sm:p-7">
+        <section className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm sm:p-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-2xl font-bold text-white">
               {profile.avatarUrl ? (
@@ -44,7 +44,7 @@ export default async function MyPage() {
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
+          <div className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <Settings size={20} />
               プロフィール・SNS設定
@@ -83,7 +83,7 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm">
       <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">{icon}{label}</p>
       <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
@@ -102,12 +102,12 @@ function PostList({
   posts: HomeGymPost[];
 }) {
   return (
-    <div className="rounded-lg border border-[#ded6ca] bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold">{title}</h2>
       <p className="mt-1 text-sm font-semibold text-[#69756d]">{description}</p>
       <div className="mt-4 grid gap-3">
         {posts.length ? posts.map((post) => <MiniPost key={post.id} post={post} />) : (
-          <p className="rounded-lg bg-[#f3efe7] p-4 text-sm font-semibold text-[#69756d]">{empty}</p>
+          <p className="rounded-lg bg-[#f7f8f5] p-4 text-sm font-semibold text-[#69756d]">{empty}</p>
         )}
       </div>
     </div>
@@ -116,8 +116,8 @@ function PostList({
 
 function MiniPost({ post }: { post: HomeGymPost }) {
   return (
-    <Link href={`/posts/${post.slug}`} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#ded6ca] p-2 hover:bg-[#eee8df]">
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#f3efe7]">
+    <Link href={`/posts/${post.slug}`} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#cfd8cf] p-2 hover:bg-[#e6ece5]">
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#f7f8f5]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="88px" />
       </div>
       <div className="min-w-0 py-1">

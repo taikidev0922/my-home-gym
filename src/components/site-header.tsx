@@ -27,7 +27,7 @@ export function SiteHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[#ded6ca] bg-[#f7f3ed]/95">
+      <header className="sticky top-0 z-30 border-b border-[#cfd8cf] bg-[#eef2ed]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0 shrink-0">
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
@@ -51,7 +51,7 @@ export function SiteHeader({
           <div className="flex items-center gap-2">
             {currentUser ? (
               <Link href="/me" aria-label="マイページ" title="マイページ" className="flex items-center rounded-full">
-                <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-sm font-bold text-white ring-1 ring-[#d8d0c4]">
+                <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-sm font-bold text-white ring-1 ring-[#cfd8cf]">
                   {currentUser.avatarUrl ? (
                     <Image
                       src={currentUser.avatarUrl}
@@ -77,7 +77,7 @@ export function SiteHeader({
             <button
               type="button"
               onClick={() => setIsMenuOpen((value) => !value)}
-              className="grid h-10 w-10 place-items-center rounded-lg border border-[#ded6ca] bg-white text-[#122018] md:hidden"
+              className="grid h-10 w-10 place-items-center rounded-lg border border-[#cfd8cf] bg-white text-[#122018] md:hidden"
               aria-label="メニュー"
               aria-expanded={isMenuOpen}
             >
@@ -104,23 +104,23 @@ export function SiteHeader({
             aria-label="メニューを閉じる"
             onClick={() => setIsMenuOpen(false)}
           />
-          <nav className="fixed right-4 top-16 z-50 grid w-[min(280px,calc(100vw-2rem))] gap-1 rounded-2xl border border-[#ded6ca] bg-white p-2 text-sm font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
+          <nav className="fixed right-4 top-16 z-50 grid w-[min(280px,calc(100vw-2rem))] gap-1 rounded-2xl border border-[#cfd8cf] bg-white p-2 text-sm font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
             {currentUser ? (
               <Link
                 href="/me"
                 onClick={() => setIsMenuOpen(false)}
-                className="rounded-lg bg-[#f3efe7] px-3 py-2 text-[#122018] hover:bg-[#ebe3d7]"
+                className="rounded-lg bg-[#f7f8f5] px-3 py-2 text-[#122018] hover:bg-[#e1e8df]"
               >
                 マイページ
               </Link>
             ) : null}
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+            <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
               みんなのホームジム
             </Link>
-            <Link href="/rankings" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+            <Link href="/rankings" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
               器具ランキング
             </Link>
-            <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f3efe7]">
+            <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
               ホームジムお助け記事
             </Link>
           </nav>

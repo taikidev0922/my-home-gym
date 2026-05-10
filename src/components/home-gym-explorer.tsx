@@ -148,19 +148,19 @@ export function HomeGymExplorer({
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] text-[#122018]">
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader currentUser={currentUser} onSubmitNav={handleSubmitNav} />
 
       <section className="mx-auto max-w-7xl px-4 pb-1 pt-2 sm:px-6 sm:pb-3 sm:pt-6">
-        <div className="pb-1 sm:border-b sm:border-[#ded6ca] sm:pb-5">
+        <div className="pb-1 sm:border-b sm:border-[#cfd8cf] sm:pb-5">
           <nav className="hidden">
             <a href="#feed" className="shrink-0 whitespace-nowrap rounded-lg bg-[#e4572e] px-2.5 py-2 text-center text-[11px] font-bold leading-none text-white">
               みんなのホームジム
             </a>
-            <Link href="/rankings" className="shrink-0 whitespace-nowrap rounded-lg border border-[#ded6ca] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
+            <Link href="/rankings" className="shrink-0 whitespace-nowrap rounded-lg border border-[#cfd8cf] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
               器具ランキング
             </Link>
-            <Link href="/blog" className="shrink-0 whitespace-nowrap rounded-lg border border-[#ded6ca] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
+            <Link href="/blog" className="shrink-0 whitespace-nowrap rounded-lg border border-[#cfd8cf] bg-white px-2.5 py-2 text-center text-[11px] font-bold leading-none text-[#4e5b52]">
               ホームジムお助け記事
             </Link>
           </nav>
@@ -171,7 +171,7 @@ export function HomeGymExplorer({
       </section>
 
       <section id="feed" className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
-        <aside className="h-fit rounded-lg border border-[#ded6ca] bg-white px-3 py-2 shadow-sm sm:p-4 lg:sticky lg:top-20">
+        <aside className="h-fit rounded-lg border border-[#cfd8cf] bg-white px-3 py-2 shadow-sm sm:p-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-bold">
               <Filter size={18} />
@@ -180,7 +180,7 @@ export function HomeGymExplorer({
             <button
               type="button"
               onClick={() => setIsFilterOpen((value) => !value)}
-              className="grid h-8 w-8 place-items-center rounded-lg border border-[#ded6ca] text-[#3c4941] lg:hidden"
+              className="grid h-8 w-8 place-items-center rounded-lg border border-[#cfd8cf] text-[#3c4941] lg:hidden"
               aria-expanded={isFilterOpen}
               aria-label="検索条件を開閉"
             >
@@ -196,7 +196,7 @@ export function HomeGymExplorer({
             <label className="mt-5 block text-sm font-semibold" htmlFor="keyword">
               キーワード
             </label>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2">
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2">
               <Search size={17} className="text-[#69756d]" />
               <input
                 id="keyword"
@@ -222,7 +222,7 @@ export function HomeGymExplorer({
                     type="button"
                     onClick={() => setScale(option)}
                     className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                      scale === option ? "border-[#e4572e] bg-[#e4572e] text-white" : "border-[#ded6ca] bg-white text-[#3c4941]"
+                      scale === option ? "border-[#e4572e] bg-[#e4572e] text-white" : "border-[#cfd8cf] bg-white text-[#3c4941]"
                     }`}
                   >
                     {option === "all" ? "すべて" : scaleLabels[option]}
@@ -254,7 +254,7 @@ export function HomeGymExplorer({
               <button
                 type="button"
                 onClick={() => setIsCategoryOpen((value) => !value)}
-                className="flex w-full items-center justify-between rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-bold text-[#122018]"
+                className="flex w-full items-center justify-between rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#122018]"
                 aria-expanded={isCategoryOpen}
               >
                 <span>
@@ -273,7 +273,7 @@ export function HomeGymExplorer({
                   {categoryFilters.map((item) => (
                     <label
                       key={item.id}
-                      className="flex cursor-pointer items-start gap-2 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2 text-sm font-semibold text-[#4e5b52]"
+                      className="flex cursor-pointer items-start gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-semibold text-[#4e5b52]"
                     >
                       <input
                         type="checkbox"
@@ -333,7 +333,7 @@ export function HomeGymExplorer({
               ) : null}
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
-              <div className="inline-flex bg-transparent p-0 sm:rounded-lg sm:border sm:border-[#ded6ca] sm:bg-white sm:p-1">
+              <div className="inline-flex bg-transparent p-0 sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:p-1">
                 <ViewModeButton
                   active={viewMode === "detail"}
                   icon={<LayoutList size={17} />}
@@ -365,7 +365,7 @@ export function HomeGymExplorer({
                   <PostCard key={post.id} post={post} onRequireLogin={requireLogin} />
                 ))
               ) : (
-                <div className="rounded-lg border border-dashed border-[#d8d0c4] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-2 xl:col-span-3">
+                <div className="rounded-lg border border-dashed border-[#cfd8cf] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-2 xl:col-span-3">
                   まだ投稿がありません。
                 </div>
               )}
@@ -375,7 +375,7 @@ export function HomeGymExplorer({
               {posts.length ? (
                 posts.map((post) => <PhotoGridItem key={post.id} post={post} />)
               ) : (
-                <div className="col-span-3 rounded-lg border border-dashed border-[#d8d0c4] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-4 xl:col-span-5">
+                <div className="col-span-3 rounded-lg border border-dashed border-[#cfd8cf] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-4 xl:col-span-5">
                   まだ投稿がありません。
                 </div>
               )}
@@ -410,7 +410,7 @@ function ViewModeButton({
       type="button"
       onClick={onClick}
       className={`inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm font-bold transition sm:w-auto sm:px-3 ${
-        active ? "bg-[#e4572e] text-white" : "text-[#69756d] hover:bg-[#eee8df] hover:text-[#122018]"
+        active ? "bg-[#e4572e] text-white" : "text-[#69756d] hover:bg-[#e6ece5] hover:text-[#122018]"
       }`}
       aria-pressed={active}
     >
@@ -438,7 +438,7 @@ function Pagination({
   const pages = getVisiblePages(page, totalPages);
 
   return (
-    <nav className="mt-6 flex flex-col gap-3 rounded-lg border border-[#ded6ca] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+    <nav className="mt-6 flex flex-col gap-3 rounded-lg border border-[#cfd8cf] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm font-semibold text-[#69756d]">
         {page} / {totalPages}ページ
       </p>
@@ -447,7 +447,7 @@ function Pagination({
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#ded6ca] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft size={16} />
           前へ
@@ -466,7 +466,7 @@ function Pagination({
               className={`grid h-10 min-w-10 place-items-center rounded-lg border px-3 text-sm font-bold ${
                 item === page
                   ? "border-[#e4572e] bg-[#e4572e] text-white"
-                  : "border-[#ded6ca] text-[#4e5b52]"
+                  : "border-[#cfd8cf] text-[#4e5b52]"
               }`}
             >
               {item}
@@ -477,7 +477,7 @@ function Pagination({
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#ded6ca] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
         >
           次へ
           <ChevronRight size={16} />
@@ -559,8 +559,8 @@ function PhotoGridItem({ post }: { post: HomeGymPost }) {
 
 function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin: (action: string) => void }) {
   return (
-    <article className="overflow-hidden rounded-lg border border-[#ded6ca] bg-white shadow-sm">
-      <Link href={`/posts/${post.slug}`} className="relative block aspect-square bg-[#f3efe7] sm:aspect-[4/3]">
+    <article className="overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm">
+      <Link href={`/posts/${post.slug}`} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
         <div className="absolute left-2 top-2 rounded-lg bg-[#e4572e] px-2 py-1 text-xs font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
@@ -578,7 +578,7 @@ function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin:
             </Link>
             <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>
           </div>
-          <button type="button" onClick={() => onRequireLogin("お気に入り登録")} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#ded6ca]" aria-label="お気に入り">
+          <button type="button" onClick={() => onRequireLogin("お気に入り登録")} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cfd8cf]" aria-label="お気に入り">
             <Bookmark size={18} />
           </button>
         </div>
@@ -594,12 +594,12 @@ function PostCard({ post, onRequireLogin }: { post: HomeGymPost; onRequireLogin:
             </span>
           ))}
           {post.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="rounded-lg bg-[#ece7df] px-2 py-1 text-xs font-semibold text-[#3c4941]">
+            <span key={tag} className="rounded-lg bg-[#edf1ea] px-2 py-1 text-xs font-semibold text-[#3c4941]">
               {tag}
             </span>
           ))}
         </div>
-        <div className="mt-4 flex items-center justify-between border-t border-[#ded6ca] pt-4">
+        <div className="mt-4 flex items-center justify-between border-t border-[#cfd8cf] pt-4">
           <button type="button" onClick={() => onRequireLogin("いいね")} className="inline-flex items-center gap-2 text-sm font-bold text-[#e4572e]">
             <Heart size={17} />
             {post.likes}
@@ -631,7 +631,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
           target="_blank"
           rel="noreferrer"
           aria-label={item.label}
-          className="grid h-9 w-9 place-items-center rounded-lg border border-[#ded6ca] bg-white hover:border-[#e4572e]"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-white hover:border-[#e4572e]"
         >
           {item.icon}
         </a>
@@ -678,7 +678,7 @@ function TikTokIcon() {
 
 function Info({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-[#f3efe7] p-2">
+    <div className="rounded-lg bg-[#f7f8f5] p-2">
       <p className="flex items-center gap-1 text-xs text-[#69756d]">
         {icon}
         {label}

@@ -73,7 +73,7 @@ export function SubmitForm() {
       <div className="grid min-w-0 gap-5 md:grid-cols-3">
         <label className="block min-w-0">
           <span className="text-sm font-bold">広さ</span>
-          <div className="mt-2 flex min-w-0 overflow-hidden rounded-lg border border-[#ded6ca] bg-[#f3efe7]">
+          <div className="mt-2 flex min-w-0 overflow-hidden rounded-lg border border-[#cfd8cf] bg-[#f7f8f5]">
             <input
               name="areaTatami"
               type="number"
@@ -83,13 +83,13 @@ export function SubmitForm() {
               className="min-w-0 flex-1 bg-transparent px-3 py-3 outline-none"
               placeholder="7.5"
             />
-            <span className="grid w-16 shrink-0 place-items-center border-l border-[#ded6ca] bg-white text-sm font-bold">畳</span>
+            <span className="grid w-16 shrink-0 place-items-center border-l border-[#cfd8cf] bg-white text-sm font-bold">畳</span>
           </div>
         </label>
         <Field name="budget" label="初期費用" placeholder="860000" type="number" required />
         <label className="block min-w-0">
           <span className="text-sm font-bold">規模感</span>
-          <select name="scale" className="mt-2 w-full rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none">
+          <select name="scale" className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none">
             <option value="compact">コンパクト</option>
             <option value="standard">標準</option>
             <option value="serious">本格派</option>
@@ -99,14 +99,14 @@ export function SubmitForm() {
 
       <div className="block min-w-0">
         <span className="text-sm font-bold">写真</span>
-        <div className="mt-2 rounded-lg border border-dashed border-[#d0c8bc] bg-[#f3efe7] p-4 sm:p-6">
+        <div className="mt-2 rounded-lg border border-dashed border-[#c4cec4] bg-[#f7f8f5] p-4 sm:p-6">
           {imagePreviews.length ? (
             <div className="grid gap-3 sm:grid-cols-3">
               {imagePreviews.map((preview, index) => (
                 <label
                   key={preview}
                   className={`overflow-hidden rounded-lg border bg-white shadow-sm ${
-                    thumbnailIndex === index ? "border-[#e4572e] ring-2 ring-[#e4572e]/25" : "border-[#ded6ca]"
+                    thumbnailIndex === index ? "border-[#e4572e] ring-2 ring-[#e4572e]/25" : "border-[#cfd8cf]"
                   }`}
                 >
                   <span className="relative block aspect-[4/3]">
@@ -148,7 +148,7 @@ export function SubmitForm() {
       />
       <TagInput tags={tags} value={tagInput} onChange={setTagInput} onTagsChange={setTags} />
 
-      <div className="min-w-0 rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-3 sm:p-4">
+      <div className="min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 sm:p-4">
         <p className="flex items-center gap-2 font-bold">
           <Tags size={18} />
           器具カテゴリ
@@ -157,7 +157,7 @@ export function SubmitForm() {
           {gearCategories.map((category) => (
             <label
               key={category}
-              className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 text-sm font-semibold text-[#4e5b52]"
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 text-sm font-semibold text-[#4e5b52]"
             >
               <input
                 type="checkbox"
@@ -219,7 +219,7 @@ function TagInput({
   return (
     <label className="block min-w-0">
       <span className="text-sm font-bold">タグ</span>
-      <div className="mt-2 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-2">
+      <div className="mt-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2">
         {tags.length ? (
           <div className="mb-2 flex flex-wrap gap-2">
             {tags.map((tag) => (
@@ -277,7 +277,7 @@ function Field({
         name={name}
         type={type}
         required={required}
-        className="mt-2 w-full min-w-0 rounded-lg border border-[#ded6ca] bg-[#f3efe7] px-3 py-3 outline-none"
+        className="mt-2 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none"
         placeholder={placeholder}
       />
     </label>
@@ -288,7 +288,7 @@ function TextArea({ name, label, placeholder, required = false }: { name: string
   return (
     <label className="block min-w-0">
       <span className="text-sm font-bold">{label}</span>
-      <textarea name={name} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#ded6ca] bg-[#f3efe7] p-3 outline-none" placeholder={placeholder} />
+      <textarea name={name} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 outline-none" placeholder={placeholder} />
     </label>
   );
 }

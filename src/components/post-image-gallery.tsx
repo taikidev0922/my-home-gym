@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
@@ -19,7 +19,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-white text-left ring-1 ring-[#ded6ca]"
+          className="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-white text-left ring-1 ring-[#cfd8cf]"
         >
           <Image src={activeImage} alt={title} fill priority className="object-cover transition duration-300 group-hover:scale-[1.02]" sizes="(max-width: 1024px) 100vw, 58vw" />
           <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-lg bg-black/75 px-2.5 py-1.5 text-xs font-bold text-white sm:bottom-4 sm:right-4 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
@@ -36,7 +36,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-white ring-1 sm:h-auto sm:w-auto sm:aspect-[4/3] ${
-                  activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-[#ded6ca]"
+                  activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-[#cfd8cf]"
                 }`}
                 aria-label={`${index + 1}枚目の写真を表示`}
               >
