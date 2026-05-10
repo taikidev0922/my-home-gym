@@ -218,7 +218,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                       <Link
                         key={related.slug}
                         href={`/blog/${related.slug}`}
-                        className="pressable-card group flex items-center justify-between gap-3 rounded-lg border border-[#cfd8cf] bg-[#eef2ed] px-3 py-3 text-sm font-bold hover:border-[#e4572e]/60"
+                        className="pressable-card group flex items-center justify-between gap-3 rounded-lg border border-[#cfd8cf] bg-white px-3 py-3 text-sm font-bold shadow-sm hover:border-[#e4572e]/60"
                       >
                         <span className="line-clamp-2">{related.title}</span>
                         <ArrowRight
@@ -236,7 +236,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Link
                     href="/"
-                    className="pressable-card rounded-lg border border-[#cfd8cf] bg-[#eef2ed] p-4 hover:border-[#e4572e]/60"
+                    className="pressable-card rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm hover:border-[#e4572e]/60"
                   >
                     <p className="text-sm font-bold text-[#e4572e]">投稿を見る</p>
                     <p className="mt-1 text-lg font-bold">みんなでホームジムを共有する</p>
@@ -246,7 +246,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                   </Link>
                   <Link
                     href="/rankings"
-                    className="pressable-card rounded-lg border border-[#cfd8cf] bg-[#eef2ed] p-4 hover:border-[#e4572e]/60"
+                    className="pressable-card rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm hover:border-[#e4572e]/60"
                   >
                     <p className="text-sm font-bold text-[#e4572e]">器具選び</p>
                     <p className="mt-1 text-lg font-bold">ホームジム用品ランキング</p>
