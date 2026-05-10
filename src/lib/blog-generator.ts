@@ -1,7 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
-import type { BlogArticle, BlogArticleBlock } from "@/lib/types";
-import { buildAffiliatePromptSection } from "@/lib/affiliate-products";
+import type { BlogArticle, BlogArticleBlock, ProductCategory } from "@/lib/types";
+import { affiliateProducts, buildAffiliatePromptSection } from "@/lib/affiliate-products";
 
 type ClaudeArticlePayload = {
   title?: unknown;
@@ -28,12 +28,17 @@ const IMAGE_TIMEOUT_MS = 260_000;
 
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
   console.info("[blog-cron] start article generation", { keyword: keyword.keyword, category: keyword.category });
-  const article =
+  const generatedArticle =
     process.env.ANTHROPIC_API_KEY
       ? (await generateWithClaude(keyword)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
       : createFallbackArticle(keyword, "fallback");
+  const article = ensureAffiliatePlacement(generatedArticle);
 
-  console.info("[blog-cron] article text ready", { slug: article.slug, title: article.title });
+  console.info("[blog-cron] article text ready", {
+    slug: article.slug,
+    title: article.title,
+    affiliateMarkers: collectAffiliateMarkers(article.blocks),
+  });
   const blocks = await generateAndAttachInlineVisuals(article);
   const inlineVisualCount = blocks.filter((block) => block.visual?.imageUrl).length;
   const firstInlineImageUrl = blocks.find((block) => block.visual?.imageUrl)?.visual?.imageUrl;
@@ -60,6 +65,7 @@ export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise
       imageModel: imageModel(),
       imageSource: firstInlineImageUrl ? `${imageModel()} inline visual` : "fallback",
       inlineVisualCount,
+      affiliateLinks: collectAffiliateMarkers(blocks),
     },
   };
 }
@@ -75,8 +81,8 @@ async function generateWithClaude(keyword: KeywordCandidate) {
       },
       body: JSON.stringify({
         model: CLAUDE_MODEL,
-        max_tokens: 3400,
-        temperature: 0.65,
+        max_tokens: 5000,
+        temperature: 0.55,
         messages: [
           {
             role: "user",
@@ -88,7 +94,11 @@ async function generateWithClaude(keyword: KeywordCandidate) {
       signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const message = await response.text().catch(() => "");
+      console.error("Claude article request failed", response.status, message.slice(0, 300));
+      return null;
+    }
 
     const payload = await response.json();
     const text = payload?.content?.find((part: { type?: string; text?: string }) => part.type === "text")?.text;
@@ -219,20 +229,28 @@ async function uploadBlogImage(slug: string, base64: string) {
 }
 
 function buildArticlePrompt(keyword: KeywordCandidate) {
-  return `あなたは日本語のホームジム専門メディア「マイホームジム」の編集者です。検索キーワード: ${keyword.keyword}
+  return `あなたは日本語のホームジム専門メディア「My Home Gym」の編集者です。
+検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 ${buildAffiliatePromptSection()}
 
-条件:
-- これから自宅にトレーニングスペースを作る人、または自宅用の筋トレ器具を選ぶ人向けに書く
-- 「ホームジム」という語を無理にタイトルや本文へ入れなくてよい。検索キーワードを主役にする
-- 検索意図が可変式ダンベル、パワーラック、ベンチ、床材、防音、懸垂マシン、ミラーなど器具寄りなら、その器具の選び方・注意点・向いている人を深く書く
-- 広さ、予算、床材、防音、安全性は記事テーマに関係する場合だけ具体的に触れる。毎回すべてを入れようとしない
-- 読者が購入前に判断できるように、サイズ、重量、設置条件、失敗しやすい点、代替案を実用的に整理する
-- アフィリエイト商品比較につながるが、過剰な販売文にしない
-- 本文は日本語
-- 誇張、断定的な効果、確定的な安全保証は避ける
-- JSONだけを返す。Markdownや説明文は不要
+記事の狙い:
+- これから自宅にトレーニング環境を作る人、または自宅用の筋トレ器具を選ぶ人に向けて書く。
+- 「ホームジム」という言葉を無理にタイトルや本文へ入れなくてよい。検索キーワードの意図を主役にする。
+- 可変式ダンベル、パワーラック、ハーフラック、ベンチ、床材、防音、懸垂マシン、ミラーなど器具寄りの検索意図なら、その器具の選び方・注意点・向いている人を深く書く。
+- 広さ、予算、床材、防音、安全性は記事テーマに関係する場合だけ具体的に触れる。毎回すべてを入れない。
+- 読者が購入前に判断できるように、サイズ、重量、設置条件、失敗しやすい点、代替案を実用的に整理する。
+- アフィリエイト商品比較につながるが、過剰な販売文にしない。
+- 本文は日本語。誇張、断定的な効果、確定的な安全保証は避ける。
+- JSONだけを返す。Markdownや説明文は不要。
+
+品質基準:
+- ありきたりな一般論を避ける。
+- 冒頭から結論を出す。
+- 各ブロックの見出しは具体的にする。
+- 本文には読者の判断軸、寸法や設置の見方、失敗回避の観点を入れる。
+- 商品カードを入れる場合は、その直前の段落で商品カテゴリに触れてから {{affiliate:商品id}} を単独段落として入れる。
+- 記事内容に自然に合う商品がある場合は、最低1つは商品カードを入れる。
 
 JSON形式:
 {
@@ -242,12 +260,12 @@ JSON形式:
   "readingMinutes": 4,
   "blocks": [
     {
-      "heading": "見出し",
-      "paragraphs": ["本文段落", "本文段落"],
+      "heading": "具体的な見出し",
+      "paragraphs": ["本文段落", "{{affiliate:商品id}}", "本文段落"],
       "visual": {
         "title": "図表タイトル",
         "kind": "diagram | table | checklist | comparison",
-        "brief": "この記事内容に合う図表の具体的な中身。数値、比較軸、チェック項目、配置を具体的に書く",
+        "brief": "この画像で説明する内容。数値、比較軸、チェック項目、配置を具体的に書く",
         "alt": "画像の代替テキスト",
         "caption": "画像下に表示する短い補足"
       }
@@ -255,7 +273,9 @@ JSON形式:
   ]
 }
 
-blocksは4から6個、各paragraphsは1から2段落にしてください。visualは全ブロックではなく、本文理解に役立つ2ブロックだけに付けてください。visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。ただしスマホで一目で分かることを優先し、1枚の図表で扱う主題は1つ、主要な情報は3点以内に絞ってください。`;
+blocksは4から6個。各paragraphsは1から3段落。visualは本文理解に役立つ2ブロックだけに付けてください。
+visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。
+スマホで一目で分かることを優先し、1枚の図表で扱う主題は1つ、主要情報は3点以内に絞ってください。`;
 }
 
 function buildInlineVisualPrompt(
@@ -331,48 +351,47 @@ function normalizeGeneratedArticle(keyword: KeywordCandidate, payload: ClaudeArt
 function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<BlogArticle, "id"> {
   const now = new Date().toISOString();
   const category = normalizeCategory(keyword.category);
-  const title = `${keyword.keyword}で考えるホームジム作りの現実的な手順`;
+  const title = `${keyword.keyword}で失敗しない自宅トレ環境の作り方`;
   const blocks: BlogArticleBlock[] = [
     {
-      heading: "まずは置ける広さを測る",
+      heading: "最初に決めるのは器具ではなく使い方",
       paragraphs: [
-        "ホームジム作りでは、器具より先に部屋の広さと動線を確認します。マットだけなら1畳前後でも始められますが、ベンチやラックを置くなら周囲に移動できる余白が必要です。",
-        "パワーラックやハーフラックは高さも重要です。天井、照明、エアコン、扉の開閉位置まで確認してから候補を絞ると、購入後の失敗を減らせます。",
+        "自宅トレの環境づくりでは、最初に買う器具よりも「どの種目を週に何回やるか」を決める方が失敗しにくくなります。ベンチプレス、スクワット、ダンベル種目、懸垂のどれを中心にするかで、必要な広さも床対策も変わります。",
+        "特にラックやベンチを置く場合は、本体サイズだけでなく、プレート交換、ダンベルを置く場所、身体を回り込ませる余白まで含めて考える必要があります。",
       ],
     },
     {
-      heading: "予算は周辺アイテムまで含める",
+      heading: "予算は本体価格だけで見ない",
       paragraphs: [
-        "本体価格だけでなく、床材、防音マット、バーベル、プレート、送料、組み立て用品も含めて見積もります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
+        "器具本体が安く見えても、床材、防音マット、バーベル、プレート、工具、搬入時の送料まで含めると総額は変わります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
       ],
       visual: {
-        title: "ホームジム初期費用の内訳",
+        title: "初期費用の見落としポイント",
         kind: "comparison",
         brief:
-          "省スペース、ダンベル中心、ラック構成の3カード比較。各カードは目安予算と一番大きい費用要因だけを大きく表示する。",
-        alt: "ホームジムの初期費用を構成別に比較した表",
-        caption: "本体価格だけでなく床材や防音も含めて見ると予算感がつかみやすくなります。",
+          "自宅トレ環境の初期費用を、本体器具、床対策、周辺小物の3つに分けて比較する。各カードには予算の見落とし例を1つずつ入れる。",
+        alt: "自宅トレ環境の初期費用を構成別に比較した表",
+        caption: "本体価格だけでなく、床対策と周辺小物まで見ておくと予算感がつかみやすくなります。",
       },
     },
     {
-      heading: "最初の器具は種目から逆算する",
+      heading: "テーマに合う器具を一つずつ足す",
       paragraphs: [
-        "ベンチプレス、スクワット、懸垂をやりたいならラック系が候補になります。ダンベルプレス、ローイング、ショルダープレスを中心にするなら可変式ダンベルとベンチでも十分に組めます。",
-        "省スペース派はマット、チューブ、折りたたみベンチのように収納しやすいものから始めると続けやすくなります。",
+        "省スペースで始めるなら可変式ダンベルとベンチ、本格的にBIG3を行うならラックと床補強が候補になります。いきなり全部を揃えるより、最初にやる種目を決めて不足する器具だけ足す方が、部屋も予算も圧迫しにくいです。",
       ],
       visual: {
-        title: "種目から逆算する器具選び",
+        title: "目的別の器具選び",
         kind: "diagram",
         brief:
-          "やりたい種目から必要器具へつながる3分岐のシンプルな図。ラック系、可変式ダンベルとベンチ、マットとチューブの3つだけに絞る。",
-        alt: "トレーニング種目から必要なホームジム器具を選ぶフローチャート",
+          "目的から必要器具へつなげる3分岐の図。省スペースは可変式ダンベル、胸肩トレはベンチ、本格BIG3はラックと床対策に分ける。",
+        alt: "目的別に自宅トレ器具を選ぶフローチャート",
         caption: "先に種目を決めると、買うべき器具の優先順位が整理できます。",
       },
     },
     {
-      heading: "写真付き投稿で近い条件を比較する",
+      heading: "購入前に寸法と動線を確認する",
       paragraphs: [
-        "同じ予算でも、賃貸、持ち家、ガレージ、ワンルームでは最適解が変わります。広さ、費用、器具カテゴリが近い投稿を比較すると、自分の家で再現できるか判断しやすくなります。",
+        "同じ予算でも、賃貸、持ち家、ガレージ、ワンルームでは最適解が変わります。幅、奥行き、高さ、可動域、収納場所をメジャーで確認し、写真付きの投稿やランキングを見比べると、自分の部屋で再現できるか判断しやすくなります。",
       ],
     },
   ];
@@ -380,7 +399,7 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
   return {
     slug: createSlug(keyword, now),
     title,
-    excerpt: `${keyword.keyword}をテーマに、広さ、予算、器具選び、床材までホームジム作りの判断ポイントを整理します。`,
+    excerpt: `${keyword.keyword}をテーマに、広さ、予算、器具選び、床対策まで自宅トレ環境づくりの判断ポイントを整理します。`,
     keyword: keyword.keyword,
     category,
     tags: createArticleTags(keyword.keyword, category),
@@ -450,6 +469,76 @@ function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined
   };
 }
 
+function ensureAffiliatePlacement(article: Omit<BlogArticle, "id">): Omit<BlogArticle, "id"> {
+  const markers = collectAffiliateMarkers(article.blocks);
+  if (markers.length > 0) {
+    return {
+      ...article,
+      metadata: {
+        ...article.metadata,
+        affiliateLinks: markers,
+      },
+    };
+  }
+
+  const product = selectAffiliateProduct(article);
+  if (!product) return article;
+
+  return {
+    ...article,
+    blocks: insertAffiliateMarker(article.blocks, product.id),
+    metadata: {
+      ...article.metadata,
+      affiliateLinks: [product.id],
+      affiliateInsertedByFallback: true,
+    },
+  };
+}
+
+function selectAffiliateProduct(article: Omit<BlogArticle, "id">) {
+  const text = `${article.keyword} ${article.title} ${article.excerpt} ${article.blocks
+    .flatMap((block) => [block.heading, ...block.paragraphs])
+    .join(" ")}`.toLowerCase();
+  const category = categoryToProductCategory(article.category);
+  const categoryProducts = affiliateProducts.filter((product) => product.category === category);
+  const candidates = categoryProducts.length ? categoryProducts : affiliateProducts;
+
+  return (
+    candidates.find((product) =>
+      [product.name, product.maker, product.genre, ...product.keywords].some((keyword) =>
+        text.includes(keyword.toLowerCase()),
+      ),
+    ) ??
+    categoryProducts[0] ??
+    affiliateProducts[0]
+  );
+}
+
+function insertAffiliateMarker(blocks: BlogArticleBlock[], productId: string) {
+  if (!blocks.length) return blocks;
+  const insertIndex = blocks.length >= 3 ? 1 : 0;
+
+  return blocks.map((block, index) => {
+    if (index !== insertIndex) return block;
+    const paragraphs = [...block.paragraphs];
+    const position = Math.min(1, paragraphs.length);
+    paragraphs.splice(position, 0, `{{affiliate:${productId}}}`);
+    return { ...block, paragraphs };
+  });
+}
+
+function collectAffiliateMarkers(blocks: BlogArticleBlock[]) {
+  return Array.from(
+    new Set(
+      blocks.flatMap((block) =>
+        block.paragraphs
+          .map((paragraph) => paragraph.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/)?.[1])
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ),
+  );
+}
+
 function createSlug(keyword: KeywordCandidate, value: string) {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const category = normalizeCategory(keyword.category);
@@ -477,6 +566,19 @@ function estimateReadingMinutes(blocks: BlogArticleBlock[]) {
 
 function normalizeCategory(category: string) {
   return ["guide", "rack", "dumbbell", "bench", "floor", "compact"].includes(category) ? category : "guide";
+}
+
+function categoryToProductCategory(category: string): ProductCategory {
+  const normalized = normalizeCategory(category);
+  const map: Record<string, ProductCategory> = {
+    rack: "power-rack",
+    dumbbell: "adjustable-dumbbell",
+    bench: "bench",
+    floor: "floor-mat",
+    compact: "compact-gym",
+    guide: "floor-mat",
+  };
+  return map[normalized] ?? "floor-mat";
 }
 
 function imageForCategory(category: string) {
@@ -509,4 +611,3 @@ function openAiApiKey() {
 function requiresGeneratedImages() {
   return true;
 }
-

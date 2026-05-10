@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
+import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
   getRankingCategories,
@@ -96,19 +97,7 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
         <section className="grid gap-2">
           <h1 className="text-3xl font-black leading-tight tracking-normal sm:text-5xl">{pageTitle}</h1>
 
-          <details className="group rounded-lg border border-[#cfd8cf] bg-white px-3 py-3 shadow-sm sm:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-[#122018]">
-              <span className="flex items-center gap-2">
-                <SearchCheck size={16} />
-                表示カテゴリ
-                <span className="rounded-full bg-[#f7f8f5] px-2 py-0.5 text-xs text-[#69756d]">
-                  {activeCategory ? productCategoryLabels[activeCategory] : "すべて"}
-                </span>
-              </span>
-              <span className="text-[#69756d] transition group-open:rotate-180">⌄</span>
-            </summary>
-            <CategoryLinks categories={categories} activeCategory={activeCategory} />
-          </details>
+          <RankingCategoryFilter categories={categories} activeCategory={activeCategory} />
 
           <div className="hidden rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm sm:block sm:p-5">
             <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">

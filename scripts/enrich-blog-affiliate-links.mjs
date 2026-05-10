@@ -16,18 +16,9 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
 const affiliateProducts = readJson("src/data/affiliate-products.json");
 
-if (!serviceRoleKey) {
-  fail("SUPABASE_SERVICE_ROLE_KEY is required.");
-}
-
-if (!anthropicApiKey) {
-  fail("ANTHROPIC_API_KEY is required.");
-}
-
-if (!Array.isArray(affiliateProducts) || affiliateProducts.length === 0) {
-  fail("No affiliate products found.");
-}
-
+if (!serviceRoleKey) fail("SUPABASE_SERVICE_ROLE_KEY is required.");
+if (!anthropicApiKey) fail("ANTHROPIC_API_KEY is required.");
+if (!Array.isArray(affiliateProducts) || affiliateProducts.length === 0) fail("No affiliate products found.");
 if (TARGET_PRODUCT_ID && !affiliateProducts.some((product) => product.id === TARGET_PRODUCT_ID)) {
   fail(`Unknown affiliate product id: ${TARGET_PRODUCT_ID}`);
 }
@@ -108,9 +99,7 @@ for (const article of articles) {
 }
 
 console.log(APPLY ? `Updated ${changed} articles. Skipped ${skipped}.` : `Dry run: ${changed} articles would change. Skipped ${skipped}.`);
-if (!APPLY) {
-  console.log("Run with --apply to update Supabase.");
-}
+if (!APPLY) console.log("Run with --apply to update Supabase.");
 
 async function proposeAffiliateBlocks(article, blocks) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -122,7 +111,7 @@ async function proposeAffiliateBlocks(article, blocks) {
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
-      max_tokens: 3200,
+      max_tokens: 4200,
       temperature: 0.2,
       messages: [
         {
@@ -136,16 +125,19 @@ async function proposeAffiliateBlocks(article, blocks) {
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
-    fail(`Claude request failed for ${article.slug}: ${response.status} ${message.slice(0, 300)}`);
+    console.warn(
+      `[fallback] Claude request failed for ${article.slug}: ${response.status} ${message.slice(0, 180)}`,
+    );
+    return insertFallbackAffiliateMarker(article, blocks);
   }
 
   const payload = await response.json();
   const text = payload?.content?.find((part) => part?.type === "text")?.text;
-  if (typeof text !== "string") return null;
+  if (typeof text !== "string") return insertFallbackAffiliateMarker(article, blocks);
 
   const parsed = parseJson(text);
   const nextBlocks = normalizeBlocks(parsed?.blocks);
-  if (!nextBlocks.length) return null;
+  if (!nextBlocks.length) return insertFallbackAffiliateMarker(article, blocks);
 
   return sanitizeAffiliateMarkers(nextBlocks);
 }
@@ -157,17 +149,17 @@ function buildPrompt(article, blocks) {
     : affiliateProducts;
 
   return `あなたは日本語のホームジム記事の編集者です。
-既存記事を読み、本文内の適切な位置に画像付きアソシエイト商品カード用のマーカーを挿入してください。
+既存記事を読み、本文の適切な位置に画像付きアソシエイト商品カード用のマーカーを挿入してください。
 
 ルール:
 - 記事内容に自然に合う商品だけ入れる。無理に入れない。
 - 挿入するときは paragraphs 配列に単独文字列として {{affiliate:商品id}} を入れる。
 - 商品idは下記の商品一覧にあるidだけ使う。
-- 同じ商品idは1記事内で1回だけ。
+- 同じ商品idは1記事で1回だけ。
 - 既存の商品カードマーカーは削除しない。すでに入っている商品idは追加しない。
 - 原則1商品だけ。記事全体で明確に複数器具を比較・初期セット提案している場合だけ最大2商品まで。
 - 3商品すべてを入れるのは、記事が「パワーラック、可変式ダンベル、ベンチの3点セット」そのものを主題にしている場合だけ。
-- 床材、防音、広さ、予算が主題の記事では、床材・防振マット商品が自然に合う位置があれば優先する。器具リンクは無理に入れない。
+- 床材、防音、広さ、予算が主題の記事では、床材・防振マット商品が自然に合う位置を優先する。器具リンクは無理に入れない。
 - 具体的にラック・ダンベル・ベンチの選び方に触れている段落の近くには、その器具に合う商品だけ入れる。
 - 既存の文章はできるだけ変更しない。文章の書き換えより、適切な位置へのマーカー挿入を優先する。
 - JSONだけ返す。説明文やMarkdownは返さない。
@@ -231,6 +223,65 @@ function sanitizeAffiliateMarkers(blocks) {
   }));
 }
 
+function insertFallbackAffiliateMarker(article, blocks) {
+  const product = selectFallbackProduct(article, blocks);
+  if (!product) return null;
+
+  const insertIndex = findBestInsertBlockIndex(article, blocks, product);
+  return sanitizeAffiliateMarkers(
+    blocks.map((block, index) => {
+      if (index !== insertIndex) return block;
+      const paragraphs = [...block.paragraphs];
+      const position = Math.min(1, paragraphs.length);
+      paragraphs.splice(position, 0, `{{affiliate:${product.id}}}`);
+      return { ...block, paragraphs };
+    }),
+  );
+}
+
+function selectFallbackProduct(article, blocks) {
+  if (TARGET_PRODUCT_ID) return affiliateProducts.find((product) => product.id === TARGET_PRODUCT_ID) ?? null;
+
+  const text = `${article.title} ${article.excerpt} ${article.keyword} ${article.category} ${blocks
+    .flatMap((block) => [block.heading, ...block.paragraphs])
+    .join(" ")}`.toLowerCase();
+  const category = categoryToProductCategory(article.category, text);
+  const categoryProducts = affiliateProducts.filter((product) => product.category === category);
+  const candidates = categoryProducts.length ? categoryProducts : affiliateProducts;
+
+  return (
+    candidates.find((product) =>
+      [product.name, product.maker, product.genre, ...product.keywords].some((keyword) =>
+        text.includes(String(keyword).toLowerCase()),
+      ),
+    ) ??
+    categoryProducts[0] ??
+    affiliateProducts[0] ??
+    null
+  );
+}
+
+function findBestInsertBlockIndex(article, blocks, product) {
+  const productTerms = [product.name, product.maker, product.genre, ...product.keywords].map((term) =>
+    String(term).toLowerCase(),
+  );
+  const bestIndex = blocks.findIndex((block) => {
+    const text = `${block.heading} ${block.paragraphs.join(" ")}`.toLowerCase();
+    return productTerms.some((term) => text.includes(term));
+  });
+  if (bestIndex >= 0) return bestIndex;
+  if (article.category === "bench" || article.category === "dumbbell" || article.category === "rack") return Math.min(1, blocks.length - 1);
+  return Math.min(2, blocks.length - 1);
+}
+
+function categoryToProductCategory(category, text) {
+  if (category === "rack" || hasAny(text, ["ラック", "スミスマシン", "懸垂", "ベンチプレス"])) return "power-rack";
+  if (category === "dumbbell" || hasAny(text, ["ダンベル", "重量変更"])) return "adjustable-dumbbell";
+  if (category === "bench" || hasAny(text, ["ベンチ", "インクライン"])) return "bench";
+  if (category === "floor" || hasAny(text, ["床", "マット", "防音", "防振"])) return "floor-mat";
+  return "floor-mat";
+}
+
 function normalizeBlocks(value) {
   if (!Array.isArray(value)) return [];
 
@@ -248,10 +299,7 @@ function normalizeBlocks(value) {
           .filter(Boolean),
       };
 
-      if (isPlainObject(block.visual)) {
-        normalized.visual = block.visual;
-      }
-
+      if (isPlainObject(block.visual)) normalized.visual = block.visual;
       return normalized.paragraphs.length ? normalized : null;
     })
     .filter(Boolean);
@@ -317,6 +365,10 @@ function getArgValue(name) {
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasAny(value, needles) {
+  return needles.some((needle) => value.includes(needle));
 }
 
 function fail(message) {

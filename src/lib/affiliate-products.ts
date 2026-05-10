@@ -34,9 +34,10 @@ export function formatAffiliateProductsForPrompt() {
 export function buildAffiliatePromptSection() {
   if (!affiliateProducts.length) return "";
 
-  return `\nアソシエイト商品カード方針:
-- 以下の商品を、記事内容に自然に合う場合だけ画像付き商品カードとして挿入する。
-- 挿入するときはparagraphs内に単独の文字列として {{affiliate:商品id}} を入れる。
+  return `
+アソシエイト商品カード方針:
+- 以下の商品が記事内容に自然に合う場合だけ、画像付き商品カードとして挿入する。
+- 挿入するときは paragraphs 内に単独の文字列として {{affiliate:商品id}} を入れる。
 - 例: "{{affiliate:wasai-mk780-half-rack}}"
 - 同じ商品idを同一記事内で重複させない。
 - 最大3商品まで。関係が薄い記事では無理に入れない。
