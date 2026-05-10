@@ -5,27 +5,72 @@ const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
 const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 
 type ExistingBlogKeyword = Pick<BlogArticle, "keyword">;
+type BlogKeywordCategory = "guide" | "rack" | "dumbbell" | "bench" | "floor" | "compact";
 
-const seedKeywords = [
-  "ホームジム",
-  "ホームジム 予算",
-  "ホームジム 広さ",
-  "ホームジム パワーラック",
-  "可変式ダンベル ホームジム",
-  "ホームジム 防音",
-  "ホームジム 床材",
-  "賃貸 ホームジム",
-  "省スペース ホームジム",
-];
+const keywordSeedGroups: Record<BlogKeywordCategory, string[]> = {
+  guide: [
+    "宅トレ 器具",
+    "家トレ 器具",
+    "筋トレ 部屋",
+    "ホームジム 予算",
+    "ホームジム 広さ",
+    "ホームジム 作り方",
+  ],
+  rack: [
+    "パワーラック",
+    "ハーフラック",
+    "スミスマシン 自宅",
+    "パワーラック 必要スペース",
+    "パワーラック 床 補強",
+    "ベンチプレス ラック 自宅",
+  ],
+  dumbbell: [
+    "可変式ダンベル",
+    "可変式ダンベル 選び方",
+    "可変式ダンベル 40kg",
+    "ダンベル 家トレ",
+    "ダンベルプレス ベンチ",
+    "ダンベル 重量 目安",
+  ],
+  bench: [
+    "トレーニングベンチ",
+    "インクラインベンチ",
+    "アジャスタブルベンチ",
+    "ベンチプレス ベンチ 自宅",
+    "トレーニングベンチ 折りたたみ",
+    "ダンベル ベンチ 必要",
+  ],
+  floor: [
+    "ジムマット 防音",
+    "ジョイントマット 筋トレ",
+    "ホームジム 床材",
+    "ダンベル 床 防音",
+    "トレーニングマット 厚手",
+    "賃貸 筋トレ 防音",
+  ],
+  compact: [
+    "省スペース 筋トレ器具",
+    "狭い部屋 筋トレ",
+    "懸垂マシン 省スペース",
+    "折りたたみ ベンチ",
+    "チューブ 筋トレ 自宅",
+    "トレーニングミラー 自宅",
+  ],
+};
 
 const fallbackKeywords = [
+  "可変式ダンベル 選び方 重量 目安",
+  "パワーラック 必要スペース 天井高",
+  "ジムマット 防音 厚さ 選び方",
+  "インクラインベンチ 折りたたみ 比較",
+  "賃貸 筋トレ 防音 床対策",
+  "懸垂マシン 省スペース 選び方",
+  "ダンベル 家トレ メニュー 初心者",
+  "ハーフラック 自宅 メリット 注意点",
+  "トレーニングミラー 自宅 置き方",
+  "筋トレ 部屋 レイアウト 2畳",
   "ホームジム 予算 広さ",
-  "ホームジム パワーラック 必要スペース",
-  "可変式ダンベル ホームジム 選び方",
-  "賃貸 ホームジム 防音",
   "ホームジム 床材 おすすめ",
-  "省スペース ホームジム 作り方",
-  "ホームジム ベンチ 必要",
 ];
 
 export type KeywordCandidate = {
@@ -91,7 +136,7 @@ async function fetchRakkoKeywordCandidates(existingArticles: ExistingBlogKeyword
     return { source: "rakko-missing-key", candidates: [] as KeywordCandidate[] };
   }
 
-  const seed = seedKeywords[existingArticles.length % seedKeywords.length];
+  const seed = selectSeedKeyword(existingArticles);
   const payload = await callRakko("/v1/related-keywords", apiKey, {
     keyword: seed,
     matchType: "partialMatch",
@@ -127,7 +172,7 @@ async function fetchRakkoKeywordCandidates(existingArticles: ExistingBlogKeyword
         array.findIndex((entry) => normalizeKeyword(entry.keyword) === normalizeKeyword(item.keyword)) === index,
     );
 
-  return { source: candidates.length ? "rakko" : "rakko-empty", candidates };
+  return { source: candidates.length ? `rakko:${seed}` : `rakko-empty:${seed}`, candidates };
 }
 
 async function callRakko(endpoint: string, apiKey: string, body: Record<string, unknown>) {
@@ -171,21 +216,51 @@ async function upsertKeywordCandidate(candidate: KeywordCandidate) {
 function isHomeGymKeyword(candidate: KeywordCandidate) {
   const keyword = normalizeKeyword(candidate.keyword);
   if (keyword.length < 4 || keyword.length > 80) return false;
-  if (hasAny(keyword, ["退会", "ログイン", "中古車", "求人", "株価", "プロテインだけ"])) return false;
+  if (
+    hasAny(keyword, [
+      "退会",
+      "ログイン",
+      "中古車",
+      "求人",
+      "株価",
+      "プロテインだけ",
+      "プロテイン 女性",
+      "サプリ",
+      "ジム 退会",
+      "エニタイム",
+      "チョコザップ",
+      "ライザップ",
+    ])
+  ) {
+    return false;
+  }
 
   return hasAny(keyword, [
     "ホームジム",
     "家トレ",
     "宅トレ",
+    "筋トレ器具",
+    "筋トレ 部屋",
+    "自宅 筋トレ",
     "パワーラック",
     "ハーフラック",
+    "スミスマシン",
+    "懸垂マシン",
+    "チンニング",
     "可変式ダンベル",
     "ダンベル",
+    "バーベル",
+    "プレート",
     "トレーニングベンチ",
+    "インクラインベンチ",
+    "アジャスタブルベンチ",
     "ジムマット",
+    "ジョイントマット",
+    "トレーニングマット",
     "防音",
     "防振",
-    "筋トレ 部屋",
+    "床材",
+    "トレーニングミラー",
   ]);
 }
 
@@ -215,14 +290,24 @@ function scoreKeywordCandidate(candidate: KeywordCandidate) {
       "後悔",
       "注意",
       "比較",
+      "初心者",
+      "自宅",
+      "必要",
+      "目安",
+      "レイアウト",
     ]) +
     keywordIntentScore(keyword, [
       "パワーラック",
+      "ハーフラック",
+      "スミスマシン",
+      "懸垂マシン",
       "可変式ダンベル",
+      "ダンベル",
       "ベンチ",
       "マルチホームジム",
       "床材",
       "防振",
+      "トレーニングミラー",
     ]);
   const longTailScore = keyword.length >= 8 ? 12 : 0;
   const categoryScore = candidate.category === "guide" ? 2 : 8;
@@ -237,12 +322,42 @@ function keywordIntentScore(keyword: string, terms: string[]) {
 }
 
 function inferCategory(keyword: string) {
-  if (hasAny(keyword, ["パワーラック", "ハーフラック", "スミスマシン"])) return "rack";
+  if (hasAny(keyword, ["パワーラック", "ハーフラック", "スミスマシン", "バーベルラック"])) return "rack";
   if (hasAny(keyword, ["可変式ダンベル", "ダンベル"])) return "dumbbell";
-  if (hasAny(keyword, ["ベンチ", "インクライン"])) return "bench";
-  if (hasAny(keyword, ["床", "マット", "防音", "防振"])) return "floor";
-  if (hasAny(keyword, ["賃貸", "省スペース", "狭い"])) return "compact";
+  if (hasAny(keyword, ["ベンチ", "インクライン", "アジャスタブル"])) return "bench";
+  if (hasAny(keyword, ["床", "マット", "防音", "防振", "ジョイントマット"])) return "floor";
+  if (hasAny(keyword, ["賃貸", "省スペース", "狭い", "懸垂マシン", "チンニング", "ミラー", "チューブ"])) return "compact";
   return "guide";
+}
+
+function selectSeedKeyword(existingArticles: ExistingBlogKeyword[]) {
+  const categoryCounts = new Map<BlogKeywordCategory, number>();
+  const orderedCategories = Object.keys(keywordSeedGroups) as BlogKeywordCategory[];
+
+  for (const category of orderedCategories) {
+    categoryCounts.set(category, 0);
+  }
+
+  for (const article of existingArticles) {
+    const category = inferCategory(article.keyword) as BlogKeywordCategory;
+    categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+  }
+
+  const lastCategory = existingArticles[0]?.keyword
+    ? (inferCategory(existingArticles[0].keyword) as BlogKeywordCategory)
+    : null;
+  const category =
+    [...orderedCategories].sort((a, b) => {
+      const countDiff = (categoryCounts.get(a) ?? 0) - (categoryCounts.get(b) ?? 0);
+      if (countDiff !== 0) return countDiff;
+      if (a === lastCategory) return 1;
+      if (b === lastCategory) return -1;
+      return orderedCategories.indexOf(a) - orderedCategories.indexOf(b);
+    })[0] ?? "guide";
+
+  const seeds = keywordSeedGroups[category];
+  const categoryCount = categoryCounts.get(category) ?? 0;
+  return seeds[categoryCount % seeds.length];
 }
 
 function normalizeKeyword(keyword: string) {

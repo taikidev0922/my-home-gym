@@ -135,8 +135,13 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
           </div>
 
           <div className="grid gap-4">
-            {products.map((product) => (
-              <RankingCard key={product.id} product={product} showCategory={!activeCategory} showOverallRank={!activeCategory} />
+            {products.map((product, index) => (
+              <RankingCard
+                key={product.id}
+                product={product}
+                displayRank={activeCategory ? product.rank : index + 1}
+                showCategory={!activeCategory}
+              />
             ))}
           </div>
         </section>
@@ -273,15 +278,14 @@ function CategoryLinks({
 
 function RankingCard({
   product,
+  displayRank,
   showCategory,
-  showOverallRank,
 }: {
   product: RankingProduct;
+  displayRank: number;
   showCategory: boolean;
-  showOverallRank: boolean;
 }) {
   const outboundUrl = product.affiliateUrl ?? product.productUrl;
-  const displayRank = showOverallRank ? (product.overallRank ?? product.rank) : product.rank;
   const rankStyle = getRankStyle(displayRank);
 
   return (

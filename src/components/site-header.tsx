@@ -104,23 +104,23 @@ export function SiteHeader({
             aria-label="メニューを閉じる"
             onClick={() => setIsMenuOpen(false)}
           />
-          <nav className="fixed right-4 top-16 z-50 grid w-[min(280px,calc(100vw-2rem))] gap-1 rounded-2xl border border-[#cfd8cf] bg-white p-2 text-sm font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
+          <nav className="fixed right-4 top-16 z-50 grid w-[min(320px,calc(100vw-2rem))] gap-2 rounded-2xl border border-[#cfd8cf] bg-white p-3 text-base font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
             {currentUser ? (
               <Link
                 href="/me"
                 onClick={() => setIsMenuOpen(false)}
-                className="rounded-lg bg-[#f7f8f5] px-3 py-2 text-[#122018] hover:bg-[#e1e8df]"
+                className="rounded-xl bg-[#f7f8f5] px-4 py-3.5 text-[#122018] hover:bg-[#e1e8df]"
               >
                 マイページ
               </Link>
             ) : null}
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
+            <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3.5 hover:bg-[#f7f8f5]">
               みんなのホームジム
             </Link>
-            <Link href="/rankings" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
+            <Link href="/rankings" onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3.5 hover:bg-[#f7f8f5]">
               器具ランキング
             </Link>
-            <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="rounded-lg px-3 py-2 hover:bg-[#f7f8f5]">
+            <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3.5 hover:bg-[#f7f8f5]">
               ホームジムお助け記事
             </Link>
           </nav>

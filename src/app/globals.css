@@ -28,6 +28,30 @@ input {
   -webkit-tap-highlight-color: transparent;
 }
 
+button,
+a[href],
+[role="button"],
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) {
+  transition-property: color, background-color, border-color, box-shadow, filter, transform, opacity;
+  transition-duration: 140ms;
+  transition-timing-function: ease;
+}
+
+button:active:not(:disabled),
+a[href]:active,
+[role="button"]:active,
+label:has(input[type="checkbox"]):active,
+label:has(input[type="radio"]):active {
+  filter: brightness(0.92) saturate(1.08);
+  transform: translateY(1px) scale(0.98);
+}
+
+button:disabled {
+  transform: none;
+  filter: none;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
