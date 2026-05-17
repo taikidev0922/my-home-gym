@@ -359,7 +359,7 @@ export function HomeGymExplorer({
               </span>
             </div>
           ) : viewMode === "detail" ? (
-            <div className="grid grid-cols-2 gap-px bg-white sm:gap-4 sm:bg-transparent md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-px bg-transparent sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
               {posts.length ? (
                 posts.map((post) => (
                   <PostCard
@@ -376,7 +376,7 @@ export function HomeGymExplorer({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-px bg-white sm:grid-cols-3 sm:gap-2 sm:bg-transparent md:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-px bg-transparent sm:grid-cols-3 sm:gap-2 md:grid-cols-4 xl:grid-cols-5">
               {posts.length ? (
                 posts.map((post) => <PhotoGridItem key={post.id} post={post} />)
               ) : (
