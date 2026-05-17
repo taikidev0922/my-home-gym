@@ -63,7 +63,6 @@ const allRankingProducts = [
   {
     id: "wasai-mk780-half-rack",
     rank: 1,
-    overallRank: 1,
     category: "power-rack",
     name: "WASAI ハーフラック パワーケージ MK780",
     maker: "WASAI",
@@ -165,7 +164,6 @@ const allRankingProducts = [
   {
     id: "lysin-helixmirror-40kg",
     rank: 1,
-    overallRank: 2,
     category: "adjustable-dumbbell",
     name: "ライシン ヘリックスミラー 40kg 2個セット",
     maker: "Lysin",
@@ -251,7 +249,6 @@ const allRankingProducts = [
   {
     id: "barwing-bw-ajb06-bench",
     rank: 1,
-    overallRank: 3,
     category: "bench",
     name: "BARWING 可変式トレーニングベンチ BW-AJB06",
     maker: "BARWING",
@@ -455,17 +452,18 @@ export function getRankingCategories() {
   return Object.keys(productCategoryLabels) as ProductCategory[];
 }
 
+export function getRankingProductCategories() {
+  return Array.from(new Set(rankingProducts.map((product) => product.category)));
+}
+
 export function getRankingProducts(category?: ProductCategory) {
   return rankingProducts
-    .filter((product) => !category || product.category === category)
+    .filter((product) => (category ? product.category === category : product.rank === 1))
     .sort((a, b) => {
       if (category) {
         return a.rank - b.rank;
       }
 
-      const aOverall = a.overallRank ?? Number.MAX_SAFE_INTEGER;
-      const bOverall = b.overallRank ?? Number.MAX_SAFE_INTEGER;
-
-      return aOverall - bOverall || a.category.localeCompare(b.category) || a.rank - b.rank;
+      return 0;
     });
 }

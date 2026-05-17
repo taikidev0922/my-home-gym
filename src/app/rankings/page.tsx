@@ -5,7 +5,7 @@ import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-reac
 import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
-  getRankingCategories,
+  getRankingProductCategories,
   productCategoryDescriptions,
   productCategoryLabels,
 } from "@/lib/product-rankings";
@@ -43,16 +43,16 @@ const rankingFaqs = [
 
 export async function generateMetadata({ searchParams }: RankingsPageProps): Promise<Metadata> {
   const { category } = await searchParams;
-  const categories = getRankingCategories();
+  const categories = getRankingProductCategories();
   const activeCategory = resolveActiveCategory(category, categories);
   const label = activeCategory ? productCategoryLabels[activeCategory] : "ホームジム用品";
   const description = activeCategory
     ? `${label}のおすすめ商品を、価格、向いている人、注意点で比較。自宅ジム作りに必要な器具選びを畳数や予算に合わせて検討できます。`
-    : "ホームジム用品ランキング。パワーラック、可変式ダンベル、トレーニングベンチ、床材・防振マットなど、自宅ジム作りで迷いやすい器具を比較できます。";
+    : "ホームジム用品のカテゴリ別おすすめ商品。パワーラック、可変式ダンベル、トレーニングベンチ、床材・防振マットなど、各カテゴリの1位商品を確認できます。";
   const canonicalPath = activeCategory ? `/rankings?category=${activeCategory}` : "/rankings";
 
   return {
-    title: activeCategory ? `${label}ランキング` : "ホームジム用品ランキング",
+    title: activeCategory ? `${label}ランキング` : "カテゴリ別おすすめ商品",
     description,
     keywords: [
       ...baseSeoKeywords,
@@ -64,7 +64,7 @@ export async function generateMetadata({ searchParams }: RankingsPageProps): Pro
       canonical: absoluteUrl(canonicalPath),
     },
     openGraph: {
-      title: activeCategory ? `${label}ランキング | ${siteName}` : `ホームジム用品ランキング | ${siteName}`,
+      title: activeCategory ? `${label}ランキング | ${siteName}` : `カテゴリ別おすすめ商品 | ${siteName}`,
       description,
       url: absoluteUrl(canonicalPath),
       siteName,
@@ -73,7 +73,7 @@ export async function generateMetadata({ searchParams }: RankingsPageProps): Pro
     },
     twitter: {
       card: "summary",
-      title: activeCategory ? `${label}ランキング | ${siteName}` : `ホームジム用品ランキング | ${siteName}`,
+      title: activeCategory ? `${label}ランキング | ${siteName}` : `カテゴリ別おすすめ商品 | ${siteName}`,
       description,
     },
   };
@@ -81,10 +81,10 @@ export async function generateMetadata({ searchParams }: RankingsPageProps): Pro
 
 export default async function RankingsPage({ searchParams }: RankingsPageProps) {
   const { category } = await searchParams;
-  const categories = getRankingCategories();
+  const categories = getRankingProductCategories();
   const activeCategory = resolveActiveCategory(category, categories);
   const products = await getRankingProductsWithAffiliateLinks(activeCategory ?? undefined);
-  const pageTitle = activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "ホームジム用品ランキング";
+  const pageTitle = activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "カテゴリ別おすすめ商品";
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
@@ -112,23 +112,23 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
           <div className="mb-3 flex flex-col justify-between gap-1 sm:mb-4 sm:flex-row sm:items-end sm:gap-2">
             <div>
               <p className="text-sm font-bold text-[#e4572e]">
-                {activeCategory ? productCategoryLabels[activeCategory] : "全カテゴリ"}
+                {activeCategory ? productCategoryLabels[activeCategory] : "カテゴリ別1位"}
               </p>
-              <h2 className="text-2xl font-bold">おすすめランキング</h2>
+              <h2 className="text-2xl font-bold">{activeCategory ? "おすすめランキング" : "各カテゴリの1位"}</h2>
             </div>
             <p className="text-sm font-semibold text-[#69756d]">
               {activeCategory
                 ? productCategoryDescriptions[activeCategory]
-                : `${products.length}件の商品を表示中`}
+                : `${products.length}カテゴリの商品を表示中`}
             </p>
           </div>
 
           <div className="grid gap-4">
-            {products.map((product, index) => (
+            {products.map((product) => (
               <RankingCard
                 key={product.id}
                 product={product}
-                displayRank={activeCategory ? product.rank : index + 1}
+                displayRank={product.rank}
                 showCategory={!activeCategory}
               />
             ))}
@@ -161,7 +161,7 @@ function resolveActiveCategory(category: ProductCategory | string | undefined, c
 function createRankingJsonLd(products: RankingProduct[], activeCategory: ProductCategory | null) {
   const itemList = products.map((product, index) => ({
     "@type": "ListItem",
-    position: activeCategory ? product.rank : product.overallRank ?? index + 1,
+    position: activeCategory ? product.rank : index + 1,
     url: absoluteUrl(`/rankings${activeCategory ? `?category=${activeCategory}` : ""}`),
     item: {
       "@type": "Product",
@@ -195,7 +195,7 @@ function createRankingJsonLd(products: RankingProduct[], activeCategory: Product
       },
       {
         "@type": "ItemList",
-        name: activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "ホームジム用品ランキング",
+        name: activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "カテゴリ別おすすめ商品",
         numberOfItems: products.length,
         itemListElement: itemList,
       },
@@ -238,7 +238,7 @@ function CategoryLinks({
         >
           {!activeCategory ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
         </span>
-        <span className="block min-w-0 font-bold">すべて</span>
+        <span className="block min-w-0 font-bold">カテゴリ別1位</span>
       </Link>
 
       {categories.map((item) => (

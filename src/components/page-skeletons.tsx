@@ -182,13 +182,13 @@ export function RankingsLoadingSkeleton() {
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
         <section className="grid gap-2">
           <h1 className="text-3xl font-black leading-tight tracking-normal sm:text-5xl">
-            ホームジム用品ランキング
+            カテゴリ別おすすめ商品
           </h1>
           <div className="rounded-lg border border-[#cfd8cf] bg-white p-3 shadow-sm sm:hidden">
             <div className="flex items-center justify-between text-sm font-bold text-[#122018]">
               <span className="flex items-center gap-2">
                 <Trophy size={16} />
-                全カテゴリ
+                カテゴリ別1位
               </span>
               <ChevronDown size={17} className="text-[#69756d]" />
             </div>
@@ -218,8 +218,8 @@ export function RankingsLoadingSkeleton() {
         <section className="mt-5 sm:mt-8">
           <div className="mb-3 flex flex-col justify-between gap-1 sm:mb-4 sm:flex-row sm:items-end sm:gap-2">
             <div>
-              <p className="text-sm font-bold text-[#e4572e]">全カテゴリ</p>
-              <h2 className="text-2xl font-bold">おすすめランキング</h2>
+              <p className="text-sm font-bold text-[#e4572e]">カテゴリ別1位</p>
+              <h2 className="text-2xl font-bold">各カテゴリの1位</h2>
             </div>
             <p className="text-sm font-semibold text-[#69756d]">商品リンクを取得しています</p>
           </div>

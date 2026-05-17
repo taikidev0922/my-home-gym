@@ -41,7 +41,6 @@ export type ProductCategory =
 export type RankingProduct = {
   id: string;
   rank: number;
-  overallRank?: number;
   category: ProductCategory;
   name: string;
   maker: string;

@@ -26,7 +26,7 @@ export function RankingCategoryFilter({
           <SearchCheck size={16} />
           表示カテゴリ
           <span className="rounded-full bg-[#f7f8f5] px-2 py-0.5 text-xs text-[#69756d]">
-            {activeCategory ? productCategoryLabels[activeCategory] : "すべて"}
+            {activeCategory ? productCategoryLabels[activeCategory] : "カテゴリ別1位"}
           </span>
         </span>
         <ChevronDown size={18} className="shrink-0 text-[#69756d] transition group-open:rotate-180" />
@@ -48,7 +48,7 @@ export function RankingCategoryFilter({
           >
             {!activeCategory ? <span className="h-2 w-2 rounded-sm bg-[#e4572e]" /> : null}
           </span>
-          <span className="block min-w-0 font-bold">すべて</span>
+          <span className="block min-w-0 font-bold">カテゴリ別1位</span>
         </Link>
 
         {categories.map((item) => (
