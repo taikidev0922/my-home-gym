@@ -24,6 +24,7 @@ const maxUploadPayloadBytes = 3_600_000;
 const maxWebpImageBytes = 700_000;
 const minWebpImageBytes = 120_000;
 const uploadPayloadReserveBytes = 200_000;
+const maxPostImageCount = 5;
 
 export function SubmitForm() {
   const router = useRouter();
@@ -155,7 +156,7 @@ export function SubmitForm() {
                 <ImagePlus size={24} />
               </span>
               <span className="text-base font-bold text-[#122018]">写真を選ぶ</span>
-              <span className="text-sm font-semibold leading-6 text-[#69756d]">選んだ写真はここに表示されます。</span>
+              <span className="text-sm font-semibold leading-6 text-[#69756d]">最大5枚まで選べます。</span>
             </label>
           )}
           <input id="gym-post-images" name="images" type="file" accept="image/*" multiple onChange={handleImageChange} disabled={isSaving || isConvertingImages} className="sr-only" />
@@ -228,8 +229,13 @@ export function SubmitForm() {
     setThumbnailIndex(0);
     setMessage("");
 
-    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    const allFiles = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    const files = allFiles.slice(0, maxPostImageCount);
     if (!files.length) return;
+
+    if (allFiles.length > maxPostImageCount) {
+      setMessage(`写真は最大${maxPostImageCount}枚まで投稿できます。先頭${maxPostImageCount}枚を使います。`);
+    }
 
     setIsConvertingImages(true);
     try {
@@ -256,22 +262,22 @@ function TagInput({
   tags: string[];
   value: string;
   onChange: (value: string) => void;
-  onTagsChange: (tags: string[]) => void;
+  onTagsChange: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
   function commit(rawValue = value) {
     const nextTags = splitTags(rawValue);
     if (!nextTags.length) return;
 
-    onTagsChange(Array.from(new Set([...tags, ...nextTags])));
+    onTagsChange((current) => Array.from(new Set([...current, ...nextTags])));
     onChange("");
   }
 
   function removeTag(tag: string) {
-    onTagsChange(tags.filter((item) => item !== tag));
+    onTagsChange((current) => current.filter((item) => item !== tag));
   }
 
   return (
-    <label className="block min-w-0">
+    <div className="block min-w-0">
       <span className="text-sm font-bold">タグ</span>
       <div className="mt-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2">
         {tags.length ? (
@@ -279,7 +285,13 @@ function TagInput({
             {tags.map((tag) => (
               <span key={tag} className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 text-sm font-bold text-[#4e5b52]">
                 {tag}
-                <button type="button" onClick={() => removeTag(tag)} aria-label={`${tag}を削除`} className="rounded-full text-[#69756d] hover:text-[#122018]">
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.preventDefault()}
+                  onClick={() => removeTag(tag)}
+                  aria-label={`${tag}を削除`}
+                  className="rounded-full text-[#69756d] hover:text-[#122018]"
+                >
                   <X size={13} />
                 </button>
               </span>
@@ -307,7 +319,7 @@ function TagInput({
           placeholder="賃貸OK, 防音, パワーラック"
         />
       </div>
-    </label>
+    </div>
   );
 }
 
