@@ -14,12 +14,15 @@ loadEnvFile(".env.local");
 
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-const affiliateProducts = readJson("src/data/affiliate-products.json");
+const affiliateProducts = normalizeAffiliateProducts(readJson("src/data/affiliate-products.json"));
 
 if (!serviceRoleKey) fail("SUPABASE_SERVICE_ROLE_KEY is required.");
 if (!anthropicApiKey) fail("ANTHROPIC_API_KEY is required.");
 if (!Array.isArray(affiliateProducts) || affiliateProducts.length === 0) fail("No affiliate products found.");
-if (TARGET_PRODUCT_ID && !affiliateProducts.some((product) => product.id === TARGET_PRODUCT_ID)) {
+if (
+  TARGET_PRODUCT_ID &&
+  !affiliateProducts.some((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID)
+) {
   fail(`Unknown affiliate product id: ${TARGET_PRODUCT_ID}`);
 }
 
@@ -145,7 +148,7 @@ async function proposeAffiliateBlocks(article, blocks) {
 function buildPrompt(article, blocks) {
   const existingMarkers = collectAffiliateMarkers(blocks);
   const promptProducts = TARGET_PRODUCT_ID
-    ? affiliateProducts.filter((product) => product.id === TARGET_PRODUCT_ID)
+    ? affiliateProducts.filter((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID)
     : affiliateProducts;
 
   return `あなたは日本語のホームジム記事の編集者です。
@@ -153,9 +156,9 @@ function buildPrompt(article, blocks) {
 
 ルール:
 - 記事内容に自然に合う商品だけ入れる。無理に入れない。
-- 挿入するときは paragraphs 配列に単独文字列として {{affiliate:商品id}} を入れる。
-- 商品idは下記の商品一覧にあるidだけ使う。
-- 同じ商品idは1記事で1回だけ。
+- 挿入するときは paragraphs 配列に単独文字列として {{affiliate:カテゴリ-順位}} を入れる。
+- カテゴリ-順位は下記の商品一覧にあるidだけ使う。
+- 同じidは1記事で1回だけ。
 - 既存の商品カードマーカーは削除しない。すでに入っている商品idは追加しない。
 - 原則1商品だけ。記事全体で明確に複数器具を比較・初期セット提案している場合だけ最大2商品まで。
 - 3商品すべてを入れるのは、記事が「パワーラック、可変式ダンベル、ベンチの3点セット」そのものを主題にしている場合だけ。
@@ -200,7 +203,7 @@ ${JSON.stringify(
   "blocks": [
     {
       "heading": "元の見出し",
-      "paragraphs": ["元の本文", "{{affiliate:商品id}}", "元の本文"],
+      "paragraphs": ["元の本文", "{{affiliate:カテゴリ-順位}}", "元の本文"],
       "visual": { "元のvisualがあればそのまま" }
     }
   ]
@@ -208,7 +211,7 @@ ${JSON.stringify(
 }
 
 function sanitizeAffiliateMarkers(blocks) {
-  const allowedIds = new Set(affiliateProducts.map((product) => product.id));
+  const allowedIds = new Set(affiliateProducts.flatMap((product) => [product.id, product.legacyProductId]));
   const usedIds = new Set();
 
   return blocks.map((block) => ({
@@ -240,7 +243,12 @@ function insertFallbackAffiliateMarker(article, blocks) {
 }
 
 function selectFallbackProduct(article, blocks) {
-  if (TARGET_PRODUCT_ID) return affiliateProducts.find((product) => product.id === TARGET_PRODUCT_ID) ?? null;
+  if (TARGET_PRODUCT_ID) {
+    return (
+      affiliateProducts.find((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID) ??
+      null
+    );
+  }
 
   const text = `${article.title} ${article.excerpt} ${article.keyword} ${article.category} ${blocks
     .flatMap((block) => [block.heading, ...block.paragraphs])
@@ -338,6 +346,40 @@ function parseJson(text) {
 function readJson(relativePath) {
   const filePath = path.resolve(process.cwd(), relativePath);
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+function normalizeAffiliateProducts(products) {
+  const slotAssignments = new Map([
+    ["wasai-mk780-half-rack", { category: "power-rack", rank: 1 }],
+    ["barwing-hhr01-half-rack", { category: "power-rack", rank: 2 }],
+    ["irotec-multi-power-rack", { category: "power-rack", rank: 3 }],
+    ["lysin-helixmirror-40kg", { category: "adjustable-dumbbell", rank: 1 }],
+    ["flexbell-20kg-2kg-pair", { category: "adjustable-dumbbell", rank: 2 }],
+    ["barwing-adjustable-dumbbell-24kg-pair", { category: "adjustable-dumbbell", rank: 3 }],
+    ["barwing-bw-ajb06-bench", { category: "bench", rank: 1 }],
+    ["gogojump-folding-training-bench", { category: "bench", rank: 2 }],
+    ["barwing-dc04-training-bench", { category: "bench", rank: 3 }],
+    ["airhop-joint-mat", { category: "floor-mat", rank: 1 }],
+    ["kawashima-structural-plywood-12mm", { category: "floor-mat", rank: 2 }],
+    ["showa-eva-joint-mat-12mm", { category: "floor-mat", rank: 3 }],
+  ]);
+
+  if (!Array.isArray(products)) return [];
+
+  return products
+    .map((product) => {
+      const slot = slotAssignments.get(product.id);
+      if (!slot) return null;
+
+      return {
+        ...product,
+        id: `${slot.category}-${slot.rank}`,
+        legacyProductId: product.id,
+        category: slot.category,
+        rank: slot.rank,
+      };
+    })
+    .filter(Boolean);
 }
 
 function loadEnvFile(relativePath) {

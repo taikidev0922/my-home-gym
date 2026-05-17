@@ -1,5 +1,4 @@
 import type { ProductCategory, RankingProduct } from "@/lib/types";
-import { getAffiliateUrlById } from "@/lib/affiliate-products";
 
 export const productCategoryLabels: Record<ProductCategory, string> = {
   "multi-home-gym": "マルチホームジム",
@@ -76,7 +75,7 @@ const allRankingProducts = [
     pros: ["とにかく安い", "ベンチプレス・懸垂・スクワットに対応", "ハーフラックなので省スペース", "ディップスやロー系の種目も組みやすい"],
     cons: ["バーベルとベンチは別売り", "高さ209cm/220cmなので天井高を確認したい", "本体耐荷重150kgの範囲で使う必要がある"],
     productUrl: "https://www.amazon.co.jp/WASAI-%E7%AD%8B%E5%8A%9B%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0-%E3%83%91%E3%83%AF%E3%83%BC%E3%82%B1%E3%83%BC%E3%82%B8-%E3%83%99%E3%83%B3%E3%83%81%E3%83%97%E3%83%AC%E3%82%B9-MK780-%E6%9C%AC%E4%BD%93/dp/B0833K5KCM",
-    affiliateUrl: getAffiliateUrlById("wasai-mk780-half-rack") ?? "https://amzn.to/4uDapmU",
+    affiliateUrl: "https://amzn.to/4uDapmU",
     isAffiliate: true,
   },
   {
@@ -93,7 +92,7 @@ const allRankingProducts = [
     pros: ["2万円前後で導入しやすい", "横幅調整で複数のシャフトに合わせやすい", "48段階の高さ調整が細かい", "懸垂バーやプレートラックも付く"],
     cons: ["組み立てや部品精度のレビューは確認したい", "高重量を本格的に伸ばすなら上位ラックも検討", "チンニングの高さや幅が体格に合うか確認したい"],
     productUrl: "https://amzn.to/4u9XY2o",
-    affiliateUrl: getAffiliateUrlById("barwing-hhr01-half-rack") ?? "https://amzn.to/4u9XY2o",
+    affiliateUrl: "https://amzn.to/4u9XY2o",
     isAffiliate: true,
   },
   {
@@ -110,7 +109,7 @@ const allRankingProducts = [
     pros: ["ラットプルやローイングまで対応", "チンニングバーとディップスバー付き", "パワーゲージ型で安心感がある", "IROTECで器具を揃えやすい"],
     cons: ["価格と設置スペースは大きめ", "重量82kgで搬入と組み立ては大人2人推奨", "プレートとバーベルシャフトは別売り"],
     productUrl: "https://amzn.to/4nnsinB",
-    affiliateUrl: getAffiliateUrlById("irotec-multi-power-rack") ?? "https://amzn.to/4nnsinB",
+    affiliateUrl: "https://amzn.to/4nnsinB",
     isAffiliate: true,
   },
   {
@@ -178,7 +177,7 @@ const allRankingProducts = [
     pros: ["1kg刻みで細かく重量調整できる", "40kgまで対応して伸びしろが大きい", "膝に置いても痛くなりにくい形状", "メタル感があり見た目がかっこいい"],
     cons: ["価格は高め", "1個42.5kg相当なので搬入と設置場所に注意", "プレートの向きや扱いは丁寧に確認したい"],
     productUrl: "https://www.amazon.co.jp/%E3%83%A9%E3%82%A4%E3%82%B7%E3%83%B3-%E3%83%98%E3%83%AA%E3%83%83%E3%82%AF%E3%82%B9%E3%83%9F%E3%83%A9%E3%83%BC-1kg%E5%88%BB%E3%81%BF-2%E5%80%8B%E3%82%BB%E3%83%83%E3%83%88-%E3%83%A1%E3%82%BF%E3%83%AB%E3%83%80%E3%83%B3%E3%83%99%E3%83%AB/dp/B0DTH36WT5",
-    affiliateUrl: getAffiliateUrlById("lysin-helixmirror-40kg") ?? "https://amzn.to/3QYDL0G",
+    affiliateUrl: "https://amzn.to/3QYDL0G",
     isAffiliate: true,
   },
   {
@@ -195,7 +194,7 @@ const allRankingProducts = [
     pros: ["2kg刻みで扱いやすい", "片手で重量変更しやすい", "デザインがスマートで部屋になじみやすい", "レビュー評価が高い"],
     cons: ["20kgモデルは高重量狙いだと物足りない場合がある", "1kg刻みではない", "価格は安くない"],
     productUrl: "https://amzn.to/4d3s5Cw",
-    affiliateUrl: getAffiliateUrlById("flexbell-20kg-2kg-pair") ?? "https://amzn.to/4d3s5Cw",
+    affiliateUrl: "https://amzn.to/4d3s5Cw",
     isAffiliate: true,
   },
   {
@@ -212,7 +211,7 @@ const allRankingProducts = [
     pros: ["24kg×2個でかなり安い", "15段階調整で種目に合わせやすい", "購入数が多い人気商品", "ベース収納で省スペース"],
     cons: ["高級機より質感や操作感は比較したい", "24kg以上を狙う人は40kgモデルや上位機も検討", "ダイヤルのロック確認は毎回したい"],
     productUrl: "https://amzn.to/4wm6HzR",
-    affiliateUrl: getAffiliateUrlById("barwing-adjustable-dumbbell-24kg-pair") ?? "https://amzn.to/4wm6HzR",
+    affiliateUrl: "https://amzn.to/4wm6HzR",
     isAffiliate: true,
   },
   {
@@ -229,7 +228,7 @@ const allRankingProducts = [
     pros: ["価格が安い", "レビュー数と評価が強い", "折りたたんで収納しやすい", "背もたれ・座面・レッグ側を調整できる"],
     cons: ["耐荷重227kgなので高重量特化ではない", "本格ジム用ベンチほどの重量感はない", "幅32cmなので体格との相性を確認したい"],
     productUrl: "https://amzn.to/4ddctLo",
-    affiliateUrl: getAffiliateUrlById("gogojump-folding-training-bench") ?? "https://amzn.to/4ddctLo",
+    affiliateUrl: "https://amzn.to/4ddctLo",
     isAffiliate: true,
   },
   {
@@ -246,7 +245,7 @@ const allRankingProducts = [
     pros: ["耐荷重300kgで安心感がある", "インクライン・フラット・デクラインに対応", "5本パイプ方式でフラット時も支えやすい", "ローラー付きで移動しやすい"],
     cons: ["1万円台なので最安重視なら2位のGOGOJUMPも候補", "重量15.8kgで軽量ベンチより移動は重め", "フラット時の形状や角度調整の好みは確認したい"],
     productUrl: "https://amzn.to/3R1CPsn",
-    affiliateUrl: getAffiliateUrlById("barwing-dc04-training-bench") ?? "https://amzn.to/3R1CPsn",
+    affiliateUrl: "https://amzn.to/3R1CPsn",
     isAffiliate: true,
   },
   {
@@ -264,7 +263,7 @@ const allRankingProducts = [
     pros: ["価格がかなり安い", "4WAYで種目の幅を増やしやすい", "折りたたみ収納できる", "耐荷重500kg表記で安心感がある"],
     cons: ["本格ジム用ベンチほどの重量感はない", "高重量ダンベルを扱う人は安定感を確認したい", "保証期間は長期ではない"],
     productUrl: "https://www.amazon.co.jp/BARWING-%E3%83%90%E3%83%BC%E3%82%A6%E3%82%A3%E3%83%B3%E3%82%B0-%E3%83%88%E3%83%AC%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0%E3%83%99%E3%83%B3%E3%83%81-%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81-%E3%83%87%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%99%E3%83%B3%E3%83%81/dp/B0CTBY5221",
-    affiliateUrl: getAffiliateUrlById("barwing-bw-ajb06-bench") ?? "https://amzn.to/4tsU3fP",
+    affiliateUrl: "https://amzn.to/4tsU3fP",
     isAffiliate: true,
   },
   {
@@ -281,7 +280,7 @@ const allRankingProducts = [
     pros: ["24枚で広めに敷ける", "1.2cm厚で床保護と衝撃吸収に使いやすい", "部屋に合わせてカット・レイアウトしやすい", "掃除しやすいEVA素材"],
     cons: ["本格的な高重量ラック下ではゴムマットも検討したい", "設置直後はにおい対策として換気したい", "動きの大きい種目ではジョイント部のズレを確認したい"],
     productUrl: "https://amzn.to/4tuL4uC",
-    affiliateUrl: getAffiliateUrlById("airhop-joint-mat") ?? "https://amzn.to/4tuL4uC",
+    affiliateUrl: "https://amzn.to/4tuL4uC",
     isAffiliate: true,
   },
   {
@@ -298,7 +297,7 @@ const allRankingProducts = [
     pros: ["約1畳サイズでレイアウトを考えやすい", "12mm厚で床補強の中層に使いやすい", "構造用合板で強度を確保しやすい", "マットやゴム材と重ねて3層構造を作れる"],
     cons: ["表面は仕上げ材ではないのでバリや凹凸に注意", "大型商品なので送料と搬入経路を確認したい", "必要に応じてカットや面取りを検討したい"],
     productUrl: "https://amzn.to/3Rd2Zs8",
-    affiliateUrl: getAffiliateUrlById("kawashima-structural-plywood-12mm") ?? "https://amzn.to/3Rd2Zs8",
+    affiliateUrl: "https://amzn.to/3Rd2Zs8",
     isAffiliate: true,
   },
   {
@@ -315,7 +314,7 @@ const allRankingProducts = [
     pros: ["価格を抑えて始めやすい", "30cm角で細かく敷き詰めやすい", "EVA素材でカットしやすい", "最低限の床傷・底冷え対策として使いやすい"],
     cons: ["本格的な防振目的では上層にゴムマットなどを重ねたい", "高重量ラック直下は合板や厚手マットとの併用を検討したい", "小判なので広い面積では枚数計算が必要"],
     productUrl: "https://amzn.to/42Y3XuS",
-    affiliateUrl: getAffiliateUrlById("showa-eva-joint-mat-12mm") ?? "https://amzn.to/42Y3XuS",
+    affiliateUrl: "https://amzn.to/42Y3XuS",
     isAffiliate: true,
   },
   {

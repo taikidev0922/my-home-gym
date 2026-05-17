@@ -7,7 +7,8 @@ import { BlogArticleLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
-import { getAffiliateProductById, type AffiliateProduct } from "@/lib/affiliate-products";
+import type { AffiliateProduct } from "@/lib/affiliate-products";
+import { getAffiliateProductsByIds } from "@/lib/affiliate-products-server";
 
 type BlogArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -54,11 +55,11 @@ function renderInlineLinks(text: string): ReactNode[] {
   return nodes.length ? nodes : [text];
 }
 
-function getAffiliateProductMarker(text: string) {
+function getAffiliateProductMarkerId(text: string) {
   const match = text.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/);
   if (!match) return null;
 
-  return getAffiliateProductById(match[1]) ?? null;
+  return match[1];
 }
 
 function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
@@ -142,6 +143,14 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
 
   const relatedPage = await getBlogArticlesPage({ category: article.category, page: 1, pageSize: 4 });
   const relatedArticles = relatedPage.articles.filter((related) => related.slug !== article.slug).slice(0, 3);
+  const affiliateMarkerIds = Array.from(
+    new Set(
+      article.blocks.flatMap((block) =>
+        block.paragraphs.map((paragraph) => getAffiliateProductMarkerId(paragraph)).filter((id): id is string => Boolean(id)),
+      ),
+    ),
+  );
+  const affiliateProductsById = await getAffiliateProductsByIds(affiliateMarkerIds);
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
 
@@ -193,7 +202,8 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
                   </h2>
                   <div className="mt-4 grid gap-4 text-base leading-8 text-[#4e5b52]">
                     {block.paragraphs.map((paragraph) => {
-                      const product = getAffiliateProductMarker(paragraph);
+                      const affiliateMarkerId = getAffiliateProductMarkerId(paragraph);
+                      const product = affiliateMarkerId ? affiliateProductsById.get(affiliateMarkerId) : null;
 
                       if (product) {
                         return <AffiliateProductCard key={paragraph} product={product} />;

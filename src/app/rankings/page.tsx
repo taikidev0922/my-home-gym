@@ -6,10 +6,10 @@ import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
   getRankingCategories,
-  getRankingProducts,
   productCategoryDescriptions,
   productCategoryLabels,
 } from "@/lib/product-rankings";
+import { getRankingProductsWithAffiliateLinks } from "@/lib/product-rankings-server";
 import { absoluteUrl, baseSeoKeywords, categorySeoKeywords, rankingSeoKeywords, siteName } from "@/lib/seo";
 import type { ProductCategory, RankingProduct } from "@/lib/types";
 
@@ -83,7 +83,7 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
   const { category } = await searchParams;
   const categories = getRankingCategories();
   const activeCategory = resolveActiveCategory(category, categories);
-  const products = getRankingProducts(activeCategory ?? undefined);
+  const products = await getRankingProductsWithAffiliateLinks(activeCategory ?? undefined);
   const pageTitle = activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "ホームジム用品ランキング";
 
   return (
