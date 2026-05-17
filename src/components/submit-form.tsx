@@ -61,7 +61,7 @@ export function SubmitForm() {
     try {
       setIsConvertingImages(true);
       setMessage("画像を高画質WebPに変換しています...");
-      const targetBytes = getTargetWebpSize(selectedImages.length);
+      const targetBytes = getTargetWebpSize();
       convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
     } catch (error) {
       console.error("Failed to convert images to WebP", error);
@@ -457,7 +457,7 @@ function createWebpFile(originalName: string, blob: Blob) {
   });
 }
 
-function getTargetWebpSize(imageCount: number) {
+function getTargetWebpSize() {
   return maxWebpImageBytes;
 }
 

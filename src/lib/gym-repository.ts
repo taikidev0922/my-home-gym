@@ -275,7 +275,7 @@ export async function getLikedPosts(userId: string): Promise<HomeGymPost[]> {
     .map(mapPostRow);
 }
 
-export async function getProfile(
+export const getProfile = cache(async function getProfile(
   userId: string,
   fallbackEmail?: string,
   fallbackDisplayName?: string,
@@ -308,7 +308,7 @@ export async function getProfile(
     tiktokUrl: data?.tiktok_url ?? "",
     xUrl: data?.x_url ?? "",
   };
-}
+});
 
 function mapPostRow(row: GymPostRow): HomeGymPost {
   const images = [...(row.gym_post_images ?? [])]

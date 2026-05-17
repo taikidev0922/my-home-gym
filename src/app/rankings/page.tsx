@@ -1,7 +1,9 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
+import { RankingsLoadingSkeleton } from "@/components/page-skeletons";
 import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -79,7 +81,15 @@ export async function generateMetadata({ searchParams }: RankingsPageProps): Pro
   };
 }
 
-export default async function RankingsPage({ searchParams }: RankingsPageProps) {
+export default function RankingsPage(props: RankingsPageProps) {
+  return (
+    <Suspense fallback={<RankingsLoadingSkeleton />}>
+      <RankingsContent {...props} />
+    </Suspense>
+  );
+}
+
+async function RankingsContent({ searchParams }: RankingsPageProps) {
   const { category } = await searchParams;
   const categories = getRankingCategories();
   const activeCategory = resolveActiveCategory(category, categories);

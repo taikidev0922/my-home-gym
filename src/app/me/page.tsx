@@ -1,6 +1,8 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, Heart, ImageIcon, Settings, User } from "lucide-react";
+import { Suspense } from "react";
+import { AccountLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
@@ -9,7 +11,15 @@ import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getLikedPosts, getProfile, getUserPosts } from "@/lib/gym-repository";
 import type { HomeGymPost } from "@/lib/types";
 
-export default async function MyPage() {
+export default function MyPage() {
+  return (
+    <Suspense fallback={<AccountLoadingSkeleton />}>
+      <MyPageContent />
+    </Suspense>
+  );
+}
+
+async function MyPageContent() {
   const user = await getCurrentAuthUser();
 
   if (!user) {

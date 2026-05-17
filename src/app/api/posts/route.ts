@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getRankingCategories } from "@/lib/product-rankings";
@@ -156,6 +157,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
     }
   }
+
+  revalidatePath("/");
+  revalidatePath("/me");
+  revalidatePath(`/posts/${slug}`);
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json({ slug });
 }

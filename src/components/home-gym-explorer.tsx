@@ -17,7 +17,7 @@ import {
   Trophy,
   WalletCards,
 } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { formatTatami } from "@/lib/area";
 import { scaleLabels } from "@/lib/gym-data";
@@ -109,26 +109,7 @@ export function HomeGymExplorer({
     window.setTimeout(() => setNotice(""), 3200);
   }
 
-  function handleSearch() {
-    if (isSearching) return;
-
-    const params = buildSearchParams();
-    const search = params.toString();
-    searchRequestedRef.current = true;
-    setIsSearchLoading(true);
-    setIsFilterOpen(false);
-    startSearchTransition(() => {
-      router.push(search ? `/?${search}#feed` : "/#feed");
-    });
-  }
-
-  function handlePageChange(nextPage: number) {
-    const params = buildSearchParams(nextPage);
-    const search = params.toString();
-    router.push(search ? `/?${search}#feed` : "/#feed");
-  }
-
-  function buildSearchParams(nextPage?: number) {
+  const buildSearchParams = useCallback((nextPage?: number) => {
     const params = new URLSearchParams();
     const trimmedQuery = query.trim();
 
@@ -141,7 +122,42 @@ export function HomeGymExplorer({
     if (perPage !== 12) params.set("perPage", String(perPage));
 
     return params;
+  }, [maxArea, maxBudget, perPage, query, scale, selectedGear]);
+
+  function handleSearch() {
+    if (isSearching) return;
+
+    const params = buildSearchParams();
+    const search = params.toString();
+    const href = search ? `/?${search}#feed` : "/#feed";
+    searchRequestedRef.current = true;
+    setIsSearchLoading(true);
+    setIsFilterOpen(false);
+    router.prefetch(href);
+    startSearchTransition(() => {
+      router.push(href);
+    });
   }
+
+  const createPageHref = useCallback((nextPage: number) => {
+    const params = buildSearchParams(nextPage);
+    const search = params.toString();
+
+    return search ? `/?${search}#feed` : "/#feed";
+  }, [buildSearchParams]);
+
+  useEffect(() => {
+    posts.slice(0, 8).forEach((post) => {
+      router.prefetch(createPostHref(post.slug));
+    });
+
+    if (page > 1) {
+      router.prefetch(createPageHref(page - 1));
+    }
+    if (page < totalPages) {
+      router.prefetch(createPageHref(page + 1));
+    }
+  }, [createPageHref, page, posts, router, totalPages]);
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
@@ -348,6 +364,7 @@ export function HomeGymExplorer({
                     key={post.id}
                     post={post}
                     onOpen={() => router.push(createPostHref(post.slug))}
+                    onPrefetch={() => router.prefetch(createPostHref(post.slug))}
                     onRequireLogin={requireLogin}
                   />
                 ))
@@ -363,7 +380,7 @@ export function HomeGymExplorer({
             page={page}
             totalPages={totalPages}
             totalPosts={totalPosts}
-            onPageChange={handlePageChange}
+            createHref={createPageHref}
           />
         </div>
       </section>
@@ -375,12 +392,12 @@ function Pagination({
   page,
   totalPages,
   totalPosts,
-  onPageChange,
+  createHref,
 }: {
   page: number;
   totalPages: number;
   totalPosts: number;
-  onPageChange: (page: number) => void;
+  createHref: (page: number) => string;
 }) {
   if (totalPosts === 0 || totalPages <= 1) {
     return null;
@@ -394,25 +411,26 @@ function Pagination({
         {page} / {totalPages}ページ
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
-          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <ChevronLeft size={16} />
-          前へ
-        </button>
+        {page <= 1 ? (
+          <span className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] opacity-40">
+            <ChevronLeft size={16} />
+            前へ
+          </span>
+        ) : (
+          <Link href={createHref(page - 1)} className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52]">
+            <ChevronLeft size={16} />
+            前へ
+          </Link>
+        )}
         {pages.map((item, index) =>
           item === "ellipsis" ? (
             <span key={`${item}-${index}`} className="px-1 text-sm font-bold text-[#7a817b]">
               ...
             </span>
           ) : (
-            <button
+            <Link
               key={item}
-              type="button"
-              onClick={() => onPageChange(item)}
+              href={createHref(item)}
               aria-current={item === page ? "page" : undefined}
               className={`grid h-10 min-w-10 place-items-center rounded-lg border px-3 text-sm font-bold ${
                 item === page
@@ -421,18 +439,20 @@ function Pagination({
               }`}
             >
               {item}
-            </button>
+            </Link>
           ),
         )}
-        <button
-          type="button"
-          onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
-          className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          次へ
-          <ChevronRight size={16} />
-        </button>
+        {page >= totalPages ? (
+          <span className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52] opacity-40">
+            次へ
+            <ChevronRight size={16} />
+          </span>
+        ) : (
+          <Link href={createHref(page + 1)} className="inline-flex h-10 items-center gap-1 rounded-lg border border-[#cfd8cf] px-3 text-sm font-bold text-[#4e5b52]">
+            次へ
+            <ChevronRight size={16} />
+          </Link>
+        )}
       </div>
     </nav>
   );
@@ -485,26 +505,32 @@ function RangeField({
 function PostCard({
   post,
   onOpen,
+  onPrefetch,
   onRequireLogin,
 }: {
   post: HomeGymPost;
   onOpen: () => void;
+  onPrefetch: () => void;
   onRequireLogin: (action: string) => void;
 }) {
+  const href = createPostHref(post.slug);
+
   return (
     <article
       className="pressable-card cursor-pointer overflow-hidden bg-white sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:shadow-sm"
       role="button"
       tabIndex={0}
       onClick={onOpen}
+      onFocus={onPrefetch}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpen();
         }
       }}
+      onMouseEnter={onPrefetch}
     >
-      <Link href={createPostHref(post.slug)} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
+      <Link href={href} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
         <div className="absolute left-1.5 top-1.5 rounded-md bg-[#e4572e] px-1.5 py-0.5 text-[10px] font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
@@ -517,7 +543,7 @@ function PostCard({
       <div className="hidden p-4 sm:block">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Link href={createPostHref(post.slug)} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
+            <Link href={href} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
               {post.title}
             </Link>
             <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>

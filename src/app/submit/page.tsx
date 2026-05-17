@@ -1,10 +1,20 @@
 ﻿import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
+import { Suspense } from "react";
+import { SubmitLoadingSkeleton } from "@/components/page-skeletons";
 import { SubmitForm } from "@/components/submit-form";
 import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getProfile } from "@/lib/gym-repository";
 
-export default async function SubmitPage() {
+export default function SubmitPage() {
+  return (
+    <Suspense fallback={<SubmitLoadingSkeleton />}>
+      <SubmitPageContent />
+    </Suspense>
+  );
+}
+
+async function SubmitPageContent() {
   const user = await getCurrentAuthUser();
 
   if (!user) {

@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { HomeGymExplorer } from "@/components/home-gym-explorer";
+import { HomeLoadingSkeleton } from "@/components/page-skeletons";
 import { getRankingCategories } from "@/lib/product-rankings";
 import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getProfile, getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
@@ -12,7 +14,17 @@ const budgetFilterMax = 900000;
 const areaFilterMax = 12;
 const defaultPerPage = 12;
 
-export default async function Home({
+export default function Home(props: {
+  searchParams: Promise<PageSearchParams>;
+}) {
+  return (
+    <Suspense fallback={<HomeLoadingSkeleton />}>
+      <HomeContent {...props} />
+    </Suspense>
+  );
+}
+
+async function HomeContent({
   searchParams,
 }: {
   searchParams: Promise<PageSearchParams>;

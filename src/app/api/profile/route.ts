@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
     console.error("Failed to save profile", error);
     return NextResponse.json({ error: "プロフィールの保存に失敗しました。" }, { status: 500 });
   }
+
+  revalidatePath("/");
+  revalidatePath("/me");
+  revalidatePath("/posts/[slug]", "page");
 
   return NextResponse.json({ avatarUrl: data?.avatar_url ?? avatarUrl ?? "" });
 }

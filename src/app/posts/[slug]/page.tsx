@@ -1,7 +1,8 @@
 ﻿import Image from "next/image";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Ruler, Tags, WalletCards } from "lucide-react";
+import { PostDetailLoadingSkeleton } from "@/components/page-skeletons";
 import { PostImageGallery } from "@/components/post-image-gallery";
 import { SiteHeader } from "@/components/site-header";
 import { formatTatami } from "@/lib/area";
@@ -70,7 +71,15 @@ export async function generateMetadata({ params }: PostDetailProps): Promise<Met
   };
 }
 
-export default async function PostDetail({ params }: PostDetailProps) {
+export default function PostDetail(props: PostDetailProps) {
+  return (
+    <Suspense fallback={<PostDetailLoadingSkeleton />}>
+      <PostDetailContent {...props} />
+    </Suspense>
+  );
+}
+
+async function PostDetailContent({ params }: PostDetailProps) {
   const { slug } = await params;
   const post = await getPublishedPostBySlug(slug);
 

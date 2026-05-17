@@ -2,7 +2,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import { BlogArticleLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
@@ -125,7 +126,15 @@ export async function generateMetadata({ params }: BlogArticlePageProps) {
   };
 }
 
-export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
+export default function BlogArticlePage(props: BlogArticlePageProps) {
+  return (
+    <Suspense fallback={<BlogArticleLoadingSkeleton />}>
+      <BlogArticleContent {...props} />
+    </Suspense>
+  );
+}
+
+async function BlogArticleContent({ params }: BlogArticlePageProps) {
   const { slug } = await params;
   const article = await getBlogArticleBySlug(slug);
 

@@ -1,8 +1,9 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
+import { BlogListLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
@@ -46,7 +47,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BlogPage({ searchParams }: BlogPageProps) {
+export default function BlogPage(props: BlogPageProps) {
+  return (
+    <Suspense fallback={<BlogListLoadingSkeleton />}>
+      <BlogContent {...props} />
+    </Suspense>
+  );
+}
+
+async function BlogContent({ searchParams }: BlogPageProps) {
   const params = (await searchParams) ?? {};
   const selectedCategory = getParam(params.category);
   const selectedTag = getParam(params.tag);
