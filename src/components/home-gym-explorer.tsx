@@ -11,8 +11,6 @@ import {
   ExternalLink,
   Filter,
   Heart,
-  LayoutGrid,
-  LayoutList,
   Ruler,
   Search,
   SlidersHorizontal,
@@ -34,7 +32,6 @@ type CurrentUser = {
 } | null;
 
 const scaleOptions: Array<"all" | GymScale> = ["all", "compact", "standard", "serious"];
-type ViewMode = "detail" | "photo";
 const BUDGET_FILTER_MAX = 900000;
 const AREA_FILTER_MAX = 12;
 const yen = new Intl.NumberFormat("ja-JP", {
@@ -72,7 +69,6 @@ export function HomeGymExplorer({
   const [selectedGear, setSelectedGear] = useState<string[]>(initialFilters.categories ?? []);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(Boolean(initialFilters.categories?.length));
-  const [viewMode, setViewMode] = useState<ViewMode>("detail");
   const [notice, setNotice] = useState("");
   const [isSearchPending, startSearchTransition] = useTransition();
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -324,7 +320,7 @@ export function HomeGymExplorer({
 
         <div className="min-w-0">
           <div className="mb-2 flex flex-col justify-between gap-2 px-3 sm:mb-4 sm:flex-row sm:items-end sm:gap-3 sm:px-0">
-            <div className="hidden sm:block">
+            <div>
               <h2 className="text-2xl font-bold">{totalPosts}件のホームジム</h2>
               {totalPosts > 0 ? (
                 <p className="mt-1 text-sm font-semibold text-[#69756d]">
@@ -333,20 +329,6 @@ export function HomeGymExplorer({
               ) : null}
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
-              <div className="inline-flex bg-transparent p-0 sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:p-1">
-                <ViewModeButton
-                  active={viewMode === "detail"}
-                  icon={<LayoutList size={17} />}
-                  label="詳細"
-                  onClick={() => setViewMode("detail")}
-                />
-                <ViewModeButton
-                  active={viewMode === "photo"}
-                  icon={<LayoutGrid size={17} />}
-                  label="写真"
-                  onClick={() => setViewMode("photo")}
-                />
-              </div>
               {notice ? <div className="rounded-lg bg-[#e4572e] px-4 py-2 text-sm font-semibold text-white">{notice}</div> : null}
             </div>
           </div>
@@ -358,7 +340,7 @@ export function HomeGymExplorer({
                 読み込み中
               </span>
             </div>
-          ) : viewMode === "detail" ? (
+          ) : (
             <div className="grid grid-cols-2 gap-px bg-transparent sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
               {posts.length ? (
                 posts.map((post) => (
@@ -375,16 +357,6 @@ export function HomeGymExplorer({
                 </div>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-px bg-transparent sm:grid-cols-3 sm:gap-2 md:grid-cols-4 xl:grid-cols-5">
-              {posts.length ? (
-                posts.map((post) => <PhotoGridItem key={post.id} post={post} />)
-              ) : (
-                <div className="col-span-3 rounded-lg border border-dashed border-[#cfd8cf] bg-white p-6 text-sm font-semibold text-[#69756d] md:col-span-4 xl:col-span-5">
-                  まだ投稿がありません。
-                </div>
-              )}
-            </div>
           )}
 
           <Pagination
@@ -396,32 +368,6 @@ export function HomeGymExplorer({
         </div>
       </section>
     </main>
-  );
-}
-
-function ViewModeButton({
-  active,
-  icon,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm font-bold transition sm:w-auto sm:px-3 ${
-        active ? "bg-[#e4572e] text-white" : "text-[#69756d] hover:bg-[#e6ece5] hover:text-[#122018]"
-      }`}
-      aria-pressed={active}
-    >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
-    </button>
   );
 }
 
@@ -533,32 +479,6 @@ function RangeField({
       </span>
       <input type="range" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} className="mt-3 w-full accent-[#e4572e]" />
     </label>
-  );
-}
-
-function PhotoGridItem({ post }: { post: HomeGymPost }) {
-  return (
-    <Link
-      href={createPostHref(post.slug)}
-      className="group relative block aspect-square overflow-hidden bg-white sm:rounded-lg"
-      aria-label={`${post.title}の詳細を見る`}
-    >
-      <Image
-        src={post.images[0]}
-        alt={post.title}
-        fill
-        className="object-cover transition duration-300 group-hover:scale-105"
-        sizes="(max-width: 768px) 33vw, (max-width: 1280px) 20vw, 180px"
-      />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2 opacity-0 transition group-hover:opacity-100">
-        <p className="line-clamp-2 text-xs font-bold leading-5 text-white">{post.title}</p>
-      </div>
-      {post.images.length > 1 ? (
-        <div className="absolute right-2 top-2 rounded-md bg-black/70 px-1.5 py-1 text-[11px] font-bold text-white">
-          {post.images.length}
-        </div>
-      ) : null}
-    </Link>
   );
 }
 

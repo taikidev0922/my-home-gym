@@ -36,13 +36,9 @@ export function HomeLoadingSkeleton() {
         </aside>
         <div className="min-w-0">
           <div className="mb-2 flex justify-between px-3 sm:mb-4 sm:px-0">
-            <div className="hidden sm:block">
+            <div>
               <SkeletonLine className="h-7 w-52" />
               <SkeletonLine className="mt-2 h-4 w-32" />
-            </div>
-            <div className="flex gap-1">
-              <SkeletonLine className="h-9 w-9" />
-              <SkeletonLine className="h-9 w-9" />
             </div>
           </div>
           <PostGridSkeleton />
