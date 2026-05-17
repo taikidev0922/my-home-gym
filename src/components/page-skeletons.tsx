@@ -1,39 +1,95 @@
-function SkeletonHeader() {
+import { Filter, Search, SlidersHorizontal, Tag, Trophy } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+
+function StaticHomeFilters() {
   return (
-    <header className="sticky top-0 z-30 border-b border-[#cfd8cf] bg-[#eef2ed]/95">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <div className="h-9 w-[166px] rounded-lg bg-white sm:h-10 sm:w-[190px]" />
-        <div className="hidden flex-1 justify-center gap-4 md:flex">
-          <SkeletonLine className="h-4 w-28" />
-          <SkeletonLine className="h-4 w-24" />
-          <SkeletonLine className="h-4 w-32" />
+    <aside className="mx-3 h-fit rounded-lg border border-[#cfd8cf] bg-white px-3 py-2 shadow-sm sm:mx-0 sm:p-4 lg:sticky lg:top-20">
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-base font-bold">
+          <Filter size={18} />
+          検索条件
+        </h2>
+        <SlidersHorizontal size={18} className="text-[#69756d]" />
+      </div>
+
+      <div>
+        <label className="mt-5 block text-sm font-semibold" htmlFor="loading-keyword">
+          キーワード
+        </label>
+        <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2">
+          <Search size={17} className="text-[#69756d]" />
+          <input
+            id="loading-keyword"
+            disabled
+            placeholder="例: 賃貸OK / 防音"
+            className="w-full bg-transparent text-sm outline-none disabled:opacity-100"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-16 rounded-lg bg-[#e4572e]/30" />
-          <div className="h-10 w-10 rounded-lg bg-white md:hidden" />
+
+        <div className="mt-5">
+          <p className="text-sm font-semibold">規模感</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {["すべて", "省スペース", "標準", "本格派"].map((label, index) => (
+              <span
+                key={label}
+                className={`rounded-lg border px-3 py-2 text-center text-sm font-semibold ${
+                  index === 0 ? "border-[#e4572e] bg-[#e4572e] text-white" : "border-[#cfd8cf] bg-white text-[#3c4941]"
+                }`}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <StaticRange label="上限予算" value="上限なし" />
+        <StaticRange label="上限の広さ" value="上限なし" />
+
+        <div className="mt-5 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#122018]">
+          器具カテゴリ
+        </div>
+
+        <div className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#e4572e] px-4 py-3 text-sm font-bold text-white shadow-sm">
+          <Search size={17} />
+          この条件で検索
+        </div>
+
+        <div className="mt-5 flex items-center justify-between rounded-lg bg-[#eef7ee] p-3 text-sm font-bold text-[#4e5b52]">
+          <span className="flex items-center gap-2">
+            <Trophy size={17} />
+            器具ランキング
+          </span>
         </div>
       </div>
-    </header>
+    </aside>
+  );
+}
+
+function StaticRange({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="mt-5 block text-sm font-semibold">
+      <span className="flex items-center justify-between">
+        {label}
+        <span className="font-bold text-[#e4572e]">{value}</span>
+      </span>
+      <div className="mt-3 h-1.5 rounded-full bg-[#e4572e]" />
+    </div>
   );
 }
 
 export function HomeLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader />
       <section className="mx-auto max-w-7xl px-4 pb-1 pt-2 sm:px-6 sm:pb-3 sm:pt-6">
-        <SkeletonLine className="h-8 w-64 sm:h-11 sm:w-[420px]" />
+        <div className="pb-1 sm:border-b sm:border-[#cfd8cf] sm:pb-5">
+          <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-4xl">
+            みんなでホームジムを共有しよう
+          </h1>
+        </div>
       </section>
       <section className="mx-auto grid max-w-7xl gap-2 px-0 py-2 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
-        <aside className="mx-3 rounded-lg border border-[#cfd8cf] bg-white p-4 sm:mx-0">
-          <SkeletonLine className="h-5 w-28" />
-          <div className="mt-5 grid gap-3">
-            <SkeletonLine className="h-10 w-full" />
-            <SkeletonLine className="h-10 w-full" />
-            <SkeletonLine className="h-24 w-full" />
-            <SkeletonLine className="h-11 w-full bg-[#e4572e]/25" />
-          </div>
-        </aside>
+        <StaticHomeFilters />
         <div className="min-w-0">
           <div className="mb-2 flex justify-between px-3 sm:mb-4 sm:px-0">
             <div>
@@ -51,7 +107,7 @@ export function HomeLoadingSkeleton() {
 export function PostDetailLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <section className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
           <SkeletonLine className="aspect-square w-full sm:aspect-[4/3]" />
@@ -80,10 +136,34 @@ export function PostDetailLoadingSkeleton() {
 export function BlogListLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
-        <SkeletonLine className="h-10 w-72 sm:h-14 sm:w-96" />
-        <SkeletonCard className="mt-4 hidden h-32 sm:block" />
+        <section className="py-2 sm:py-3">
+          <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
+        </section>
+        <section className="mt-4 hidden rounded-lg border border-[#cfd8cf] bg-white p-5 sm:block">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
+            <Tag size={16} />
+            記事を絞り込む
+          </div>
+          <div className="mt-4">
+            <p className="text-sm font-bold text-[#122018]">カテゴリ</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["すべて", "作り方", "パワーラック", "可変式ダンベル", "ベンチ", "床材・防音", "省スペース"].map((label, index) => (
+                <span
+                  key={label}
+                  className={
+                    index === 0
+                      ? "inline-flex items-center rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white"
+                      : "inline-flex items-center rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#4e5b52]"
+                  }
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
         <div className="mt-4 grid gap-4 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <ArticleCardSkeleton key={index} />
@@ -97,7 +177,7 @@ export function BlogListLoadingSkeleton() {
 export function BlogArticleLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
         <article className="px-4 pb-8 pt-2 sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:p-8">
           <div className="flex gap-2">
@@ -123,35 +203,10 @@ export function BlogArticleLoadingSkeleton() {
   );
 }
 
-export function RankingsLoadingSkeleton() {
-  return (
-    <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
-        <SkeletonLine className="h-10 w-80 sm:h-14 sm:w-[460px]" />
-        <SkeletonCard className="mt-4 hidden h-28 sm:block" />
-        <div className="mt-5 grid gap-4 sm:mt-8">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white lg:grid-cols-[260px_1fr]">
-              <SkeletonLine className="min-h-64 rounded-none" />
-              <div className="p-5">
-                <SkeletonLine className="h-5 w-24" />
-                <SkeletonLine className="mt-2 h-8 w-3/4" />
-                <SkeletonLine className="mt-4 h-5 w-full" />
-                <SkeletonLine className="mt-2 h-5 w-5/6" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </main>
-  );
-}
-
 export function AccountLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <SkeletonCard className="h-32" />
         <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
@@ -170,7 +225,7 @@ export function AccountLoadingSkeleton() {
 export function SubmitLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SkeletonHeader />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
         <div className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm sm:p-7">
           <SkeletonLine className="h-9 w-64" />
