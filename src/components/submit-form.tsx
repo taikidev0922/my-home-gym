@@ -23,12 +23,14 @@ const gearCategories: ProductCategory[] = [
 export function SubmitForm() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
+  const [convertedImages, setConvertedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isConvertingImages, setIsConvertingImages] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,9 +39,17 @@ export function SubmitForm() {
     setMessage("");
 
     const formData = new FormData(form);
+    formData.delete("images");
+    convertedImages.forEach((file) => formData.append("images", file));
     formData.set("tags", JSON.stringify([...tags, ...splitTags(tagInput)]));
     formData.set("categories", JSON.stringify(selectedCategories));
     formData.set("thumbnailIndex", String(thumbnailIndex));
+
+    if (!convertedImages.length) {
+      setMessage("写真を選択してください。");
+      setIsSaving(false);
+      return;
+    }
 
     const response = await fetch("/api/posts", {
       method: "POST",
@@ -56,6 +66,7 @@ export function SubmitForm() {
     form.reset();
     setSelectedCategories([]);
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+    setConvertedImages([]);
     setImagePreviews([]);
     setThumbnailIndex(0);
     setTagInput("");
@@ -137,6 +148,11 @@ export function SubmitForm() {
             </div>
           )}
           <input name="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="mt-4 block w-full min-w-0 text-sm" />
+          {isConvertingImages ? (
+            <p className="mt-3 text-sm font-semibold text-[#69756d]">画像をWebPに変換しています...</p>
+          ) : convertedImages.length ? (
+            <p className="mt-3 text-sm font-semibold text-[#4e5b52]">WebPに変換済み: {formatFileSize(sumFileSizes(convertedImages))}</p>
+          ) : null}
         </div>
       </div>
 
@@ -171,8 +187,8 @@ export function SubmitForm() {
         </div>
       </div>
 
-      <button type="submit" disabled={isSaving} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
-        {isSaving ? "保存中..." : "投稿を保存"}
+      <button type="submit" disabled={isSaving || isConvertingImages} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
+        {isSaving ? "保存中..." : isConvertingImages ? "画像変換中..." : "投稿を保存"}
       </button>
       {message ? <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#4e5b52]">{message}</p> : null}
     </form>
@@ -185,11 +201,28 @@ export function SubmitForm() {
     );
   }
 
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
-    const previews = Array.from(event.target.files ?? []).map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
+    setConvertedImages([]);
+    setImagePreviews([]);
     setThumbnailIndex(0);
+    setMessage("");
+
+    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    if (!files.length) return;
+
+    setIsConvertingImages(true);
+    try {
+      const webpFiles = await Promise.all(files.map(convertImageToWebp));
+      setConvertedImages(webpFiles);
+      setImagePreviews(webpFiles.map((file) => URL.createObjectURL(file)));
+    } catch (error) {
+      console.error("Failed to convert images to WebP", error);
+      event.target.value = "";
+      setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
+    } finally {
+      setIsConvertingImages(false);
+    }
   }
 }
 
@@ -298,4 +331,53 @@ function splitTags(value: string) {
     .split(/[,\s、]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+async function convertImageToWebp(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const maxSize = 1800;
+  const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("Canvas is not supported.");
+  }
+
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/webp", 0.82);
+  });
+
+  if (!blob) {
+    throw new Error("WebP conversion failed.");
+  }
+
+  return new File([blob], `${stripFileExtension(file.name)}.webp`, {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
+}
+
+function stripFileExtension(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "") || "image";
+}
+
+function sumFileSizes(files: File[]) {
+  return files.reduce((total, file) => total + file.size, 0);
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024)).toLocaleString("ja-JP")}KB`;
+  }
+
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
