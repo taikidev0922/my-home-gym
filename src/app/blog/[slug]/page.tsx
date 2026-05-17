@@ -62,13 +62,36 @@ function getAffiliateProductMarkerId(text: string) {
   return match[1];
 }
 
+function parseRatingValue(value: string) {
+  const match = value.match(/([0-5](?:\.\d+)?)/);
+  if (!match) return null;
+
+  const rating = Number(match[1]);
+  return Number.isFinite(rating) ? Math.min(5, Math.max(0, rating)) : null;
+}
+
+function StarRating({ value }: { value: string }) {
+  const rating = parseRatingValue(value);
+  const filledStars = rating == null ? 0 : Math.round(rating);
+
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1" title={value}>
+      <span className="whitespace-nowrap text-[13px] leading-none text-[#e0a11b]" aria-hidden="true">
+        {"★★★★★".split("").map((star, index) => (
+          <span key={index} className={index < filledStars ? "text-[#e0a11b]" : "text-[#d6ded4]"}>
+            {star}
+          </span>
+        ))}
+      </span>
+      {rating != null ? <span className="font-black text-[#122018]">{rating.toFixed(1)}</span> : null}
+    </span>
+  );
+}
+
 function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
   const details = [
-    product.priceText ? { label: "価格", value: product.priceText } : null,
-    product.ratingText ? { label: "評価", value: product.ratingText } : null,
-    product.reviewCountText ? { label: "レビュー", value: product.reviewCountText } : null,
     product.dimensionsText ? { label: "サイズ", value: product.dimensionsText } : null,
-    product.availabilityText ? { label: "在庫", value: product.availabilityText } : null,
+    product.weightText ? { label: "重量", value: product.weightText } : null,
   ].filter((detail): detail is { label: string; value: string } => Boolean(detail));
   const feature = product.featureBullets.find((item) => item.trim().length > 0);
 
@@ -101,9 +124,21 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
         <p className="mt-1 truncate text-sm text-[#69756d]" title={product.brand || product.maker}>
           {product.brand || product.maker}
         </p>
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+          {product.priceText ? (
+            <span className="rounded-md bg-[#122018] px-2.5 py-1 text-sm font-black leading-none text-white">
+              {product.priceText}
+            </span>
+          ) : null}
+          {product.ratingText ? (
+            <span className="inline-flex min-w-0 items-center rounded-md bg-[#fff7e6] px-2.5 py-1 text-xs font-bold text-[#7b5a13]">
+              <StarRating value={product.ratingText} />
+            </span>
+          ) : null}
+        </div>
         {details.length ? (
-          <dl className="mt-3 grid min-w-0 grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-            {details.slice(0, 5).map((detail) => (
+          <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+            {details.map((detail) => (
               <div key={detail.label} className="min-w-0 overflow-hidden rounded-md bg-[#f4f7f2] px-2 py-1">
                 <dt className="font-bold text-[#69756d]">{detail.label}</dt>
                 <dd className="truncate font-bold text-[#122018]" title={detail.value}>
