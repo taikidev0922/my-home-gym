@@ -365,7 +365,7 @@ export function HomeGymExplorer({
                   <PostCard
                     key={post.id}
                     post={post}
-                    onOpen={() => router.push(`/posts/${post.slug}`)}
+                    onOpen={() => router.push(createPostHref(post.slug))}
                     onRequireLogin={requireLogin}
                   />
                 ))
@@ -539,7 +539,7 @@ function RangeField({
 function PhotoGridItem({ post }: { post: HomeGymPost }) {
   return (
     <Link
-      href={`/posts/${post.slug}`}
+      href={createPostHref(post.slug)}
       className="group relative block aspect-square overflow-hidden bg-white"
       aria-label={`${post.title}の詳細を見る`}
     >
@@ -584,7 +584,7 @@ function PostCard({
         }
       }}
     >
-      <Link href={`/posts/${post.slug}`} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
+      <Link href={createPostHref(post.slug)} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
         <div className="absolute left-2 top-2 rounded-lg bg-[#e4572e] px-2 py-1 text-xs font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
@@ -597,7 +597,7 @@ function PostCard({
       <div className="hidden p-4 sm:block">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Link href={`/posts/${post.slug}`} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
+            <Link href={createPostHref(post.slug)} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
               {post.title}
             </Link>
             <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>
@@ -648,6 +648,10 @@ function PostCard({
       </div>
     </article>
   );
+}
+
+function createPostHref(slug: string) {
+  return `/posts/${encodeURIComponent(slug)}`;
 }
 
 function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {

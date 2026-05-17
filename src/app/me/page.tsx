@@ -116,7 +116,7 @@ function PostList({
 
 function MiniPost({ post }: { post: HomeGymPost }) {
   return (
-    <Link href={`/posts/${post.slug}`} className="pressable-card grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#cfd8cf] p-2 hover:bg-[#e6ece5]">
+    <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="pressable-card grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#cfd8cf] p-2 hover:bg-[#e6ece5]">
       <div className="relative aspect-square overflow-hidden rounded-lg bg-[#f7f8f5]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="88px" />
       </div>

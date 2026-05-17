@@ -162,6 +162,7 @@ function normalizeSearchTerm(value?: string) {
 
 export async function getPublishedPostBySlug(slug: string) {
   const supabase = await createSupabaseServerClient();
+  const slugCandidates = createSlugCandidates(slug);
 
   if (!supabase) {
     return null;
@@ -170,7 +171,7 @@ export async function getPublishedPostBySlug(slug: string) {
   const { data, error } = await supabase
     .from("gym_posts")
     .select(postSelect)
-    .eq("slug", slug)
+    .in("slug", slugCandidates)
     .maybeSingle();
 
   if (error || !data) {
@@ -179,6 +180,18 @@ export async function getPublishedPostBySlug(slug: string) {
   }
 
   return mapPostRow(data as unknown as GymPostRow);
+}
+
+function createSlugCandidates(slug: string) {
+  const candidates = new Set([slug]);
+
+  try {
+    candidates.add(decodeURIComponent(slug));
+  } catch {
+    // Keep the raw slug if it is not URI-encoded.
+  }
+
+  return Array.from(candidates);
 }
 
 export async function getPublishedPostSitemapEntries(limit = 50000): Promise<PostSitemapEntry[]> {
