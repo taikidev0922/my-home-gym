@@ -14,21 +14,20 @@ loadEnvFile(".env.local");
 
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-const affiliateProducts = normalizeAffiliateProducts(readJson("src/data/affiliate-products.json"));
 
 if (!serviceRoleKey) fail("SUPABASE_SERVICE_ROLE_KEY is required.");
 if (!anthropicApiKey) fail("ANTHROPIC_API_KEY is required.");
-if (!Array.isArray(affiliateProducts) || affiliateProducts.length === 0) fail("No affiliate products found.");
-if (
-  TARGET_PRODUCT_ID &&
-  !affiliateProducts.some((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID)
-) {
-  fail(`Unknown affiliate product id: ${TARGET_PRODUCT_ID}`);
-}
 
 const supabase = createClient(SUPABASE_URL, serviceRoleKey, {
   auth: { persistSession: false },
 });
+
+const affiliateProducts = await loadAffiliateProducts();
+
+if (affiliateProducts.length === 0) fail("No active affiliate products found in Supabase.");
+if (TARGET_PRODUCT_ID && !affiliateProducts.some((product) => product.id === TARGET_PRODUCT_ID)) {
+  fail(`Unknown affiliate product id: ${TARGET_PRODUCT_ID}`);
+}
 
 const { data: articles, error } = await supabase
   .from("blog_articles")
@@ -148,7 +147,7 @@ async function proposeAffiliateBlocks(article, blocks) {
 function buildPrompt(article, blocks) {
   const existingMarkers = collectAffiliateMarkers(blocks);
   const promptProducts = TARGET_PRODUCT_ID
-    ? affiliateProducts.filter((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID)
+    ? affiliateProducts.filter((product) => product.id === TARGET_PRODUCT_ID)
     : affiliateProducts;
 
   return `あなたは日本語のホームジム記事の編集者です。
@@ -159,7 +158,7 @@ function buildPrompt(article, blocks) {
 - 挿入するときは paragraphs 配列に単独文字列として {{affiliate:カテゴリ-順位}} を入れる。
 - カテゴリ-順位は下記の商品一覧にあるidだけ使う。
 - 同じidは1記事で1回だけ。
-- 既存の商品カードマーカーは削除しない。すでに入っている商品idは追加しない。
+- 既存の商品カードマーカーは削除しない。すでに入っているidは追加しない。
 - 原則1商品だけ。記事全体で明確に複数器具を比較・初期セット提案している場合だけ最大2商品まで。
 - 3商品すべてを入れるのは、記事が「パワーラック、可変式ダンベル、ベンチの3点セット」そのものを主題にしている場合だけ。
 - 床材、防音、広さ、予算が主題の記事では、床材・防振マット商品が自然に合う位置を優先する。器具リンクは無理に入れない。
@@ -175,10 +174,20 @@ ${existingMarkers.length ? existingMarkers.join(", ") : "なし"}
 ${JSON.stringify(
   promptProducts.map((product) => ({
     id: product.id,
+    category: product.category,
+    rank: product.rank,
     genre: product.genre,
     name: product.name,
     maker: product.maker,
     keywords: product.keywords,
+    targetContexts: product.targetContexts,
+    avoidContexts: product.avoidContexts,
+    recommendedAnchorKeywords: product.recommendedAnchorKeywords,
+    placementNote: product.placementNote,
+    productRole: product.productRole,
+    suitableFor: product.suitableFor,
+    notSuitableFor: product.notSuitableFor,
+    priority: product.priority,
   })),
   null,
   2,
@@ -211,7 +220,7 @@ ${JSON.stringify(
 }
 
 function sanitizeAffiliateMarkers(blocks) {
-  const allowedIds = new Set(affiliateProducts.flatMap((product) => [product.id, product.legacyProductId]));
+  const allowedIds = new Set(affiliateProducts.map((product) => product.id));
   const usedIds = new Set();
 
   return blocks.map((block) => ({
@@ -244,10 +253,7 @@ function insertFallbackAffiliateMarker(article, blocks) {
 
 function selectFallbackProduct(article, blocks) {
   if (TARGET_PRODUCT_ID) {
-    return (
-      affiliateProducts.find((product) => product.id === TARGET_PRODUCT_ID || product.legacyProductId === TARGET_PRODUCT_ID) ??
-      null
-    );
+    return affiliateProducts.find((product) => product.id === TARGET_PRODUCT_ID) ?? null;
   }
 
   const text = `${article.title} ${article.excerpt} ${article.keyword} ${article.category} ${blocks
@@ -343,43 +349,36 @@ function parseJson(text) {
   }
 }
 
-function readJson(relativePath) {
-  const filePath = path.resolve(process.cwd(), relativePath);
-  return JSON.parse(fs.readFileSync(filePath, "utf8"));
-}
+async function loadAffiliateProducts() {
+  const { data, error } = await supabase
+    .from("amazon_associate_links")
+    .select(
+      "slot_key,category,rank,genre,product_name,maker,keywords,target_contexts,avoid_contexts,recommended_anchor_keywords,placement_note,product_role,suitable_for,not_suitable_for,priority",
+    )
+    .eq("is_active", true)
+    .order("priority", { ascending: true })
+    .order("category", { ascending: true })
+    .order("rank", { ascending: true });
 
-function normalizeAffiliateProducts(products) {
-  const slotAssignments = new Map([
-    ["wasai-mk780-half-rack", { category: "power-rack", rank: 1 }],
-    ["barwing-hhr01-half-rack", { category: "power-rack", rank: 2 }],
-    ["irotec-multi-power-rack", { category: "power-rack", rank: 3 }],
-    ["lysin-helixmirror-40kg", { category: "adjustable-dumbbell", rank: 1 }],
-    ["flexbell-20kg-2kg-pair", { category: "adjustable-dumbbell", rank: 2 }],
-    ["barwing-adjustable-dumbbell-24kg-pair", { category: "adjustable-dumbbell", rank: 3 }],
-    ["barwing-bw-ajb06-bench", { category: "bench", rank: 1 }],
-    ["gogojump-folding-training-bench", { category: "bench", rank: 2 }],
-    ["barwing-dc04-training-bench", { category: "bench", rank: 3 }],
-    ["airhop-joint-mat", { category: "floor-mat", rank: 1 }],
-    ["kawashima-structural-plywood-12mm", { category: "floor-mat", rank: 2 }],
-    ["showa-eva-joint-mat-12mm", { category: "floor-mat", rank: 3 }],
-  ]);
+  if (error) fail(`Failed to load affiliate products: ${error.message}`);
 
-  if (!Array.isArray(products)) return [];
-
-  return products
-    .map((product) => {
-      const slot = slotAssignments.get(product.id);
-      if (!slot) return null;
-
-      return {
-        ...product,
-        id: `${slot.category}-${slot.rank}`,
-        legacyProductId: product.id,
-        category: slot.category,
-        rank: slot.rank,
-      };
-    })
-    .filter(Boolean);
+  return (data ?? []).map((product) => ({
+    id: product.slot_key,
+    category: product.category,
+    rank: product.rank,
+    genre: product.genre ?? "",
+    name: product.product_name,
+    maker: product.maker,
+    keywords: product.keywords ?? [],
+    targetContexts: product.target_contexts ?? [],
+    avoidContexts: product.avoid_contexts ?? [],
+    recommendedAnchorKeywords: product.recommended_anchor_keywords ?? [],
+    placementNote: product.placement_note ?? "",
+    productRole: product.product_role ?? "",
+    suitableFor: product.suitable_for ?? [],
+    notSuitableFor: product.not_suitable_for ?? [],
+    priority: product.priority ?? 100,
+  }));
 }
 
 function loadEnvFile(relativePath) {

@@ -9,8 +9,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "amazon-links:seed": "node scripts/seed-amazon-associate-links.mjs",
-    "amazon-links:seed:dry": "node scripts/seed-amazon-associate-links.mjs --dry-run",
     "blog:affiliate-links": "node scripts/enrich-blog-affiliate-links.mjs",
     "blog:affiliate-links:apply": "node scripts/enrich-blog-affiliate-links.mjs --apply"
   },

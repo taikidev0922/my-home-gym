@@ -16,6 +16,9 @@ export async function getRankingProductsWithAffiliateLinks(category?: ProductCat
 
     return {
       ...product,
+      name: affiliateProduct.name,
+      maker: affiliateProduct.maker,
+      image: affiliateProduct.imageUrl,
       affiliateUrl: affiliateProduct.affiliateUrl,
       productUrl: affiliateProduct.affiliateUrl,
       isAffiliate: true,

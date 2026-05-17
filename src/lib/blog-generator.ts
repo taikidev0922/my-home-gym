@@ -1,7 +1,8 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
 import type { BlogArticle, BlogArticleBlock, ProductCategory } from "@/lib/types";
-import { affiliateProducts, buildAffiliatePromptSection } from "@/lib/affiliate-products";
+import { buildAffiliatePromptSection, type AffiliateProduct } from "@/lib/affiliate-products";
+import { getAffiliateProductsForGeneration } from "@/lib/affiliate-products-server";
 
 type ClaudeArticlePayload = {
   title?: unknown;
@@ -28,11 +29,12 @@ const IMAGE_TIMEOUT_MS = 260_000;
 
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
   console.info("[blog-cron] start article generation", { keyword: keyword.keyword, category: keyword.category });
+  const affiliateProducts = await getAffiliateProductsForGeneration();
   const generatedArticle =
     process.env.ANTHROPIC_API_KEY
-      ? (await generateWithClaude(keyword)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
+      ? (await generateWithClaude(keyword, affiliateProducts)) ?? createFallbackArticle(keyword, "fallback-after-claude-error")
       : createFallbackArticle(keyword, "fallback");
-  const article = ensureAffiliatePlacement(generatedArticle);
+  const article = ensureAffiliatePlacement(generatedArticle, affiliateProducts);
 
   console.info("[blog-cron] article text ready", {
     slug: article.slug,
@@ -70,7 +72,7 @@ export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise
   };
 }
 
-async function generateWithClaude(keyword: KeywordCandidate) {
+async function generateWithClaude(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -86,7 +88,7 @@ async function generateWithClaude(keyword: KeywordCandidate) {
         messages: [
           {
             role: "user",
-            content: buildArticlePrompt(keyword),
+            content: buildArticlePrompt(keyword, affiliateProducts),
           },
         ],
       }),
@@ -228,11 +230,11 @@ async function uploadBlogImage(slug: string, base64: string) {
   return data.publicUrl;
 }
 
-function buildArticlePrompt(keyword: KeywordCandidate) {
+function buildArticlePrompt(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
   return `あなたは日本語のホームジム専門メディア「My Home Gym」の編集者です。
 検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
-${buildAffiliatePromptSection()}
+${buildAffiliatePromptSection(affiliateProducts)}
 
 記事の狙い:
 - これから自宅にトレーニング環境を作る人、または自宅用の筋トレ器具を選ぶ人に向けて書く。
@@ -249,7 +251,7 @@ ${buildAffiliatePromptSection()}
 - 冒頭から結論を出す。
 - 各ブロックの見出しは具体的にする。
 - 本文には読者の判断軸、寸法や設置の見方、失敗回避の観点を入れる。
-- 商品カードを入れる場合は、その直前の段落で商品カテゴリに触れてから {{affiliate:商品id}} を単独段落として入れる。
+- 商品カードを入れる場合は、その直前の段落で商品カテゴリに触れてから {{affiliate:カテゴリ-順位}} を単独段落として入れる。
 - 記事内容に自然に合う商品がある場合は、最低1つは商品カードを入れる。
 
 JSON形式:
@@ -261,7 +263,7 @@ JSON形式:
   "blocks": [
     {
       "heading": "具体的な見出し",
-      "paragraphs": ["本文段落", "{{affiliate:商品id}}", "本文段落"],
+      "paragraphs": ["本文段落", "{{affiliate:カテゴリ-順位}}", "本文段落"],
       "visual": {
         "title": "図表タイトル",
         "kind": "diagram | table | checklist | comparison",
@@ -469,7 +471,10 @@ function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined
   };
 }
 
-function ensureAffiliatePlacement(article: Omit<BlogArticle, "id">): Omit<BlogArticle, "id"> {
+function ensureAffiliatePlacement(
+  article: Omit<BlogArticle, "id">,
+  affiliateProducts: AffiliateProduct[],
+): Omit<BlogArticle, "id"> {
   const markers = collectAffiliateMarkers(article.blocks);
   if (markers.length > 0) {
     return {
@@ -481,7 +486,7 @@ function ensureAffiliatePlacement(article: Omit<BlogArticle, "id">): Omit<BlogAr
     };
   }
 
-  const product = selectAffiliateProduct(article);
+  const product = selectAffiliateProduct(article, affiliateProducts);
   if (!product) return article;
 
   return {
@@ -495,7 +500,7 @@ function ensureAffiliatePlacement(article: Omit<BlogArticle, "id">): Omit<BlogAr
   };
 }
 
-function selectAffiliateProduct(article: Omit<BlogArticle, "id">) {
+function selectAffiliateProduct(article: Omit<BlogArticle, "id">, affiliateProducts: AffiliateProduct[]) {
   const text = `${article.keyword} ${article.title} ${article.excerpt} ${article.blocks
     .flatMap((block) => [block.heading, ...block.paragraphs])
     .join(" ")}`.toLowerCase();
