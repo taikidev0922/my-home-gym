@@ -20,6 +20,11 @@ const gearCategories: ProductCategory[] = [
   "accessory",
 ];
 
+const maxUploadPayloadBytes = 3_600_000;
+const maxWebpImageBytes = 700_000;
+const minWebpImageBytes = 120_000;
+const uploadPayloadReserveBytes = 200_000;
+
 export function SubmitForm() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
@@ -228,7 +233,8 @@ export function SubmitForm() {
 
     setIsConvertingImages(true);
     try {
-      const webpFiles = await Promise.all(files.map(convertImageToWebp));
+      const targetBytes = getTargetWebpSize(files.length);
+      const webpFiles = await Promise.all(files.map((file) => convertImageToWebp(file, targetBytes)));
       setConvertedImages(webpFiles);
       setImagePreviews(webpFiles.map((file) => URL.createObjectURL(file)));
     } catch (error) {
@@ -348,37 +354,77 @@ function splitTags(value: string) {
     .filter(Boolean);
 }
 
-async function convertImageToWebp(file: File) {
+async function convertImageToWebp(file: File, targetBytes: number) {
   const bitmap = await createImageBitmap(file);
-  const maxSize = 1800;
+  const canvas = document.createElement("canvas");
+
+  try {
+    let bestBlob: Blob | null = null;
+
+    for (const maxSize of [1600, 1400, 1200, 1000, 850, 720]) {
+      resizeCanvas(canvas, bitmap, maxSize);
+
+      for (const quality of [0.78, 0.7, 0.62, 0.54, 0.46, 0.38]) {
+        const blob = await canvasToWebpBlob(canvas, quality);
+        if (!bestBlob || blob.size < bestBlob.size) {
+          bestBlob = blob;
+        }
+
+        if (blob.size <= targetBytes) {
+          return createWebpFile(file.name, blob);
+        }
+      }
+    }
+
+    if (!bestBlob) {
+      throw new Error("WebP conversion failed.");
+    }
+
+    return createWebpFile(file.name, bestBlob);
+  } finally {
+    bitmap.close();
+  }
+}
+
+function resizeCanvas(canvas: HTMLCanvasElement, bitmap: ImageBitmap, maxSize: number) {
   const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));
   const height = Math.max(1, Math.round(bitmap.height * scale));
-  const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
 
   const context = canvas.getContext("2d");
   if (!context) {
-    bitmap.close();
     throw new Error("Canvas is not supported.");
   }
 
   context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
+}
 
+async function canvasToWebpBlob(canvas: HTMLCanvasElement, quality: number) {
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, "image/webp", 0.82);
+    canvas.toBlob(resolve, "image/webp", quality);
   });
 
   if (!blob) {
     throw new Error("WebP conversion failed.");
   }
 
-  return new File([blob], `${stripFileExtension(file.name)}.webp`, {
+  return blob;
+}
+
+function createWebpFile(originalName: string, blob: Blob) {
+  return new File([blob], `${stripFileExtension(originalName)}.webp`, {
     type: "image/webp",
     lastModified: Date.now(),
   });
+}
+
+function getTargetWebpSize(imageCount: number) {
+  const availableBytes = maxUploadPayloadBytes - uploadPayloadReserveBytes;
+  const perImageBytes = Math.floor(availableBytes / Math.max(1, imageCount));
+
+  return Math.min(maxWebpImageBytes, Math.max(minWebpImageBytes, perImageBytes));
 }
 
 function stripFileExtension(fileName: string) {
