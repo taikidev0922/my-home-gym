@@ -12,6 +12,10 @@ const loginRequiredMessage = "投稿にはログインが必要です。";
 const invalidInputMessage = "入力内容を確認してください。";
 const serverErrorMessage = "サーバー設定に問題があります。時間をおいて再度お試しください。";
 
+type UploadedPostImage = {
+  publicUrl: string;
+};
+
 export async function POST(request: Request) {
   const user = await getCurrentAuthUser();
   if (!user) {
@@ -31,6 +35,7 @@ export async function POST(request: Request) {
   const scale: GymScale = gymScales.has(scaleValue as GymScale) ? (scaleValue as GymScale) : "compact";
   const description = String(formData.get("description") ?? "").trim();
   const tags = parseJsonStringArray(formData.get("tags"));
+  const uploadedImages = parseUploadedImages(formData.get("uploadedImages"));
   const categories = parseJsonStringArray(formData.get("categories")).filter((category): category is ProductCategory =>
     productCategories.has(category as ProductCategory),
   );
@@ -55,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
-  if (!imageFiles.length) {
+  if (!uploadedImages.length && !imageFiles.length) {
     return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
@@ -95,28 +100,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
   }
 
-  const orderedFiles = moveItemToFront(imageFiles, thumbnailIndex);
   const imageRows = [];
-  for (const [index, file] of orderedFiles.entries()) {
-    const extension = getImageExtension(file);
-    const storagePath = `${safeStorageKey(user.id)}/${post.id}/${index}.${extension}`;
-    const { error: uploadError } = await supabase.storage.from("gym-post-images").upload(storagePath, file, {
-      contentType: file.type,
-      upsert: true,
-    });
 
-    if (uploadError) {
-      console.error("Failed to upload gym post image", uploadError);
-      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
+  if (uploadedImages.length) {
+    const orderedImages = moveItemToFront(uploadedImages, thumbnailIndex);
+    imageRows.push(
+      ...orderedImages.map((image, index) => ({
+        post_id: post.id,
+        storage_path: image.publicUrl,
+        alt: `${title} ${index + 1}`,
+        sort_order: index,
+      })),
+    );
+  } else {
+    const orderedFiles = moveItemToFront(imageFiles, thumbnailIndex);
+    for (const [index, file] of orderedFiles.entries()) {
+      const extension = getImageExtension(file);
+      const storagePath = `${safeStorageKey(user.id)}/${post.id}/${index}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from("gym-post-images").upload(storagePath, file, {
+        contentType: file.type,
+        upsert: true,
+      });
+
+      if (uploadError) {
+        console.error("Failed to upload gym post image", uploadError);
+        return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
+      }
+
+      const { data: publicUrl } = supabase.storage.from("gym-post-images").getPublicUrl(storagePath);
+      imageRows.push({
+        post_id: post.id,
+        storage_path: publicUrl.publicUrl,
+        alt: `${title} ${index + 1}`,
+        sort_order: index,
+      });
     }
-
-    const { data: publicUrl } = supabase.storage.from("gym-post-images").getPublicUrl(storagePath);
-    imageRows.push({
-      post_id: post.id,
-      storage_path: publicUrl.publicUrl,
-      alt: `${title} ${index + 1}`,
-      sort_order: index,
-    });
   }
 
   const { error: imageError } = await supabase.from("gym_post_images").insert(imageRows);
@@ -148,6 +166,23 @@ function parseJsonStringArray(value: FormDataEntryValue | null) {
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed.map((item) => String(item).trim()).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseUploadedImages(value: FormDataEntryValue | null): UploadedPostImage[] {
+  if (typeof value !== "string") return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map((item) => ({
+        publicUrl: typeof item?.publicUrl === "string" ? item.publicUrl.trim() : "",
+      }))
+      .filter((item) => item.publicUrl.startsWith("https://"));
   } catch {
     return [];
   }

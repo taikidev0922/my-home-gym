@@ -170,8 +170,8 @@ export function HomeGymExplorer({
         </div>
       </section>
 
-      <section id="feed" className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
-        <aside className="h-fit rounded-lg border border-[#cfd8cf] bg-white px-3 py-2 shadow-sm sm:p-4 lg:sticky lg:top-20">
+      <section id="feed" className="mx-auto grid max-w-7xl gap-2 px-0 py-2 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[300px_1fr]">
+        <aside className="mx-3 h-fit rounded-lg border border-[#cfd8cf] bg-white px-3 py-2 shadow-sm sm:mx-0 sm:p-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-bold">
               <Filter size={18} />
@@ -322,8 +322,8 @@ export function HomeGymExplorer({
           </div>
         </aside>
 
-        <div>
-          <div className="mb-3 flex flex-col justify-between gap-2 sm:mb-4 sm:flex-row sm:items-end sm:gap-3">
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-col justify-between gap-2 px-3 sm:mb-4 sm:flex-row sm:items-end sm:gap-3 sm:px-0">
             <div className="hidden sm:block">
               <h2 className="text-2xl font-bold">{totalPosts}件のホームジム</h2>
               {totalPosts > 0 ? (
@@ -359,7 +359,7 @@ export function HomeGymExplorer({
               </span>
             </div>
           ) : viewMode === "detail" ? (
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-px bg-white sm:gap-4 sm:bg-transparent md:grid-cols-2 xl:grid-cols-3">
               {posts.length ? (
                 posts.map((post) => (
                   <PostCard
@@ -376,7 +376,7 @@ export function HomeGymExplorer({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-1 sm:gap-2 md:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-px bg-white sm:grid-cols-3 sm:gap-2 sm:bg-transparent md:grid-cols-4 xl:grid-cols-5">
               {posts.length ? (
                 posts.map((post) => <PhotoGridItem key={post.id} post={post} />)
               ) : (
@@ -540,7 +540,7 @@ function PhotoGridItem({ post }: { post: HomeGymPost }) {
   return (
     <Link
       href={createPostHref(post.slug)}
-      className="group relative block aspect-square overflow-hidden bg-white"
+      className="group relative block aspect-square overflow-hidden bg-white sm:rounded-lg"
       aria-label={`${post.title}の詳細を見る`}
     >
       <Image
@@ -573,7 +573,7 @@ function PostCard({
 }) {
   return (
     <article
-      className="pressable-card cursor-pointer overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm"
+      className="pressable-card cursor-pointer overflow-hidden bg-white sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:shadow-sm"
       role="button"
       tabIndex={0}
       onClick={onOpen}
@@ -586,12 +586,12 @@ function PostCard({
     >
       <Link href={createPostHref(post.slug)} onClick={(event) => event.stopPropagation()} className="relative block aspect-square bg-[#f7f8f5] sm:aspect-[4/3]">
         <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
-        <div className="absolute left-2 top-2 rounded-lg bg-[#e4572e] px-2 py-1 text-xs font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-sm">
+        <div className="absolute left-1.5 top-1.5 rounded-md bg-[#e4572e] px-1.5 py-0.5 text-[10px] font-black text-white shadow-lg shadow-black/30 sm:left-3 sm:top-3 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
           {scaleLabels[post.scale]}
         </div>
-        <div className="absolute bottom-2 right-2 z-10 rounded-lg bg-black/70 px-2 py-1 text-[11px] font-bold text-white sm:bottom-3 sm:right-3 sm:text-xs">写真 {post.images.length}枚</div>
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-2 pt-10 sm:hidden">
-          <p className="line-clamp-1 pr-16 text-xs font-bold leading-5 text-white">{post.title}</p>
+        <div className="absolute bottom-1.5 right-1.5 z-10 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white sm:bottom-3 sm:right-3 sm:rounded-lg sm:px-2 sm:py-1 sm:text-xs">写真 {post.images.length}枚</div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-1.5 pt-8 sm:hidden">
+          <p className="line-clamp-1 pr-14 text-[11px] font-bold leading-4 text-white">{post.title}</p>
         </div>
       </Link>
       <div className="hidden p-4 sm:block">

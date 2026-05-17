@@ -20,11 +20,12 @@ const gearCategories: ProductCategory[] = [
   "accessory",
 ];
 
-const maxUploadPayloadBytes = 3_600_000;
-const maxWebpImageBytes = 700_000;
-const minWebpImageBytes = 120_000;
-const uploadPayloadReserveBytes = 200_000;
+const maxWebpImageBytes = 1_800_000;
 const maxPostImageCount = 5;
+
+type UploadedPostImage = {
+  publicUrl: string;
+};
 
 export function SubmitForm() {
   const router = useRouter();
@@ -46,7 +47,6 @@ export function SubmitForm() {
 
     const formData = new FormData(form);
     formData.delete("images");
-    convertedImages.forEach((file) => formData.append("images", file));
     formData.set("tags", JSON.stringify([...tags, ...splitTags(tagInput)]));
     formData.set("categories", JSON.stringify(selectedCategories));
     formData.set("thumbnailIndex", String(thumbnailIndex));
@@ -56,6 +56,17 @@ export function SubmitForm() {
       setIsSaving(false);
       return;
     }
+
+    let uploadedImages: UploadedPostImage[];
+    try {
+      uploadedImages = await uploadPostImages(convertedImages);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
+      setIsSaving(false);
+      return;
+    }
+
+    formData.set("uploadedImages", JSON.stringify(uploadedImages));
 
     const response = await fetch("/api/posts", {
       method: "POST",
@@ -170,9 +181,9 @@ export function SubmitForm() {
             </label>
           ) : null}
           {isConvertingImages ? (
-            <p className="mt-3 text-sm font-semibold text-[#69756d]">画像をWebPに変換しています...</p>
+            <p className="mt-3 text-sm font-semibold text-[#69756d]">画像を高画質WebPに変換しています...</p>
           ) : convertedImages.length ? (
-            <p className="mt-3 text-sm font-semibold text-[#4e5b52]">WebPに変換済み: {formatFileSize(sumFileSizes(convertedImages))}</p>
+            <p className="mt-3 text-sm font-semibold text-[#4e5b52]">高画質WebPに変換済み: {formatFileSize(sumFileSizes(convertedImages))}</p>
           ) : null}
         </div>
       </div>
@@ -371,28 +382,36 @@ async function convertImageToWebp(file: File, targetBytes: number) {
   const canvas = document.createElement("canvas");
 
   try {
-    let bestBlob: Blob | null = null;
+    let bestFallback: Blob | null = null;
+    let bestCandidate: { blob: Blob; score: number } | null = null;
 
-    for (const maxSize of [1600, 1400, 1200, 1000, 850, 720]) {
+    for (const maxSize of [2200, 2000, 1800, 1600, 1400, 1200]) {
       resizeCanvas(canvas, bitmap, maxSize);
 
-      for (const quality of [0.78, 0.7, 0.62, 0.54, 0.46, 0.38]) {
+      for (const quality of [0.9, 0.86, 0.82, 0.78, 0.74, 0.7, 0.64]) {
         const blob = await canvasToWebpBlob(canvas, quality);
-        if (!bestBlob || blob.size < bestBlob.size) {
-          bestBlob = blob;
+        if (!bestFallback || blob.size < bestFallback.size) {
+          bestFallback = blob;
         }
 
         if (blob.size <= targetBytes) {
-          return createWebpFile(file.name, blob);
+          const score = canvas.width * canvas.height * quality;
+          if (!bestCandidate || score > bestCandidate.score) {
+            bestCandidate = { blob, score };
+          }
         }
       }
     }
 
-    if (!bestBlob) {
-      throw new Error("WebP conversion failed.");
+    if (bestCandidate) {
+      return createWebpFile(file.name, bestCandidate.blob);
     }
 
-    return createWebpFile(file.name, bestBlob);
+    if (bestFallback) {
+      return createWebpFile(file.name, bestFallback);
+    }
+
+    throw new Error("WebP conversion failed.");
   } finally {
     bitmap.close();
   }
@@ -433,10 +452,7 @@ function createWebpFile(originalName: string, blob: Blob) {
 }
 
 function getTargetWebpSize(imageCount: number) {
-  const availableBytes = maxUploadPayloadBytes - uploadPayloadReserveBytes;
-  const perImageBytes = Math.floor(availableBytes / Math.max(1, imageCount));
-
-  return Math.min(maxWebpImageBytes, Math.max(minWebpImageBytes, perImageBytes));
+  return maxWebpImageBytes;
 }
 
 function stripFileExtension(fileName: string) {
@@ -457,8 +473,38 @@ function formatFileSize(bytes: number) {
 
 function createSubmitErrorMessage(status: number, serverMessage?: string) {
   if (serverMessage) return serverMessage;
-  if (status === 413) return "写真の容量が大きすぎます。写真の枚数を減らしてもう一度お試しください。";
+  if (status === 413) return "写真の容量が大きすぎます。別の写真を選ぶか、少し時間をおいて再度お試しください。";
   if (status === 401) return "投稿にはログインが必要です。もう一度ログインしてください。";
 
   return `投稿の保存に失敗しました。時間をおいて再度お試しください。(${status})`;
+}
+
+async function uploadPostImages(files: File[]) {
+  const uploadedImages: UploadedPostImage[] = [];
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.set("image", file);
+
+    const response = await fetch("/api/post-images", {
+      method: "POST",
+      body: formData,
+    });
+    const result = (await response.json().catch(() => null)) as { publicUrl?: string; error?: string } | null;
+
+    if (!response.ok || !result?.publicUrl) {
+      throw new Error(result?.error ?? createImageUploadErrorMessage(response.status));
+    }
+
+    uploadedImages.push({ publicUrl: result.publicUrl });
+  }
+
+  return uploadedImages;
+}
+
+function createImageUploadErrorMessage(status: number) {
+  if (status === 413) return "画像の容量が大きすぎます。別の写真を選ぶか、少し時間をおいて再度お試しください。";
+  if (status === 401) return "画像のアップロードにはログインが必要です。もう一度ログインしてください。";
+
+  return `画像のアップロードに失敗しました。(${status})`;
 }
