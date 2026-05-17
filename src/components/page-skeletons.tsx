@@ -1,4 +1,4 @@
-import { Filter, Search, SlidersHorizontal, Tag, Trophy } from "lucide-react";
+import { ChevronDown, Filter, Search, SlidersHorizontal, Tag, Trophy } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 
 function StaticHomeFilters() {
@@ -9,10 +9,11 @@ function StaticHomeFilters() {
           <Filter size={18} />
           検索条件
         </h2>
-        <SlidersHorizontal size={18} className="text-[#69756d]" />
+        <ChevronDown size={18} className="text-[#69756d] lg:hidden" />
+        <SlidersHorizontal size={18} className="hidden text-[#69756d] lg:block" />
       </div>
 
-      <div>
+      <div className="hidden lg:block">
         <label className="mt-5 block text-sm font-semibold" htmlFor="loading-keyword">
           キーワード
         </label>
@@ -93,8 +94,8 @@ export function HomeLoadingSkeleton() {
         <div className="min-w-0">
           <div className="mb-2 flex justify-between px-3 sm:mb-4 sm:px-0">
             <div>
-              <SkeletonLine className="h-7 w-52" />
-              <SkeletonLine className="mt-2 h-4 w-32" />
+              <h2 className="text-2xl font-bold">ホームジムを読み込み中</h2>
+              <p className="mt-1 text-sm font-semibold text-[#69756d]">投稿一覧を取得しています</p>
             </div>
           </div>
           <PostGridSkeleton />
@@ -174,6 +175,77 @@ export function BlogListLoadingSkeleton() {
   );
 }
 
+export function RankingsLoadingSkeleton() {
+  return (
+    <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
+      <SiteHeader showMobilePostButton={false} />
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+        <section className="grid gap-2">
+          <h1 className="text-3xl font-black leading-tight tracking-normal sm:text-5xl">
+            ホームジム用品ランキング
+          </h1>
+          <div className="rounded-lg border border-[#cfd8cf] bg-white p-3 shadow-sm sm:hidden">
+            <div className="flex items-center justify-between text-sm font-bold text-[#122018]">
+              <span className="flex items-center gap-2">
+                <Trophy size={16} />
+                全カテゴリ
+              </span>
+              <ChevronDown size={17} className="text-[#69756d]" />
+            </div>
+          </div>
+          <div className="hidden rounded-lg border border-[#cfd8cf] bg-white p-4 shadow-sm sm:block sm:p-5">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#69756d]">
+              <Search size={16} />
+              表示カテゴリ
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {["すべて", "パワーラック・スミス", "可変式ダンベル", "トレーニングベンチ"].map((label, index) => (
+                <span
+                  key={label}
+                  className={`rounded-lg border px-3 py-2 text-sm font-bold ${
+                    index === 0
+                      ? "border-[#e4572e] bg-[#e4572e] text-white"
+                      : "border-[#cfd8cf] bg-[#f7f8f5] text-[#4e5b52]"
+                  }`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-5 sm:mt-8">
+          <div className="mb-3 flex flex-col justify-between gap-1 sm:mb-4 sm:flex-row sm:items-end sm:gap-2">
+            <div>
+              <p className="text-sm font-bold text-[#e4572e]">全カテゴリ</p>
+              <h2 className="text-2xl font-bold">おすすめランキング</h2>
+            </div>
+            <p className="text-sm font-semibold text-[#69756d]">商品リンクを取得しています</p>
+          </div>
+          <div className="grid gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm lg:grid-cols-[260px_1fr]"
+              >
+                <SkeletonLine className="min-h-64 rounded-none" />
+                <div className="p-5">
+                  <SkeletonLine className="h-5 w-28" />
+                  <SkeletonLine className="mt-3 h-8 w-4/5" />
+                  <SkeletonLine className="mt-4 h-5 w-full" />
+                  <SkeletonLine className="mt-2 h-5 w-3/4" />
+                  <SkeletonLine className="mt-5 h-20 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
 export function BlogArticleLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
@@ -243,7 +315,7 @@ export function SubmitLoadingSkeleton() {
   );
 }
 
-function PostGridSkeleton() {
+export function PostGridSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-px bg-transparent sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (

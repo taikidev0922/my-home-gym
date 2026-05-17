@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { PostGridSkeleton } from "@/components/page-skeletons";
 import { formatTatami } from "@/lib/area";
 import { scaleLabels } from "@/lib/gym-data";
 import type { PostSearchFilters } from "@/lib/gym-repository";
@@ -350,12 +351,7 @@ export function HomeGymExplorer({
           </div>
 
           {isSearching ? (
-            <div className="flex min-h-32 items-center justify-center py-8 text-sm font-bold text-[#69756d]">
-              <span className="inline-flex items-center gap-3">
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#e4572e]/30 border-t-[#e4572e]" />
-                読み込み中
-              </span>
-            </div>
+            <PostGridSkeleton />
           ) : (
             <div className="grid grid-cols-2 gap-px bg-transparent sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
               {posts.length ? (
