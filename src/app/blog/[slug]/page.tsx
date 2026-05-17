@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
-import { BlogArticleLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
-import { getAffiliateProductsByIds } from "@/lib/affiliate-products-server";
+import { getAffiliateProductById } from "@/lib/affiliate-products-server";
+import type { BlogArticle } from "@/lib/types";
 
 type BlogArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -112,6 +112,34 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
   );
 }
 
+function AffiliateProductCardSkeleton() {
+  return (
+    <div
+      className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm sm:grid-cols-[160px_1fr]"
+      aria-busy="true"
+    >
+      <div className="min-h-36 border-b border-[#cfd8cf] bg-[#f4f7f2] sm:border-b-0 sm:border-r" />
+      <div className="p-4">
+        <div className="h-4 w-28 rounded bg-[#e4ebe1]" />
+        <div className="mt-3 h-5 w-4/5 rounded bg-[#e4ebe1]" />
+        <div className="mt-2 h-4 w-36 rounded bg-[#e4ebe1]" />
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="h-11 rounded-md bg-[#f4f7f2]" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function AffiliateProductSlot({ id }: { id: string }) {
+  const product = await getAffiliateProductById(id);
+  if (!product) return null;
+
+  return <AffiliateProductCard product={product} />;
+}
+
 export async function generateMetadata({ params }: BlogArticlePageProps) {
   const { slug } = await params;
   const article = await getBlogArticleBySlug(slug);
@@ -148,11 +176,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps) {
 }
 
 export default function BlogArticlePage(props: BlogArticlePageProps) {
-  return (
-    <Suspense fallback={<BlogArticleLoadingSkeleton />}>
-      <BlogArticleContent {...props} />
-    </Suspense>
-  );
+  return <BlogArticleContent {...props} />;
 }
 
 async function BlogArticleContent({ params }: BlogArticlePageProps) {
@@ -161,8 +185,6 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
 
   if (!article) notFound();
 
-  const relatedPage = await getBlogArticlesPage({ category: article.category, page: 1, pageSize: 4 });
-  const relatedArticles = relatedPage.articles.filter((related) => related.slug !== article.slug).slice(0, 3);
   const affiliateMarkerIds = Array.from(
     new Set(
       article.blocks.flatMap((block) =>
@@ -171,7 +193,6 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
     ),
   ).slice(0, 1);
   const firstAffiliateMarkerId = affiliateMarkerIds[0] ?? null;
-  const affiliateProductsById = await getAffiliateProductsByIds(affiliateMarkerIds);
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
 
@@ -226,10 +247,12 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
                       const affiliateMarkerId = getAffiliateProductMarkerId(paragraph);
                       if (affiliateMarkerId && affiliateMarkerId !== firstAffiliateMarkerId) return null;
 
-                      const product = affiliateMarkerId ? affiliateProductsById.get(affiliateMarkerId) : null;
-
-                      if (product) {
-                        return <AffiliateProductCard key={paragraph} product={product} />;
+                      if (affiliateMarkerId) {
+                        return (
+                          <Suspense key={paragraph} fallback={<AffiliateProductCardSkeleton />}>
+                            <AffiliateProductSlot id={affiliateMarkerId} />
+                          </Suspense>
+                        );
                       }
 
                       return <p key={paragraph}>{renderInlineLinks(paragraph)}</p>;
@@ -252,28 +275,11 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
             </div>
 
             <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
-              {relatedArticles.length > 0 ? (
-                <section>
-                  <h2 className="text-xl font-bold">関連記事</h2>
-                  <div className="mt-3 grid gap-2">
-                    {relatedArticles.map((related) => (
-                      <Link
-                        key={related.slug}
-                        href={`/blog/${related.slug}`}
-                        className="pressable-card group flex items-center justify-between gap-3 rounded-lg border border-[#cfd8cf] bg-white px-3 py-3 text-sm font-bold shadow-sm hover:border-[#e4572e]/60"
-                      >
-                        <span className="line-clamp-2">{related.title}</span>
-                        <ArrowRight
-                          size={16}
-                          className="shrink-0 text-[#e4572e] transition group-hover:translate-x-0.5"
-                        />
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
+              <Suspense fallback={<RelatedArticlesSkeleton />}>
+                <RelatedArticles article={article} />
+              </Suspense>
 
-              <section className={relatedArticles.length > 0 ? "mt-6" : ""}>
+              <section className="mt-6">
                 <h2 className="text-xl font-bold">次に見る</h2>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Link
@@ -303,5 +309,48 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
         </article>
       </div>
     </main>
+  );
+}
+
+function RelatedArticlesSkeleton() {
+  return (
+    <section aria-busy="true">
+      <h2 className="text-xl font-bold">関連記事</h2>
+      <div className="mt-3 grid gap-2">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="h-12 rounded-lg border border-[#cfd8cf] bg-white shadow-sm">
+            <div className="m-3 h-5 w-3/4 rounded bg-[#e4ebe1]" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function RelatedArticles({ article }: { article: BlogArticle }) {
+  const relatedPage = await getBlogArticlesPage({ category: article.category, page: 1, pageSize: 4 });
+  const relatedArticles = relatedPage.articles.filter((related) => related.slug !== article.slug).slice(0, 3);
+
+  if (!relatedArticles.length) return null;
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold">関連記事</h2>
+      <div className="mt-3 grid gap-2">
+        {relatedArticles.map((related) => (
+          <Link
+            key={related.slug}
+            href={`/blog/${related.slug}`}
+            className="pressable-card group flex items-center justify-between gap-3 rounded-lg border border-[#cfd8cf] bg-white px-3 py-3 text-sm font-bold shadow-sm hover:border-[#e4572e]/60"
+          >
+            <span className="line-clamp-2">{related.title}</span>
+            <ArrowRight
+              size={16}
+              className="shrink-0 text-[#e4572e] transition group-hover:translate-x-0.5"
+            />
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
