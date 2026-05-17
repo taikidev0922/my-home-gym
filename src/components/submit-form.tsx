@@ -30,7 +30,7 @@ type UploadedPostImage = {
 export function SubmitForm() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
-  const [convertedImages, setConvertedImages] = useState<File[]>([]);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const [tagInput, setTagInput] = useState("");
@@ -51,17 +51,34 @@ export function SubmitForm() {
     formData.set("categories", JSON.stringify(selectedCategories));
     formData.set("thumbnailIndex", String(thumbnailIndex));
 
-    if (!convertedImages.length) {
+    if (!selectedImages.length) {
       setMessage("写真を選択してください。");
+      setIsSaving(false);
+      return;
+    }
+
+    let convertedImages: File[];
+    try {
+      setIsConvertingImages(true);
+      setMessage("画像を高画質WebPに変換しています...");
+      const targetBytes = getTargetWebpSize(selectedImages.length);
+      convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
+    } catch (error) {
+      console.error("Failed to convert images to WebP", error);
+      setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
+      setIsConvertingImages(false);
       setIsSaving(false);
       return;
     }
 
     let uploadedImages: UploadedPostImage[];
     try {
+      setIsConvertingImages(false);
+      setMessage("画像をアップロードしています...");
       uploadedImages = await uploadPostImages(convertedImages);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
+      setIsConvertingImages(false);
       setIsSaving(false);
       return;
     }
@@ -76,6 +93,7 @@ export function SubmitForm() {
 
     if (!response.ok) {
       setMessage(createSubmitErrorMessage(response.status, result?.error));
+      setIsConvertingImages(false);
       setIsSaving(false);
       return;
     }
@@ -83,12 +101,13 @@ export function SubmitForm() {
     form.reset();
     setSelectedCategories([]);
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
-    setConvertedImages([]);
+    setSelectedImages([]);
     setImagePreviews([]);
     setThumbnailIndex(0);
     setTagInput("");
     setTags([]);
     setMessage("投稿を保存しました。一覧に公開されます。");
+    setIsConvertingImages(false);
     setIsSaving(false);
     router.refresh();
     router.push("/");
@@ -170,7 +189,7 @@ export function SubmitForm() {
               <span className="text-sm font-semibold leading-6 text-[#69756d]">最大5枚まで選べます。</span>
             </label>
           )}
-          <input id="gym-post-images" name="images" type="file" accept="image/*" multiple onChange={handleImageChange} disabled={isSaving || isConvertingImages} className="sr-only" />
+          <input id="gym-post-images" name="images" type="file" accept="image/*" multiple onChange={handleImageChange} disabled={isSaving} className="sr-only" />
           {imagePreviews.length ? (
             <label
               htmlFor="gym-post-images"
@@ -180,10 +199,8 @@ export function SubmitForm() {
               写真を変更
             </label>
           ) : null}
-          {isConvertingImages ? (
-            <p className="mt-3 text-sm font-semibold text-[#69756d]">画像を高画質WebPに変換しています...</p>
-          ) : convertedImages.length ? (
-            <p className="mt-3 text-sm font-semibold text-[#4e5b52]">高画質WebPに変換済み: {formatFileSize(sumFileSizes(convertedImages))}</p>
+          {selectedImages.length ? (
+            <p className="mt-3 text-sm font-semibold text-[#4e5b52]">選択中: {selectedImages.length}枚 / {formatFileSize(sumFileSizes(selectedImages))}</p>
           ) : null}
         </div>
       </div>
@@ -219,8 +236,8 @@ export function SubmitForm() {
         </div>
       </div>
 
-      <button type="submit" disabled={isSaving || isConvertingImages} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
-        {isSaving ? "保存中..." : isConvertingImages ? "画像変換中..." : "投稿を保存"}
+      <button type="submit" disabled={isSaving} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
+        {isConvertingImages ? "画像変換中..." : isSaving ? "保存中..." : "投稿を保存"}
       </button>
       {message ? <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#4e5b52]">{message}</p> : null}
     </form>
@@ -235,7 +252,7 @@ export function SubmitForm() {
 
   async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
-    setConvertedImages([]);
+    setSelectedImages([]);
     setImagePreviews([]);
     setThumbnailIndex(0);
     setMessage("");
@@ -248,19 +265,8 @@ export function SubmitForm() {
       setMessage(`写真は最大${maxPostImageCount}枚まで投稿できます。先頭${maxPostImageCount}枚を使います。`);
     }
 
-    setIsConvertingImages(true);
-    try {
-      const targetBytes = getTargetWebpSize(files.length);
-      const webpFiles = await Promise.all(files.map((file) => convertImageToWebp(file, targetBytes)));
-      setConvertedImages(webpFiles);
-      setImagePreviews(webpFiles.map((file) => URL.createObjectURL(file)));
-    } catch (error) {
-      console.error("Failed to convert images to WebP", error);
-      event.target.value = "";
-      setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
-    } finally {
-      setIsConvertingImages(false);
-    }
+    setSelectedImages(files);
+    setImagePreviews(files.map((file) => URL.createObjectURL(file)));
   }
 }
 
