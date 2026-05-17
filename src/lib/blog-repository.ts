@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { BlogArticle, BlogArticleBlock } from "@/lib/types";
@@ -217,7 +218,7 @@ export async function getBlogArticleFacets() {
   );
 }
 
-export async function getBlogArticleBySlug(slug: string) {
+export const getBlogArticleBySlug = cache(async function getBlogArticleBySlug(slug: string) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -237,7 +238,7 @@ export async function getBlogArticleBySlug(slug: string) {
   }
 
   return data ? mapArticleRow(data as BlogArticleRow) : null;
-}
+});
 
 export async function appendBlogArticle(article: Omit<BlogArticle, "id">) {
   const supabase = createSupabaseAdminClient();

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { defaultAvatarUrl, defaultDisplayName } from "@/lib/auth-user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { productCategoryLabels } from "@/lib/product-rankings";
@@ -160,7 +161,7 @@ function normalizeSearchTerm(value?: string) {
   return value?.replace(/[,%]/g, " ").trim() ?? "";
 }
 
-export async function getPublishedPostBySlug(slug: string) {
+export const getPublishedPostBySlug = cache(async function getPublishedPostBySlug(slug: string) {
   const supabase = await createSupabaseServerClient();
   const slugCandidates = createSlugCandidates(slug);
 
@@ -180,7 +181,7 @@ export async function getPublishedPostBySlug(slug: string) {
   }
 
   return mapPostRow(data as unknown as GymPostRow);
-}
+});
 
 function createSlugCandidates(slug: string) {
   const candidates = new Set([slug]);
