@@ -77,28 +77,38 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
       href={product.affiliateUrl}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className="pressable-card group grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[160px_1fr]"
+      className="pressable-card group grid min-w-0 overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[150px_minmax(0,1fr)]"
     >
-      <div className="flex min-h-36 items-center justify-center border-b border-[#cfd8cf] bg-white p-3 sm:border-b-0 sm:border-r">
-        <Image
-          src={product.imageUrl}
-          alt={product.name}
-          width={360}
-          height={260}
-          className="max-h-32 w-full object-contain"
-          sizes="(max-width: 640px) 100vw, 160px"
-        />
+      <div className="flex min-h-32 items-center justify-center border-b border-[#cfd8cf] bg-white p-3 sm:border-b-0 sm:border-r">
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            width={320}
+            height={240}
+            className="max-h-28 w-full object-contain"
+            sizes="(max-width: 640px) 100vw, 150px"
+          />
+        ) : (
+          <span className="text-xs font-bold text-[#69756d]">No image</span>
+        )}
       </div>
-      <div className="p-4">
+      <div className="min-w-0 p-4">
         <p className="text-xs font-bold text-[#e4572e]">{product.genre}</p>
-        <p className="mt-1 truncate text-base font-bold leading-snug text-[#122018]">{product.name}</p>
-        <p className="mt-1 truncate text-sm text-[#69756d]">{product.brand || product.maker}</p>
+        <p className="mt-1 truncate text-base font-bold leading-snug text-[#122018]" title={product.name}>
+          {product.name}
+        </p>
+        <p className="mt-1 truncate text-sm text-[#69756d]" title={product.brand || product.maker}>
+          {product.brand || product.maker}
+        </p>
         {details.length ? (
-          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+          <dl className="mt-3 grid min-w-0 grid-cols-2 gap-2 text-xs sm:grid-cols-3">
             {details.slice(0, 5).map((detail) => (
-              <div key={detail.label} className="min-w-0 rounded-md bg-[#f4f7f2] px-2 py-1">
+              <div key={detail.label} className="min-w-0 overflow-hidden rounded-md bg-[#f4f7f2] px-2 py-1">
                 <dt className="font-bold text-[#69756d]">{detail.label}</dt>
-                <dd className="truncate font-bold text-[#122018]">{detail.value}</dd>
+                <dd className="truncate font-bold text-[#122018]" title={detail.value}>
+                  {detail.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -115,11 +125,11 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
 function AffiliateProductCardSkeleton() {
   return (
     <div
-      className="grid overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm sm:grid-cols-[160px_1fr]"
+      className="grid min-w-0 overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm sm:grid-cols-[150px_minmax(0,1fr)]"
       aria-busy="true"
     >
-      <div className="min-h-36 border-b border-[#cfd8cf] bg-[#f4f7f2] sm:border-b-0 sm:border-r" />
-      <div className="p-4">
+      <div className="min-h-32 border-b border-[#cfd8cf] bg-[#f4f7f2] sm:border-b-0 sm:border-r" />
+      <div className="min-w-0 p-4">
         <div className="h-4 w-28 rounded bg-[#e4ebe1]" />
         <div className="mt-3 h-5 w-4/5 rounded bg-[#e4ebe1]" />
         <div className="mt-2 h-4 w-36 rounded bg-[#e4ebe1]" />
