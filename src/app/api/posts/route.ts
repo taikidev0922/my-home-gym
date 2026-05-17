@@ -8,16 +8,19 @@ export const runtime = "nodejs";
 
 const gymScales = new Set<GymScale>(["compact", "standard", "serious"]);
 const productCategories = new Set<ProductCategory>(getRankingCategories());
+const loginRequiredMessage = "投稿にはログインが必要です。";
+const invalidInputMessage = "入力内容を確認してください。";
+const serverErrorMessage = "サーバー設定に問題があります。時間をおいて再度お試しください。";
 
 export async function POST(request: Request) {
   const user = await getCurrentAuthUser();
   if (!user) {
-    return NextResponse.json({ error: "投稿にはログインが必要です。" }, { status: 401 });
+    return NextResponse.json({ error: loginRequiredMessage }, { status: 401 });
   }
 
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+    return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
   }
 
   const formData = await request.formData();
@@ -37,23 +40,23 @@ export async function POST(request: Request) {
     .filter((file): file is File => file instanceof File && file.size > 0 && file.type.startsWith("image/"));
 
   if (!title) {
-    return NextResponse.json({ error: "入力内容を確認してください。" }, { status: 400 });
+    return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
   if (!Number.isFinite(areaTatami) || areaTatami <= 0) {
-    return NextResponse.json({ error: "入力内容を確認してください。" }, { status: 400 });
+    return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
   if (!Number.isFinite(budget) || budget < 0) {
-    return NextResponse.json({ error: "入力内容を確認してください。" }, { status: 400 });
+    return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
   if (!description) {
-    return NextResponse.json({ error: "入力内容を確認してください。" }, { status: 400 });
+    return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
   if (!imageFiles.length) {
-    return NextResponse.json({ error: "入力内容を確認してください。" }, { status: 400 });
+    return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
   const existingProfile = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
 
     if (profileError) {
       console.error("Failed to create Auth0 profile", profileError);
-      return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
     }
   }
 
@@ -89,7 +92,7 @@ export async function POST(request: Request) {
 
   if (postError || !post) {
     console.error("Failed to create gym post", postError);
-    return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+    return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
   }
 
   const orderedFiles = moveItemToFront(imageFiles, thumbnailIndex);
@@ -104,7 +107,7 @@ export async function POST(request: Request) {
 
     if (uploadError) {
       console.error("Failed to upload gym post image", uploadError);
-      return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
     }
 
     const { data: publicUrl } = supabase.storage.from("gym-post-images").getPublicUrl(storagePath);
@@ -119,7 +122,7 @@ export async function POST(request: Request) {
   const { error: imageError } = await supabase.from("gym_post_images").insert(imageRows);
   if (imageError) {
     console.error("Failed to create gym post image rows", imageError);
-    return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+    return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
   }
 
   if (categories.length) {
@@ -132,7 +135,7 @@ export async function POST(request: Request) {
 
     if (categoryError) {
       console.error("Failed to create gym post categories", categoryError);
-      return NextResponse.json({ error: "サーバー設定に問題があります。" }, { status: 500 });
+      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
     }
   }
 

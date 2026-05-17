@@ -58,7 +58,7 @@ export function SubmitForm() {
     const result = (await response.json().catch(() => null)) as { error?: string } | null;
 
     if (!response.ok) {
-      setMessage(result?.error ?? "投稿の保存に失敗しました。");
+      setMessage(createSubmitErrorMessage(response.status, result?.error));
       setIsSaving(false);
       return;
     }
@@ -142,12 +142,27 @@ export function SubmitForm() {
               ))}
             </div>
           ) : (
-            <div className="flex items-center gap-3 text-sm font-semibold text-[#69756d]">
-              <ImagePlus className="shrink-0" />
-              <span>写真を選択するとここにプレビューが表示されます。</span>
-            </div>
+            <label
+              htmlFor="gym-post-images"
+              className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#aebaae] bg-white px-4 py-8 text-center transition hover:border-[#e4572e] hover:bg-[#fff8f4]"
+            >
+              <span className="grid h-12 w-12 place-items-center rounded-full bg-[#e4572e] text-white">
+                <ImagePlus size={24} />
+              </span>
+              <span className="text-base font-bold text-[#122018]">写真を選ぶ</span>
+              <span className="text-sm font-semibold leading-6 text-[#69756d]">選んだ写真はここに表示されます。</span>
+            </label>
           )}
-          <input name="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="mt-4 block w-full min-w-0 text-sm" />
+          <input id="gym-post-images" name="images" type="file" accept="image/*" multiple onChange={handleImageChange} disabled={isSaving || isConvertingImages} className="sr-only" />
+          {imagePreviews.length ? (
+            <label
+              htmlFor="gym-post-images"
+              className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#cfd8cf] bg-white px-4 py-2 text-sm font-bold text-[#122018] transition hover:border-[#e4572e] hover:text-[#e4572e]"
+            >
+              <ImagePlus size={17} />
+              写真を変更
+            </label>
+          ) : null}
           {isConvertingImages ? (
             <p className="mt-3 text-sm font-semibold text-[#69756d]">画像をWebPに変換しています...</p>
           ) : convertedImages.length ? (
@@ -380,4 +395,12 @@ function formatFileSize(bytes: number) {
   }
 
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
+function createSubmitErrorMessage(status: number, serverMessage?: string) {
+  if (serverMessage) return serverMessage;
+  if (status === 413) return "写真の容量が大きすぎます。写真の枚数を減らしてもう一度お試しください。";
+  if (status === 401) return "投稿にはログインが必要です。もう一度ログインしてください。";
+
+  return `投稿の保存に失敗しました。時間をおいて再度お試しください。(${status})`;
 }
