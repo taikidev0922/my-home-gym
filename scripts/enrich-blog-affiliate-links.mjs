@@ -118,7 +118,7 @@ async function proposeAffiliateBlocks(article, blocks) {
       messages: [
         {
           role: "user",
-          content: buildPrompt(article, blocks),
+          content: buildPromptV2(article, blocks),
         },
       ],
     }),
@@ -144,27 +144,26 @@ async function proposeAffiliateBlocks(article, blocks) {
   return sanitizeAffiliateMarkers(nextBlocks);
 }
 
-function buildPrompt(article, blocks) {
+function buildPromptV2(article, blocks) {
   const existingMarkers = collectAffiliateMarkers(blocks);
   const promptProducts = TARGET_PRODUCT_ID
     ? affiliateProducts.filter((product) => product.id === TARGET_PRODUCT_ID)
     : affiliateProducts;
 
-  return `あなたは日本語のホームジム記事の編集者です。
-既存記事を読み、本文の適切な位置に画像付きアソシエイト商品カード用のマーカーを挿入してください。
+  return `あなたは日本語のホームジム記事の編集者です。既存記事を読み、本文の自然な位置に画像付きアソシエイト商品カード用のマーカーを挿入してください。
 
 ルール:
-- 記事内容に自然に合う商品だけ入れる。無理に入れない。
+- 商品カードは1記事につき最大1つだけ。
+- 記事内容に自然に合う商品だけ入れる。合わなければ入れない。
+- 複数の商品が候補になる場合でも、その時の文章・検索意図・読者の悩みに最も当てはめやすい1商品だけを選ぶ。
 - 挿入するときは paragraphs 配列に単独文字列として {{affiliate:カテゴリ-順位}} を入れる。
-- カテゴリ-順位は下記の商品一覧にあるidだけ使う。
-- 同じidは1記事で1回だけ。
-- 既存の商品カードマーカーは削除しない。すでに入っているidは追加しない。
-- 原則1商品だけ。記事全体で明確に複数器具を比較・初期セット提案している場合だけ最大2商品まで。
-- 3商品すべてを入れるのは、記事が「パワーラック、可変式ダンベル、ベンチの3点セット」そのものを主題にしている場合だけ。
-- 床材、防音、広さ、予算が主題の記事では、床材・防振マット商品が自然に合う位置を優先する。器具リンクは無理に入れない。
-- 具体的にラック・ダンベル・ベンチの選び方に触れている段落の近くには、その器具に合う商品だけ入れる。
-- 既存の文章はできるだけ変更しない。文章の書き換えより、適切な位置へのマーカー挿入を優先する。
-- JSONだけ返す。説明文やMarkdownは返さない。
+- カテゴリ-順位は下の商品一覧にあるidだけ使う。
+- 既存マーカーがある場合は、最も自然な1つだけ残す。
+- 商品選定では、Amazonから取得した特徴、商品説明、仕様表、サイズ、重量、価格、評価、レビュー数、在庫/配送を最優先で使う。
+- 手入力の向く文脈や挿入メモよりも、スクレイピング済みの商品情報と記事本文の一致を優先する。
+- 商品カードの直前段落は、読者が「この条件を満たす商品を確認したい」と思える導線にする。サイズ、耐荷重、設置面積、価格帯、レビュー数、付属品、失敗回避の観点などを本文で整理し、その流れで商品カードへつなげる。
+- ただし「今すぐ買うべき」「絶対おすすめ」などの強い販売表現は避ける。読者の不安や比較ポイントを解消して、自然にリンクをクリックしたくなる文章にする。
+- JSONだけを返す。説明文やMarkdownは返さない。
 - blocks以外の情報は返さない。
 
 既存の商品カード:
@@ -179,15 +178,20 @@ ${JSON.stringify(
     genre: product.genre,
     name: product.name,
     maker: product.maker,
+    asin: product.asin,
+    priceText: product.priceText,
+    ratingText: product.ratingText,
+    reviewCountText: product.reviewCountText,
+    availabilityText: product.availabilityText,
+    dimensionsText: product.dimensionsText,
+    weightText: product.weightText,
+    featureBullets: product.featureBullets,
+    productDescription: product.productDescription,
+    specTable: product.specTable,
     keywords: product.keywords,
     targetContexts: product.targetContexts,
     avoidContexts: product.avoidContexts,
-    recommendedAnchorKeywords: product.recommendedAnchorKeywords,
     placementNote: product.placementNote,
-    productRole: product.productRole,
-    suitableFor: product.suitableFor,
-    notSuitableFor: product.notSuitableFor,
-    priority: product.priority,
   })),
   null,
   2,
@@ -222,13 +226,15 @@ ${JSON.stringify(
 function sanitizeAffiliateMarkers(blocks) {
   const allowedIds = new Set(affiliateProducts.map((product) => product.id));
   const usedIds = new Set();
+  let hasMarker = false;
 
   return blocks.map((block) => ({
     ...block,
     paragraphs: block.paragraphs.filter((paragraph) => {
       const id = getAffiliateMarkerId(paragraph);
       if (!id) return true;
-      if (!allowedIds.has(id) || usedIds.has(id)) return false;
+      if (hasMarker || !allowedIds.has(id) || usedIds.has(id)) return false;
+      hasMarker = true;
       usedIds.add(id);
       return true;
     }),
@@ -353,7 +359,7 @@ async function loadAffiliateProducts() {
   const { data, error } = await supabase
     .from("amazon_associate_links")
     .select(
-      "slot_key,category,rank,genre,product_name,maker,keywords,target_contexts,avoid_contexts,recommended_anchor_keywords,placement_note,product_role,suitable_for,not_suitable_for,priority",
+      "slot_key,category,rank,genre,product_name,maker,asin,source_url,price_text,rating_text,review_count_text,brand,seller_text,availability_text,dimensions_text,weight_text,feature_bullets,product_description,spec_table,detail_sections,scraped_facts,raw_scraped_json,scraped_at,keywords,target_contexts,avoid_contexts,recommended_anchor_keywords,placement_note,product_role,suitable_for,not_suitable_for,priority",
     )
     .eq("is_active", true)
     .order("priority", { ascending: true })
@@ -369,6 +375,23 @@ async function loadAffiliateProducts() {
     genre: product.genre ?? "",
     name: product.product_name,
     maker: product.maker,
+    asin: product.asin ?? "",
+    sourceUrl: product.source_url ?? "",
+    priceText: product.price_text ?? "",
+    ratingText: product.rating_text ?? "",
+    reviewCountText: product.review_count_text ?? "",
+    brand: product.brand ?? "",
+    sellerText: product.seller_text ?? "",
+    availabilityText: product.availability_text ?? "",
+    dimensionsText: product.dimensions_text ?? "",
+    weightText: product.weight_text ?? "",
+    featureBullets: product.feature_bullets ?? [],
+    productDescription: product.product_description ?? "",
+    specTable: product.spec_table ?? {},
+    detailSections: product.detail_sections ?? {},
+    scrapedFacts: product.scraped_facts ?? {},
+    rawScrapedJson: product.raw_scraped_json ?? {},
+    scrapedAt: product.scraped_at ?? "",
     keywords: product.keywords ?? [],
     targetContexts: product.target_contexts ?? [],
     avoidContexts: product.avoid_contexts ?? [],

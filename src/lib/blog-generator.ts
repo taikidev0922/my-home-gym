@@ -88,7 +88,7 @@ async function generateWithClaude(keyword: KeywordCandidate, affiliateProducts: 
         messages: [
           {
             role: "user",
-            content: buildArticlePrompt(keyword, affiliateProducts),
+            content: buildArticlePromptV2(keyword, affiliateProducts),
           },
         ],
       }),
@@ -230,29 +230,37 @@ async function uploadBlogImage(slug: string, base64: string) {
   return data.publicUrl;
 }
 
-function buildArticlePrompt(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
+function buildArticlePromptV2(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
   return `あなたは日本語のホームジム専門メディア「My Home Gym」の編集者です。
+
 検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 ${buildAffiliatePromptSection(affiliateProducts)}
 
 記事の狙い:
 - これから自宅にトレーニング環境を作る人、または自宅用の筋トレ器具を選ぶ人に向けて書く。
-- 「ホームジム」という言葉を無理にタイトルや本文へ入れなくてよい。検索キーワードの意図を主役にする。
-- 可変式ダンベル、パワーラック、ハーフラック、ベンチ、床材、防音、懸垂マシン、ミラーなど器具寄りの検索意図なら、その器具の選び方・注意点・向いている人を深く書く。
-- 広さ、予算、床材、防音、安全性は記事テーマに関係する場合だけ具体的に触れる。毎回すべてを入れない。
-- 読者が購入前に判断できるように、サイズ、重量、設置条件、失敗しやすい点、代替案を実用的に整理する。
+- 検索キーワードの意図を主役にする。「ホームジム」という言葉を無理に入れなくてよい。
+- 器具寄りの検索意図なら、その器具の選び方、注意点、向いている人を深く書く。
+- 読者が購入前に判断できるよう、サイズ、重量、設置条件、失敗しやすい点、代替案を実用的に整理する。
 - アフィリエイト商品比較につながるが、過剰な販売文にしない。
 - 本文は日本語。誇張、断定的な効果、確定的な安全保証は避ける。
 - JSONだけを返す。Markdownや説明文は不要。
+
+商品カードの使い方:
+- 商品カードは1記事につき最大1つだけ。
+- 複数の商品が候補になる場合でも、その時の文章に最も当てはめやすい1商品だけを選ぶ。
+- 商品カードを入れる場合は、Amazonから取得した特徴、仕様表、サイズ、重量、価格、評価、レビュー数を見て、その段落と本当に相性がよい商品だけ選ぶ。
+- 手入力の向く文脈や挿入メモよりも、スクレイピング済みの商品情報と記事本文の一致を優先する。
+- 商品カードの直前段落では、その商品の特徴に関係する判断軸を自然に説明してから {{affiliate:カテゴリ-順位}} を単独段落として入れる。
+- 商品カードの直前段落は、読者が「この条件を満たす商品を確認したい」と思える導線にする。サイズ、耐荷重、設置面積、価格帯、レビュー数、付属品、失敗回避の観点などを本文で整理し、その流れで商品カードへつなげる。
+- ただし「今すぐ買うべき」「絶対おすすめ」などの強い販売表現は避ける。読者の不安や比較ポイントを解消して、自然にリンクをクリックしたくなる文章にする。
+- 記事内容に自然に合う商品がある場合は、1つだけ商品カードを入れる。
 
 品質基準:
 - ありきたりな一般論を避ける。
 - 冒頭から結論を出す。
 - 各ブロックの見出しは具体的にする。
 - 本文には読者の判断軸、寸法や設置の見方、失敗回避の観点を入れる。
-- 商品カードを入れる場合は、その直前の段落で商品カテゴリに触れてから {{affiliate:カテゴリ-順位}} を単独段落として入れる。
-- 記事内容に自然に合う商品がある場合は、最低1つは商品カードを入れる。
 
 JSON形式:
 {
@@ -275,9 +283,9 @@ JSON形式:
   ]
 }
 
-blocksは4から6個。各paragraphsは1から3段落。visualは本文理解に役立つ2ブロックだけに付けてください。
-visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にしてください。
-スマホで一目で分かることを優先し、1枚の図表で扱う主題は1つ、主要情報は3点以内に絞ってください。`;
+blocksは4から6個。各paragraphsは1から3段落。visualは本文理解に役立つ2ブロックだけに付ける。
+visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にする。
+スマホで一目で分かることを優先し、図表で扱う主題は1つ、主要情報は3点以内に絞る。`;
 }
 
 function buildInlineVisualPrompt(
@@ -475,13 +483,15 @@ function ensureAffiliatePlacement(
   article: Omit<BlogArticle, "id">,
   affiliateProducts: AffiliateProduct[],
 ): Omit<BlogArticle, "id"> {
-  const markers = collectAffiliateMarkers(article.blocks);
+  const normalizedBlocks = keepFirstAffiliateMarker(article.blocks);
+  const markers = collectAffiliateMarkers(normalizedBlocks);
   if (markers.length > 0) {
     return {
       ...article,
+      blocks: normalizedBlocks,
       metadata: {
         ...article.metadata,
-        affiliateLinks: markers,
+        affiliateLinks: markers.slice(0, 1),
       },
     };
   }
@@ -542,6 +552,21 @@ function collectAffiliateMarkers(blocks: BlogArticleBlock[]) {
       ),
     ),
   );
+}
+
+function keepFirstAffiliateMarker(blocks: BlogArticleBlock[]) {
+  let hasMarker = false;
+
+  return blocks.map((block) => ({
+    ...block,
+    paragraphs: block.paragraphs.filter((paragraph) => {
+      const markerId = paragraph.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/)?.[1];
+      if (!markerId) return true;
+      if (hasMarker) return false;
+      hasMarker = true;
+      return true;
+    }),
+  }));
 }
 
 function createSlug(keyword: KeywordCandidate, value: string) {

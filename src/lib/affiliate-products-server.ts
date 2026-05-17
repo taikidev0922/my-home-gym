@@ -13,6 +13,23 @@ type AmazonAssociateLinkRow = {
   maker: string;
   affiliate_url: string;
   image_url: string;
+  asin: string | null;
+  source_url: string | null;
+  price_text: string | null;
+  rating_text: string | null;
+  review_count_text: string | null;
+  brand: string | null;
+  seller_text: string | null;
+  availability_text: string | null;
+  dimensions_text: string | null;
+  weight_text: string | null;
+  feature_bullets: string[] | null;
+  product_description: string | null;
+  spec_table: Record<string, string> | null;
+  detail_sections: Record<string, string> | null;
+  scraped_facts: Record<string, unknown> | null;
+  raw_scraped_json: Record<string, unknown> | null;
+  scraped_at: string | null;
   keywords: string[] | null;
   target_contexts: string[] | null;
   avoid_contexts: string[] | null;
@@ -33,6 +50,23 @@ const affiliateProductSelect = `
   maker,
   affiliate_url,
   image_url,
+  asin,
+  source_url,
+  price_text,
+  rating_text,
+  review_count_text,
+  brand,
+  seller_text,
+  availability_text,
+  dimensions_text,
+  weight_text,
+  feature_bullets,
+  product_description,
+  spec_table,
+  detail_sections,
+  scraped_facts,
+  raw_scraped_json,
+  scraped_at,
   keywords,
   target_contexts,
   avoid_contexts,
@@ -55,6 +89,23 @@ function rowToAffiliateProduct(row: AmazonAssociateLinkRow): AffiliateProduct {
     maker: row.maker,
     affiliateUrl: row.affiliate_url,
     imageUrl: row.image_url,
+    asin: row.asin ?? "",
+    sourceUrl: row.source_url ?? "",
+    priceText: row.price_text ?? "",
+    ratingText: row.rating_text ?? "",
+    reviewCountText: row.review_count_text ?? "",
+    brand: row.brand ?? "",
+    sellerText: row.seller_text ?? "",
+    availabilityText: row.availability_text ?? "",
+    dimensionsText: row.dimensions_text ?? "",
+    weightText: row.weight_text ?? "",
+    featureBullets: row.feature_bullets ?? [],
+    productDescription: row.product_description ?? "",
+    specTable: row.spec_table ?? {},
+    detailSections: row.detail_sections ?? {},
+    scrapedFacts: row.scraped_facts ?? {},
+    rawScrapedJson: row.raw_scraped_json ?? {},
+    scrapedAt: row.scraped_at ?? "",
     keywords: row.keywords ?? [],
     targetContexts: row.target_contexts ?? [],
     avoidContexts: row.avoid_contexts ?? [],
