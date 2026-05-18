@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { absoluteUrl, baseSeoKeywords, defaultSeoDescription, rankingSeoKeywords, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
@@ -77,6 +78,11 @@ export default function RootLayout({
     <html lang="ja" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <footer className="bg-[#eef2ed] px-4 pb-6 sm:px-6">
+          <div className="mx-auto max-w-7xl">
+            <AffiliateDisclosure />
+          </div>
+        </footer>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-41RHRTCWKW" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`

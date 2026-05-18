@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
+import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
@@ -266,6 +267,7 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
               {article.title}
             </h1>
             <p className="mt-5 text-lg leading-9 text-[#4e5b52]">{article.excerpt}</p>
+            <AffiliateDisclosure className="mt-5" />
 
             {firstVisualImageUrl ? (
               <div className="-mx-4 mt-6 overflow-hidden sm:mx-0 sm:rounded-lg">

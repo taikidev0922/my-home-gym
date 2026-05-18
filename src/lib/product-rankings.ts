@@ -431,22 +431,7 @@ const allRankingProducts = [
   },
 ] satisfies RankingProduct[];
 
-export const rankingProducts = allRankingProducts.filter((product) =>
-  [
-    "wasai-mk780-half-rack",
-    "barwing-hhr01-half-rack",
-    "irotec-multi-power-rack",
-    "lysin-helixmirror-40kg",
-    "flexbell-20kg-2kg-pair",
-    "barwing-adjustable-dumbbell-24kg-pair",
-    "barwing-bw-ajb06-bench",
-    "gogojump-folding-training-bench",
-    "barwing-dc04-training-bench",
-    "airhop-joint-mat",
-    "kawashima-structural-plywood-12mm",
-    "showa-eva-joint-mat-12mm",
-  ].includes(product.id),
-);
+export const rankingProducts = allRankingProducts;
 
 export function getRankingCategories() {
   return Object.keys(productCategoryLabels) as ProductCategory[];
