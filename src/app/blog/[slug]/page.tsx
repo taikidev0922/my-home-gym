@@ -5,6 +5,7 @@ import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
+import { getHeaderUser } from "@/lib/header-user";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductById } from "@/lib/affiliate-products-server";
@@ -237,7 +238,10 @@ export default function BlogArticlePage(props: BlogArticlePageProps) {
 
 async function BlogArticleContent({ params }: BlogArticlePageProps) {
   const { slug } = await params;
-  const article = await getBlogArticleBySlug(slug);
+  const [article, currentUser] = await Promise.all([
+    getBlogArticleBySlug(slug),
+    getHeaderUser(),
+  ]);
 
   if (!article) notFound();
 
@@ -254,7 +258,7 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader showMobilePostButton={false} />
+      <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
       <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
         <article className="overflow-hidden sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:shadow-sm">
           <div className="px-4 pb-8 pt-2 sm:p-8">

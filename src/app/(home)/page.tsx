@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { HomeGymExplorer } from "@/components/home-gym-explorer";
 import { HomeLoadingSkeleton } from "@/components/page-skeletons";
 import { getRankingCategories } from "@/lib/product-rankings";
-import { getCurrentAuthUser } from "@/lib/auth-user";
-import { getProfile, getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
+import { getHeaderUser } from "@/lib/header-user";
+import { getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
 import type { GymScale, ProductCategory } from "@/lib/types";
 
 type PageSearchParams = Record<string, string | string[] | undefined>;
@@ -30,11 +30,10 @@ async function HomeContent({
   searchParams: Promise<PageSearchParams>;
 }) {
   const filters = parsePostSearchFilters(await searchParams);
-  const [postResult, user] = await Promise.all([
+  const [postResult, currentUser] = await Promise.all([
     getPublishedPosts(filters),
-    getCurrentAuthUser(),
+    getHeaderUser(),
   ]);
-  const profile = user ? await getProfile(user.id, user.email, user.name, user.avatarUrl) : null;
 
   return (
     <HomeGymExplorer
@@ -43,15 +42,7 @@ async function HomeContent({
       page={postResult.page}
       perPage={postResult.perPage}
       initialFilters={filters}
-      currentUser={
-        user && profile
-          ? {
-              email: user.email ?? "",
-              name: profile.displayName,
-              avatarUrl: profile.avatarUrl || user.avatarUrl,
-            }
-          : null
-      }
+      currentUser={currentUser}
     />
   );
 }

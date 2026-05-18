@@ -6,6 +6,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-reac
 import { BlogListLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
+import { getHeaderUser } from "@/lib/header-user";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { BlogArticle } from "@/lib/types";
 
@@ -61,10 +62,11 @@ async function BlogContent({ searchParams }: BlogPageProps) {
   const selectedTag = getParam(params.tag);
   const page = Math.max(1, Number(getParam(params.page) ?? 1) || 1);
 
-  const [articlePage, facets, latestPage] = await Promise.all([
+  const [articlePage, facets, latestPage, currentUser] = await Promise.all([
     getBlogArticlesPage({ category: selectedCategory, tag: selectedTag, page, pageSize }),
     getBlogArticleFacets(),
     getBlogArticlesPage({ page: 1, pageSize: 1 }),
+    getHeaderUser(),
   ]);
 
   const categoryCounts = new Map(facets.categories.map((category) => [category.id, category.count]));
@@ -75,7 +77,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader showMobilePostButton={false} />
+      <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <section className="py-2 sm:py-3">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>

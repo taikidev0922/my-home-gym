@@ -19,7 +19,7 @@ type SiteHeaderProps = {
 };
 
 export function SiteHeader({
-  currentUser = null,
+  currentUser,
   onSubmitNav,
   showMobilePostButton = true,
 }: SiteHeaderProps) {
@@ -54,7 +54,12 @@ export function SiteHeader({
           </nav>
 
           <div className="flex items-center gap-2">
-            {currentUser ? (
+            {currentUser === undefined ? (
+              <span
+                className="grid h-10 w-10 place-items-center rounded-full bg-[#e6ece5] ring-1 ring-[#cfd8cf]"
+                aria-hidden="true"
+              />
+            ) : currentUser ? (
               <Link href="/me" aria-label="マイページ" title="マイページ" className="flex items-center rounded-full">
                 <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-sm font-bold text-white ring-1 ring-[#cfd8cf]">
                   {currentUser.avatarUrl ? (

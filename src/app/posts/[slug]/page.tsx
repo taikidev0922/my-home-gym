@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { formatTatami } from "@/lib/area";
 import { scaleLabels } from "@/lib/gym-data";
 import { getPublishedPostBySlug } from "@/lib/gym-repository";
+import { getHeaderUser } from "@/lib/header-user";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { HomeGymPost } from "@/lib/types";
 
@@ -81,12 +82,15 @@ export default function PostDetail(props: PostDetailProps) {
 
 async function PostDetailContent({ params }: PostDetailProps) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const [post, currentUser] = await Promise.all([
+    getPublishedPostBySlug(slug),
+    getHeaderUser(),
+  ]);
 
   if (!post) {
     return (
       <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-        <SiteHeader showMobilePostButton={false} />
+        <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
         <div className="grid min-h-[60vh] place-items-center p-6">
           <div className="rounded-lg border border-[#cfd8cf] bg-white p-8 text-center">
             <h1 className="text-2xl font-bold">投稿が見つかりません</h1>
@@ -98,7 +102,7 @@ async function PostDetailContent({ params }: PostDetailProps) {
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader showMobilePostButton={false} />
+      <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <section className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1.2fr)_420px]">
           <PostImageGallery images={post.images} title={post.title} />
