@@ -52,7 +52,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:right-4 sm:top-4 sm:h-11 sm:w-11"
+            className="absolute right-3 top-3 z-20 grid h-10 w-10 place-items-center rounded-lg bg-black/60 text-white hover:bg-black/80 sm:right-4 sm:top-4 sm:h-11 sm:w-11"
             aria-label="閉じる"
           >
             <X size={22} />
@@ -62,27 +62,46 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               <button
                 type="button"
                 onClick={() => move(-1)}
-                className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:left-4 sm:h-11 sm:w-11"
+                className="absolute left-2 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/60 text-white hover:bg-black/80 sm:left-4 sm:h-12 sm:w-12"
                 aria-label="前の写真"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={28} />
               </button>
               <button
                 type="button"
                 onClick={() => move(1)}
-                className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-lg bg-black/50 text-white hover:bg-black/70 sm:right-4 sm:h-11 sm:w-11"
+                className="absolute right-2 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg bg-black/60 text-white hover:bg-black/80 sm:right-4 sm:h-12 sm:w-12"
                 aria-label="次の写真"
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={28} />
               </button>
             </>
           ) : null}
-          <div className="relative h-[78vh] w-full max-w-6xl sm:h-[82vh]">
+          <div className="pointer-events-none relative z-0 h-[70vh] w-full max-w-6xl sm:h-[78vh]">
             <Image src={activeImage} alt={title} fill className="object-contain" sizes="100vw" />
           </div>
-          <p className="mt-4 text-sm font-bold text-white/70">
-            {activeIndex + 1} / {images.length}
-          </p>
+          <div className="relative z-20 mt-3 grid gap-3">
+            <p className="text-center text-sm font-bold text-white/70">
+              {activeIndex + 1} / {images.length}
+            </p>
+            {images.length > 1 ? (
+              <div className="flex max-w-[92vw] gap-2 overflow-x-auto px-1 pb-1">
+                {images.map((image, index) => (
+                  <button
+                    key={`modal-${image}-${index}`}
+                    type="button"
+                    onClick={() => setActiveIndex(index)}
+                    className={`relative h-14 w-[74px] shrink-0 overflow-hidden rounded-lg bg-white ring-2 ${
+                      activeIndex === index ? "ring-[#e4572e]" : "ring-white/35"
+                    }`}
+                    aria-label={`${index + 1}枚目の写真を表示`}
+                  >
+                    <Image src={image} alt={`${title} ${index + 1}枚目`} fill className="object-cover" sizes="96px" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </>

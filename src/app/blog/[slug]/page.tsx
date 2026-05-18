@@ -8,6 +8,7 @@ import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductById } from "@/lib/affiliate-products-server";
+import { productCategoryLabels } from "@/lib/product-rankings";
 import type { BlogArticle } from "@/lib/types";
 
 type BlogArticlePageProps = {
@@ -94,66 +95,76 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
     product.weightText ? { label: "重量", value: product.weightText } : null,
   ].filter((detail): detail is { label: string; value: string } => Boolean(detail));
   const feature = product.featureBullets.find((item) => item.trim().length > 0);
+  const categoryLabel = productCategoryLabels[product.category];
 
   return (
-    <a
-      href={product.affiliateUrl}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
-      className="pressable-card group grid min-w-0 overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[150px_minmax(0,1fr)]"
-    >
-      <div className="flex min-h-32 items-center justify-center border-b border-[#cfd8cf] bg-white p-3 sm:border-b-0 sm:border-r">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            width={320}
-            height={240}
-            className="max-h-28 w-full object-contain"
-            sizes="(max-width: 640px) 100vw, 150px"
-          />
-        ) : (
-          <span className="text-xs font-bold text-[#69756d]">No image</span>
-        )}
-      </div>
-      <div className="min-w-0 p-4">
-        <p className="text-xs font-bold text-[#e4572e]">{product.genre}</p>
-        <p className="mt-1 truncate text-base font-bold leading-snug text-[#122018]" title={product.name}>
-          {product.name}
-        </p>
-        <p className="mt-1 truncate text-sm text-[#69756d]" title={product.brand || product.maker}>
-          {product.brand || product.maker}
-        </p>
-        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
-          {product.priceText ? (
-            <span className="rounded-md bg-[#122018] px-2.5 py-1 text-sm font-black leading-none text-white">
-              {product.priceText}
-            </span>
-          ) : null}
-          {product.ratingText ? (
-            <span className="inline-flex min-w-0 items-center rounded-md bg-[#fff7e6] px-2.5 py-1 text-xs font-bold text-[#7b5a13]">
-              <StarRating value={product.ratingText} />
-            </span>
-          ) : null}
+    <div className="grid gap-2">
+      <a
+        href={product.affiliateUrl}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="pressable-card group grid min-w-0 overflow-hidden rounded-lg border border-[#cfd8cf] bg-white shadow-sm transition hover:border-[#e4572e]/60 sm:grid-cols-[150px_minmax(0,1fr)]"
+      >
+        <div className="flex min-h-32 items-center justify-center border-b border-[#cfd8cf] bg-white p-3 sm:border-b-0 sm:border-r">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              width={320}
+              height={240}
+              className="max-h-28 w-full object-contain"
+              sizes="(max-width: 640px) 100vw, 150px"
+            />
+          ) : (
+            <span className="text-xs font-bold text-[#69756d]">No image</span>
+          )}
         </div>
-        {details.length ? (
-          <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-            {details.map((detail) => (
-              <div key={detail.label} className="min-w-0 overflow-hidden rounded-md bg-[#f4f7f2] px-2 py-1">
-                <dt className="font-bold text-[#69756d]">{detail.label}</dt>
-                <dd className="truncate font-bold text-[#122018]" title={detail.value}>
-                  {detail.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-        {feature ? <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#4e5a50]">{feature}</p> : null}
-        <span className="mt-4 inline-flex rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white transition group-hover:bg-[#cf4925]">
-          商品を見る
-        </span>
-      </div>
-    </a>
+        <div className="min-w-0 p-4">
+          <p className="text-xs font-bold text-[#e4572e]">{product.genre}</p>
+          <p className="mt-1 truncate text-base font-bold leading-snug text-[#122018]" title={product.name}>
+            {product.name}
+          </p>
+          <p className="mt-1 truncate text-sm text-[#69756d]" title={product.brand || product.maker}>
+            {product.brand || product.maker}
+          </p>
+          <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+            {product.priceText ? (
+              <span className="rounded-md bg-[#122018] px-2.5 py-1 text-sm font-black leading-none text-white">
+                {product.priceText}
+              </span>
+            ) : null}
+            {product.ratingText ? (
+              <span className="inline-flex min-w-0 items-center rounded-md bg-[#fff7e6] px-2.5 py-1 text-xs font-bold text-[#7b5a13]">
+                <StarRating value={product.ratingText} />
+              </span>
+            ) : null}
+          </div>
+          {details.length ? (
+            <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              {details.map((detail) => (
+                <div key={detail.label} className="min-w-0 overflow-hidden rounded-md bg-[#f4f7f2] px-2 py-1">
+                  <dt className="font-bold text-[#69756d]">{detail.label}</dt>
+                  <dd className="truncate font-bold text-[#122018]" title={detail.value}>
+                    {detail.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          {feature ? <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#4e5a50]">{feature}</p> : null}
+          <span className="mt-4 inline-flex rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-bold text-white transition group-hover:bg-[#cf4925]">
+            商品を見る
+          </span>
+        </div>
+      </a>
+      <Link
+        href={`/rankings?category=${product.category}`}
+        className="pressable-card inline-flex w-fit items-center gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60 hover:text-[#e4572e]"
+      >
+        {categoryLabel}ランキングを見る
+        <ArrowRight size={15} />
+      </Link>
+    </div>
   );
 }
 
