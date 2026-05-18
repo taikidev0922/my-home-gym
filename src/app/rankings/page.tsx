@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
+import { BadgeCheck, ExternalLink, SearchCheck, Trophy } from "lucide-react";
 import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -303,15 +303,11 @@ function RankingCard({
           <div>
             <p className="text-sm font-bold text-[#69756d]">{product.maker}</p>
             <h3 className="mt-1 text-2xl font-bold">{product.name}</h3>
-            <p className="mt-3 leading-7 text-[#3c4941]">{product.summary}</p>
           </div>
           <div className="shrink-0 rounded-lg bg-[#f7f8f5] p-3 md:min-w-40">
             <p className="text-xs font-bold text-[#69756d]">目安価格</p>
             <p className="mt-1 text-xl font-bold">{yen.format(product.price)}</p>
-            <p className="mt-2 flex items-center gap-1 text-sm font-bold text-[#e4572e]">
-              <Star size={16} fill="currentColor" />
-              {product.rating.toFixed(1)}
-            </p>
+            <AmazonRating rating={product.rating} />
           </div>
         </div>
 
@@ -344,6 +340,30 @@ function getRankStyle(rank: number) {
   if (rank === 2) return "bg-[#b9c0c8] text-[#111820]";
   if (rank === 3) return "bg-[#b87333] text-white";
   return "bg-[#e4572e] text-white";
+}
+
+function AmazonRating({ rating }: { rating: number }) {
+  const safeRating = Math.min(5, Math.max(0, rating));
+
+  return (
+    <div className="mt-2 flex items-center gap-2" aria-label={`5つ星のうち${safeRating.toFixed(1)}`}>
+      <span className="flex text-[18px] leading-none text-[#ffa41c]" aria-hidden="true">
+        {Array.from({ length: 5 }).map((_, index) => {
+          const fillPercent = Math.min(100, Math.max(0, (safeRating - index) * 100));
+
+          return (
+            <span key={index} className="relative inline-block h-[18px] w-[18px] text-[#d5d9d9]">
+              <span className="absolute inset-0">★</span>
+              <span className="absolute inset-0 overflow-hidden text-[#ffa41c]" style={{ width: `${fillPercent}%` }}>
+                ★
+              </span>
+            </span>
+          );
+        })}
+      </span>
+      <span className="text-sm font-bold text-[#007185]">{safeRating.toFixed(1)}</span>
+    </div>
+  );
 }
 
 function List({ title, items }: { title: string; items: string[] }) {
