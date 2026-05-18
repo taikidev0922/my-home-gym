@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense, type ReactNode } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
+import { BlogArticleListPending, BlogPendingLink } from "@/components/blog-pending-link";
 import { BlogListLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
@@ -178,7 +179,8 @@ async function BlogContent({ searchParams }: BlogPageProps) {
           ) : null}
         </section>
 
-        <section className="mt-4 sm:mt-8">
+        <section className="relative mt-4 min-h-[420px] sm:mt-8">
+          <BlogArticleListPending />
           <div className="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4">
             <div className="hidden sm:block">
               <h2 className="text-2xl font-bold">記事一覧</h2>
@@ -192,9 +194,9 @@ async function BlogContent({ searchParams }: BlogPageProps) {
               </p>
             </div>
             {(selectedCategory || selectedTag) ? (
-              <Link href="/blog" className="rounded-lg border border-[#cfd8cf] px-3 py-2 text-sm font-bold text-[#4e5b52]">
+              <BlogPendingLink href="/blog" className="rounded-lg border border-[#cfd8cf] px-3 py-2 text-sm font-bold text-[#4e5b52]">
                 絞り込みを解除
-              </Link>
+              </BlogPendingLink>
             ) : null}
           </div>
 
@@ -317,7 +319,7 @@ function ArticleMeta({ article }: { article: BlogArticle }) {
 
 function FilterChip({ href, active, children }: { href: string; active?: boolean; children: ReactNode }) {
   return (
-    <Link
+    <BlogPendingLink
       href={href}
       className={
         active
@@ -326,7 +328,7 @@ function FilterChip({ href, active, children }: { href: string; active?: boolean
       }
     >
       {children}
-    </Link>
+    </BlogPendingLink>
   );
 }
 
@@ -350,8 +352,9 @@ function PageLink({
   }
 
   return (
-    <Link
+    <BlogPendingLink
       href={href}
+      aria-current={active ? "page" : undefined}
       className={
         active
           ? "inline-flex min-h-10 items-center gap-1 rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white"
@@ -359,7 +362,7 @@ function PageLink({
       }
     >
       {children}
-    </Link>
+    </BlogPendingLink>
   );
 }
 

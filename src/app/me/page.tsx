@@ -1,11 +1,12 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Heart, ImageIcon, Settings, User } from "lucide-react";
+import { ExternalLink, Heart, ImageIcon, Settings } from "lucide-react";
 import { Suspense } from "react";
 import { AccountLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
+import { MyPostActions } from "@/components/my-post-actions";
 import { formatTatami } from "@/lib/area";
 import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getLikedPosts, getProfile, getUserPosts } from "@/lib/gym-repository";
@@ -70,12 +71,11 @@ async function MyPageContent() {
           <div className="grid gap-4">
             <SummaryCard icon={<ImageIcon size={19} />} label="自分の投稿" value={`${myPosts.length}件`} />
             <SummaryCard icon={<Heart size={19} />} label="自分がいいねした投稿" value={`${likedPosts.length}件`} />
-            <SummaryCard icon={<User size={19} />} label="公開プロフィール" value={profile.displayName} />
           </div>
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <PostList title="自分の投稿" description="あなたが投稿したホームジムです。" empty="まだ投稿がありません。" posts={myPosts} />
+          <PostList title="自分の投稿" description="あなたが投稿したホームジムです。" empty="まだ投稿がありません。" posts={myPosts} editable />
           <PostList title="自分がいいねした投稿" description="あなたがいいねした投稿です。" empty="まだいいねした投稿がありません。" posts={likedPosts} />
         </section>
       </div>
@@ -105,18 +105,20 @@ function PostList({
   description,
   empty,
   posts,
+  editable = false,
 }: {
   title: string;
   description: string;
   empty: string;
   posts: HomeGymPost[];
+  editable?: boolean;
 }) {
   return (
     <div className="rounded-lg border border-[#cfd8cf] bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold">{title}</h2>
       <p className="mt-1 text-sm font-semibold text-[#69756d]">{description}</p>
       <div className="mt-4 grid gap-3">
-        {posts.length ? posts.map((post) => <MiniPost key={post.id} post={post} />) : (
+        {posts.length ? posts.map((post) => <MiniPost key={post.id} post={post} editable={editable} />) : (
           <p className="rounded-lg bg-[#f7f8f5] p-4 text-sm font-semibold text-[#69756d]">{empty}</p>
         )}
       </div>
@@ -124,21 +126,24 @@ function PostList({
   );
 }
 
-function MiniPost({ post }: { post: HomeGymPost }) {
+function MiniPost({ post, editable = false }: { post: HomeGymPost; editable?: boolean }) {
   return (
-    <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="pressable-card grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#cfd8cf] p-2 hover:bg-[#e6ece5]">
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#f7f8f5]">
-        <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="88px" />
-      </div>
+    <div className="pressable-card grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-[#cfd8cf] p-2 hover:bg-[#e6ece5]">
+      <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="relative aspect-square overflow-hidden rounded-lg bg-[#f7f8f5]">
+          <Image src={post.images[0]} alt={post.title} fill className="object-cover" sizes="88px" />
+      </Link>
       <div className="min-w-0 py-1">
-        <p className="truncate font-bold">{post.title}</p>
-        <p className="mt-1 text-sm text-[#69756d]">{formatTatami(post.areaTatami)} / {post.budget.toLocaleString("ja-JP")}円</p>
-        <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#e4572e]">
-          詳細を見る
-          <ExternalLink size={13} />
-        </p>
+        <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="block min-w-0">
+          <p className="truncate font-bold">{post.title}</p>
+          <p className="mt-1 text-sm text-[#69756d]">{formatTatami(post.areaTatami)} / {post.budget.toLocaleString("ja-JP")}円</p>
+          <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#e4572e]">
+            詳細を見る
+            <ExternalLink size={13} />
+          </p>
+        </Link>
+        {editable ? <MyPostActions postId={post.id} slug={post.slug} title={post.title} /> : null}
       </div>
-    </Link>
+    </div>
   );
 }
 

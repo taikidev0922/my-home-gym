@@ -27,14 +27,33 @@ type UploadedPostImage = {
   publicUrl: string;
 };
 
-export function SubmitForm() {
+type SubmitFormInitialPost = {
+  id: string;
+  slug: string;
+  title: string;
+  areaTatami: number;
+  budget: number;
+  scale: string;
+  summary: string;
+  tags: string[];
+  images: string[];
+  categories: ProductCategory[];
+};
+
+type SubmitFormProps = {
+  mode?: "create" | "edit";
+  initialPost?: SubmitFormInitialPost;
+};
+
+export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
   const router = useRouter();
-  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
+  const isEditMode = mode === "edit" && Boolean(initialPost);
+  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>(initialPost?.categories ?? []);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>(initialPost?.images ?? []);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(initialPost?.tags ?? []);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isConvertingImages, setIsConvertingImages] = useState(false);
@@ -51,50 +70,62 @@ export function SubmitForm() {
     formData.set("categories", JSON.stringify(selectedCategories));
     formData.set("thumbnailIndex", String(thumbnailIndex));
 
-    if (!selectedImages.length) {
+    if (!selectedImages.length && !initialPost?.images.length) {
       setMessage("写真を選択してください。");
       setIsSaving(false);
       return;
     }
 
-    let convertedImages: File[];
-    try {
-      setIsConvertingImages(true);
-      setMessage("画像を高画質WebPに変換しています...");
-      const targetBytes = getTargetWebpSize();
-      convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
-    } catch (error) {
-      console.error("Failed to convert images to WebP", error);
-      setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
-      setIsConvertingImages(false);
-      setIsSaving(false);
-      return;
-    }
+    let uploadedImages: UploadedPostImage[] = (initialPost?.images ?? []).map((publicUrl) => ({ publicUrl }));
 
-    let uploadedImages: UploadedPostImage[];
-    try {
-      setIsConvertingImages(false);
-      setMessage("画像をアップロードしています...");
-      uploadedImages = await uploadPostImages(convertedImages);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
-      setIsConvertingImages(false);
-      setIsSaving(false);
-      return;
+    if (selectedImages.length) {
+      let convertedImages: File[];
+      try {
+        setIsConvertingImages(true);
+        setMessage("画像を高画質WebPに変換しています...");
+        const targetBytes = getTargetWebpSize();
+        convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
+      } catch (error) {
+        console.error("Failed to convert images to WebP", error);
+        setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
+        setIsConvertingImages(false);
+        setIsSaving(false);
+        return;
+      }
+
+      try {
+        setIsConvertingImages(false);
+        setMessage("画像をアップロードしています...");
+        uploadedImages = await uploadPostImages(convertedImages);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
+        setIsConvertingImages(false);
+        setIsSaving(false);
+        return;
+      }
     }
 
     formData.set("uploadedImages", JSON.stringify(uploadedImages));
 
-    const response = await fetch("/api/posts", {
-      method: "POST",
+    const response = await fetch(isEditMode ? `/api/posts/${initialPost?.id}` : "/api/posts", {
+      method: isEditMode ? "PATCH" : "POST",
       body: formData,
     });
-    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+    const result = (await response.json().catch(() => null)) as { slug?: string; error?: string } | null;
 
     if (!response.ok) {
       setMessage(createSubmitErrorMessage(response.status, result?.error));
       setIsConvertingImages(false);
       setIsSaving(false);
+      return;
+    }
+
+    if (isEditMode) {
+      setMessage("投稿を更新しました。");
+      setIsConvertingImages(false);
+      setIsSaving(false);
+      router.refresh();
+      router.push(`/posts/${encodeURIComponent(result?.slug ?? initialPost?.slug ?? "")}`);
       return;
     }
 
@@ -115,7 +146,7 @@ export function SubmitForm() {
 
   return (
     <form className="mt-7 grid min-w-0 gap-5" onSubmit={handleSubmit}>
-      <Field name="title" label="タイトル" placeholder="例: ガレージに作った本格パワーラック部屋" required />
+      <Field name="title" label="タイトル" placeholder="例: ガレージに作った本格パワーラック部屋" defaultValue={initialPost?.title} required />
 
       <div className="grid min-w-0 gap-5 md:grid-cols-3">
         <label className="block min-w-0">
@@ -126,6 +157,7 @@ export function SubmitForm() {
               type="number"
               min="0"
               step="0.1"
+              defaultValue={initialPost?.areaTatami}
               required
               className="min-w-0 flex-1 bg-transparent px-3 py-3 outline-none"
               placeholder="7.5"
@@ -133,10 +165,10 @@ export function SubmitForm() {
             <span className="grid w-16 shrink-0 place-items-center border-l border-[#cfd8cf] bg-white text-sm font-bold">畳</span>
           </div>
         </label>
-        <Field name="budget" label="初期費用" placeholder="860000" type="number" required />
+        <Field name="budget" label="初期費用" placeholder="860000" type="number" defaultValue={initialPost?.budget} required />
         <label className="block min-w-0">
           <span className="text-sm font-bold">規模感</span>
-          <select name="scale" className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none">
+          <select name="scale" defaultValue={initialPost?.scale ?? "compact"} className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none">
             <option value="compact">コンパクト</option>
             <option value="standard">標準</option>
             <option value="serious">本格派</option>
@@ -209,6 +241,7 @@ export function SubmitForm() {
         name="description"
         label="説明"
         placeholder="どんな空間か、使っている器具、床材や防音の工夫、気に入っている点などをまとめて書いてください。"
+        defaultValue={initialPost?.summary}
         required
       />
       <TagInput tags={tags} value={tagInput} onChange={setTagInput} onTagsChange={setTags} />
@@ -237,7 +270,7 @@ export function SubmitForm() {
       </div>
 
       <button type="submit" disabled={isSaving} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
-        {isConvertingImages ? "画像変換中..." : isSaving ? "保存中..." : "投稿を保存"}
+        {isConvertingImages ? "画像変換中..." : isSaving ? "保存中..." : isEditMode ? "投稿を更新" : "投稿を保存"}
       </button>
       {message ? <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#4e5b52]">{message}</p> : null}
     </form>
@@ -345,12 +378,14 @@ function Field({
   label,
   placeholder,
   type = "text",
+  defaultValue,
   required = false,
 }: {
   name: string;
   label: string;
   placeholder: string;
   type?: string;
+  defaultValue?: string | number;
   required?: boolean;
 }) {
   return (
@@ -359,6 +394,7 @@ function Field({
       <input
         name={name}
         type={type}
+        defaultValue={defaultValue}
         required={required}
         className="mt-2 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none"
         placeholder={placeholder}
@@ -367,11 +403,23 @@ function Field({
   );
 }
 
-function TextArea({ name, label, placeholder, required = false }: { name: string; label: string; placeholder: string; required?: boolean }) {
+function TextArea({
+  name,
+  label,
+  placeholder,
+  defaultValue,
+  required = false,
+}: {
+  name: string;
+  label: string;
+  placeholder: string;
+  defaultValue?: string;
+  required?: boolean;
+}) {
   return (
     <label className="block min-w-0">
       <span className="text-sm font-bold">{label}</span>
-      <textarea name={name} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 outline-none" placeholder={placeholder} />
+      <textarea name={name} defaultValue={defaultValue} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 outline-none" placeholder={placeholder} />
     </label>
   );
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
+import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
 import { getHeaderUser } from "@/lib/header-user";
@@ -335,6 +336,8 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
             </div>
 
             <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
+              <AffiliateDisclosure className="mb-6" />
+
               <Suspense fallback={<RelatedArticlesSkeleton />}>
                 <RelatedArticles article={article} />
               </Suspense>

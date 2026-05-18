@@ -251,6 +251,29 @@ export async function getUserPosts(userId: string): Promise<HomeGymPost[]> {
   return (data as unknown as GymPostRow[]).map(mapPostRow);
 }
 
+export async function getUserPostBySlug(slug: string, userId: string): Promise<HomeGymPost | null> {
+  const supabase = await createSupabaseServerClient();
+  const slugCandidates = createSlugCandidates(slug);
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("gym_posts")
+    .select(postSelect)
+    .in("slug", slugCandidates)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error("Failed to load user gym post", error);
+    return null;
+  }
+
+  return mapPostRow(data as unknown as GymPostRow);
+}
+
 export async function getLikedPosts(userId: string): Promise<HomeGymPost[]> {
   const supabase = await createSupabaseServerClient();
 
