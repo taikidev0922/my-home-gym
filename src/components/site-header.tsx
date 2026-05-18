@@ -27,18 +27,23 @@ export function SiteHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[#cfd8cf] bg-[#eef2ed]/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-30 border-b border-[#cfd8cf] bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-1 sm:px-6">
           <div className="min-w-0 shrink-0">
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
-              <Image
-                src="/brand/logo.svg"
-                alt="My Home Gym"
-                width={186}
-                height={40}
-                priority
-                className="h-9 w-[166px] object-contain sm:h-10 sm:w-[190px]"
-              />
+              <span className="block h-11 w-11 shrink-0 overflow-hidden sm:h-12 sm:w-12">
+                <Image
+                  src="/brand/favicon.svg"
+                  alt=""
+                  width={48}
+                  height={48}
+                  priority
+                  className="h-full w-full scale-[1.16] object-contain"
+                />
+              </span>
+              <span className="ml-2 translate-y-0.5 whitespace-nowrap text-xl font-black leading-none tracking-normal text-[#24313d] sm:text-2xl">
+                My <span className="text-[#fe4d25]">Home</span> Gym
+              </span>
             </Link>
           </div>
 
