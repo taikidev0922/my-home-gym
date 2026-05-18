@@ -2,7 +2,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BadgeCheck, ExternalLink, SearchCheck, Star, Trophy } from "lucide-react";
-import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { RankingCategoryFilter } from "@/components/ranking-category-filter";
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -123,7 +122,6 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
                 : `${products.length}カテゴリの商品を表示中`}
             </p>
           </div>
-          <AffiliateDisclosure className="mb-4" />
 
           <div className="grid gap-4">
             {products.map((product) => (
