@@ -467,7 +467,7 @@ async function readDataArray(filePath, exportName) {
   const match = contents.match(startPattern);
   if (!match || match.index == null) fail(`Could not find ${exportName} export in ${filePath}`);
 
-  const arrayStart = contents.indexOf("[", match.index);
+  const arrayStart = contents.indexOf("[", match.index + match[0].length);
   const arrayEnd = contents.lastIndexOf("];");
   if (arrayStart === -1 || arrayEnd === -1 || arrayEnd <= arrayStart) fail(`Could not parse ${exportName} array.`);
 
