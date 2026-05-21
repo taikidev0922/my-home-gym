@@ -33,7 +33,7 @@ export function SiteHeader({
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
               <span className="block h-11 w-11 shrink-0 overflow-hidden sm:h-12 sm:w-12">
                 <Image
-                  src="/brand/favicon.svg"
+                  src="/brand/favicon.webp"
                   alt=""
                   width={48}
                   height={48}

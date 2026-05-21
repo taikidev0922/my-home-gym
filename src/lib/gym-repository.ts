@@ -354,7 +354,7 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
     budget: row.budget,
     tags: row.tags ?? [],
     summary: row.summary,
-    images: images.length ? images : ["/window.svg"],
+    images: images.length ? images : ["/window.webp"],
     gear,
     sns: {
       instagram: row.profiles?.instagram_url ?? undefined,

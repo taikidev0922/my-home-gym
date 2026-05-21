@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="user icon">
-  <rect width="160" height="160" rx="80" fill="#f3efe7"/>
-  <circle cx="80" cy="62" r="28" fill="#d9d2c8"/>
-  <path d="M34 134c7.5-27.5 24.5-42 46-42s38.5 14.5 46 42" fill="#d9d2c8"/>
-  <path d="M34 134c7.5-27.5 24.5-42 46-42s38.5 14.5 46 42" fill="none" stroke="#122018" stroke-opacity=".12" stroke-width="2"/>
-  <circle cx="80" cy="62" r="28" fill="none" stroke="#122018" stroke-opacity=".12" stroke-width="2"/>
-</svg>

@@ -1,7 +1,7 @@
 import { auth0 } from "@/lib/auth0";
 
 export const defaultDisplayName = "匿名";
-export const defaultAvatarUrl = "/brand/default-user.svg";
+export const defaultAvatarUrl = "/brand/default-user.webp";
 
 export type CurrentAuthUser = {
   id: string;

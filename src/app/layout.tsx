@@ -31,13 +31,13 @@ export const metadata: Metadata = {
   keywords: [...baseSeoKeywords, ...rankingSeoKeywords],
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.webp", type: "image/webp" },
+      { url: "/favicon-512.webp", sizes: "512x512", type: "image/webp" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/favicon.webp", type: "image/webp" },
     ],
-    shortcut: "/favicon.svg",
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.webp",
+    apple: [{ url: "/apple-touch-icon.webp", sizes: "180x180", type: "image/webp" }],
   },
   alternates: {
     canonical: absoluteUrl("/"),
