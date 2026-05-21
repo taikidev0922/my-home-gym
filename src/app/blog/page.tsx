@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
+import { createBlogBreadcrumbJsonLd, createBlogCollectionJsonLd, createBlogItemListJsonLd } from "@/lib/blog-seo";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { BlogArticle } from "@/lib/types";
 
@@ -44,6 +45,11 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `ホームジムお助け記事 | ${siteName}`,
+    description: "ホームジム作りの広さ、予算、器具選び、床材、防音、畳数の考え方をまとめた記事一覧。",
+  },
 };
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
@@ -63,11 +69,33 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const visibleTags = facets.tags.slice(0, 6);
   const latestSlug = latestPage.articles[0]?.slug;
   const pageNumbers = getPageNumbers(articlePage.page, articlePage.totalPages);
+  const jsonLd = [
+    createBlogBreadcrumbJsonLd(),
+    createBlogCollectionJsonLd(articlePage.articles),
+    createBlogItemListJsonLd(articlePage.articles),
+  ];
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
+        <nav className="mb-3 text-xs font-bold text-[#69756d]" aria-label="パンくずリスト">
+          <ol className="flex flex-wrap items-center gap-1">
+            <li>
+              <Link href="/" className="hover:text-[#e4572e]">
+                ホーム
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="text-[#122018]">
+              ブログ
+            </li>
+          </ol>
+        </nav>
         <section className="py-2 sm:py-3">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
         </section>

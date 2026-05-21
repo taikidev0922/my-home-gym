@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
@@ -240,62 +240,44 @@ async function optimizeBlogImage(bytes: Buffer) {
 
 function buildArticlePromptV2(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
   return `あなたは日本語のホームジム専門メディア「My Home Gym」の編集者です。
+これから自宅にトレーニング環境を作る人、または自宅用の筋トレ器具を選ぶ人に向けて、検索意図に正面から答える実用記事を書いてください。
 
 検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 ${buildAffiliatePromptSection(affiliateProducts)}
 
-記事の狙い:
-- これから自宅にトレーニング環境を作る人、または自宅用の筋トレ器具を選ぶ人に向けて書く。
-- 検索キーワードの意図を主役にする。「ホームジム」という言葉を無理に入れなくてよい。
-- 器具寄りの検索意図なら、その器具の選び方、注意点、向いている人を深く書く。
-- 読者が購入前に判断できるよう、サイズ、重量、設置条件、失敗しやすい点、代替案を実用的に整理する。
-- アフィリエイト商品比較につながるが、過剰な販売文にしない。
-- 本文は日本語。誇張、断定的な効果、確定的な安全保証は避ける。
+記事の条件:
+- 本文は日本語のみ。
+- 検索キーワードをタイトル、導入、少なくとも1つの見出しに自然に含める。
+- 結論を先に書き、その後に選び方、注意点、失敗回避、代替案を具体的に説明する。
+- サイズ、重量、設置条件、床保護、防音、予算、レビュー数など、購入前に判断できる情報を優先する。
+- 医療的・断定的な効果保証、過度な販売表現は避ける。
+- 商品カードは1記事につき最大1つ。入れる場合は、直前の段落で判断軸を説明してから {{affiliate:商品ID}} を単独段落として置く。
 - JSONだけを返す。Markdownや説明文は不要。
-
-商品カードの使い方:
-- 商品カードは1記事につき最大1つだけ。
-- 複数の商品が候補になる場合でも、その時の文章に最も当てはめやすい1商品だけを選ぶ。
-- 商品カードを入れる場合は、Amazonから取得した特徴、仕様表、サイズ、重量、価格、評価、レビュー数を見て、その段落と本当に相性がよい商品だけ選ぶ。
-- 手入力の向く文脈や挿入メモよりも、スクレイピング済みの商品情報と記事本文の一致を優先する。
-- 商品カードの直前段落では、その商品の特徴に関係する判断軸を自然に説明してから {{affiliate:カテゴリ-順位}} を単独段落として入れる。
-- 商品カードの直前段落は、読者が「この条件を満たす商品を確認したい」と思える導線にする。サイズ、耐荷重、設置面積、価格帯、レビュー数、付属品、失敗回避の観点などを本文で整理し、その流れで商品カードへつなげる。
-- ただし「今すぐ買うべき」「絶対おすすめ」などの強い販売表現は避ける。読者の不安や比較ポイントを解消して、自然にリンクをクリックしたくなる文章にする。
-- 記事内容に自然に合う商品がある場合は、1つだけ商品カードを入れる。
-
-品質基準:
-- ありきたりな一般論を避ける。
-- 冒頭から結論を出す。
-- 各ブロックの見出しは具体的にする。
-- 本文には読者の判断軸、寸法や設置の見方、失敗回避の観点を入れる。
 
 JSON形式:
 {
-  "title": "32文字前後のタイトル",
-  "excerpt": "80文字前後の概要",
-  "category": "guide | rack | dumbbell | bench | floor | compact のどれか",
+  "title": "32文字前後のSEOタイトル",
+  "excerpt": "80文字前後の要約",
+  "category": "guide | rack | dumbbell | bench | floor | compact のいずれか",
   "readingMinutes": 4,
   "blocks": [
     {
       "heading": "具体的な見出し",
-      "paragraphs": ["本文段落", "{{affiliate:カテゴリ-順位}}", "本文段落"],
+      "paragraphs": ["本文段落", "{{affiliate:category-rank}}", "本文段落"],
       "visual": {
         "title": "図表タイトル",
         "kind": "diagram | table | checklist | comparison",
-        "brief": "この画像で説明する内容。数値、比較軸、チェック項目、配置を具体的に書く",
+        "brief": "画像で説明する具体的な内容。数値、比較軸、配置、チェック項目を含める",
         "alt": "画像の代替テキスト",
-        "caption": "画像下に表示する短い補足"
+        "caption": "短い補足"
       }
     }
   ]
 }
 
-blocksは4から6個。各paragraphsは1から3段落。visualは本文理解に役立つ2ブロックだけに付ける。
-visual.briefは検索キーワードと本文内容に必ず対応させ、一般的な飾り画像ではなく、比較表、配置図、予算内訳、チェックリストなど実用的な図表にする。
-スマホで一目で分かることを優先し、図表で扱う主題は1つ、主要情報は3点以内に絞る。`;
+blocksは4から6個。各paragraphsは1から3段落。visualは本文理解に役立つ2ブロックだけに付けてください。`;
 }
-
 function buildInlineVisualPrompt(
   article: Omit<BlogArticle, "id">,
   visual?: NonNullable<BlogArticleBlock["visual"]>,
@@ -334,6 +316,54 @@ function parseJson(text: string): ClaudeArticlePayload | null {
   }
 }
 
+function normalizeBlocks(value: unknown): BlogArticleBlock[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((block): BlogArticleBlock | null => {
+      if (!isRecord(block) || typeof block.heading !== "string" || !Array.isArray(block.paragraphs)) return null;
+
+      const paragraphs = block.paragraphs
+        .filter((paragraph): paragraph is string => typeof paragraph === "string")
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+      if (!block.heading.trim() || !paragraphs.length) return null;
+
+      const normalized: BlogArticleBlock = {
+        heading: block.heading.trim(),
+        paragraphs,
+      };
+      const visual = normalizeVisual(block.visual);
+      if (visual) normalized.visual = visual;
+      return normalized;
+    })
+    .filter((block): block is BlogArticleBlock => Boolean(block));
+}
+
+function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined {
+  if (!isRecord(value)) return undefined;
+  const title = typeof value.title === "string" ? value.title.trim() : "";
+  const brief = typeof value.brief === "string" ? value.brief.trim() : "";
+  if (!title || !brief) return undefined;
+
+  const kind = typeof value.kind === "string" ? value.kind : "diagram";
+
+  return {
+    title,
+    kind: ["diagram", "table", "checklist", "comparison"].includes(kind)
+      ? (kind as NonNullable<BlogArticleBlock["visual"]>["kind"])
+      : "diagram",
+    brief,
+    alt: typeof value.alt === "string" ? value.alt.trim() : undefined,
+    caption: typeof value.caption === "string" ? value.caption.trim() : undefined,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function normalizeGeneratedArticle(keyword: KeywordCandidate, payload: ClaudeArticlePayload): Omit<BlogArticle, "id"> | null {
   const title = typeof payload.title === "string" ? payload.title.trim() : "";
   const excerpt = typeof payload.excerpt === "string" ? payload.excerpt.trim() : "";
@@ -369,55 +399,53 @@ function normalizeGeneratedArticle(keyword: KeywordCandidate, payload: ClaudeArt
 function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<BlogArticle, "id"> {
   const now = new Date().toISOString();
   const category = normalizeCategory(keyword.category);
-  const title = `${keyword.keyword}で失敗しない自宅トレ環境の作り方`;
+  const title = `${keyword.keyword}で失敗しないホームジム環境の作り方`;
   const blocks: BlogArticleBlock[] = [
     {
       heading: "最初に決めるのは器具ではなく使い方",
       paragraphs: [
-        "自宅トレの環境づくりでは、最初に買う器具よりも「どの種目を週に何回やるか」を決める方が失敗しにくくなります。ベンチプレス、スクワット、ダンベル種目、懸垂のどれを中心にするかで、必要な広さも床対策も変わります。",
-        "特にラックやベンチを置く場合は、本体サイズだけでなく、プレート交換、ダンベルを置く場所、身体を回り込ませる余白まで含めて考える必要があります。",
+        "ホームジム作りでは、最初に買う器具よりも、週に何回どの種目を行うかを決めることが大切です。ベンチプレス、スクワット、ダンベル種目、懸垂など、中心にする種目によって必要な広さ、床対策、予算が変わります。",
+        "特にラックやベンチを置く場合は、本体サイズだけでなく、プレート交換、ダンベルを置く場所、体を回り込ませる余白まで含めて考える必要があります。",
       ],
     },
     {
       heading: "予算は本体価格だけで見ない",
       paragraphs: [
-        "器具本体が安く見えても、床材、防音マット、バーベル、プレート、工具、搬入時の送料まで含めると総額は変わります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
+        "器具本体が安く見えても、床材、防音マット、バーベル、プレート、工具、送料まで含めると総額は変わります。可変式ダンベル中心なら初期費用を抑えやすく、ラック構成なら後から拡張しやすいのが強みです。",
       ],
       visual: {
-        title: "初期費用の見落としポイント",
-        kind: "comparison",
-        brief:
-          "自宅トレ環境の初期費用を、本体器具、床対策、周辺小物の3つに分けて比較する。各カードには予算の見落とし例を1つずつ入れる。",
-        alt: "自宅トレ環境の初期費用を構成別に比較した表",
+        title: "初期費用の見積もりポイント",
+        kind: "table",
+        brief: "本体器具、床対策、周辺小物の3項目に分けて、予算の見落としを比較する表。各項目に目安と注意点を入れる。",
+        alt: "ホームジムの初期費用を項目別に比較した表",
         caption: "本体価格だけでなく、床対策と周辺小物まで見ておくと予算感がつかみやすくなります。",
       },
     },
     {
-      heading: "テーマに合う器具を一つずつ足す",
+      heading: "目的に合う器具を一つずつ足す",
       paragraphs: [
-        "省スペースで始めるなら可変式ダンベルとベンチ、本格的にBIG3を行うならラックと床補強が候補になります。いきなり全部を揃えるより、最初にやる種目を決めて不足する器具だけ足す方が、部屋も予算も圧迫しにくいです。",
+        "省スペースなら可変式ダンベルとベンチ、本格的にBIG3を行うならラックと床対策が候補になります。いきなり全部そろえるより、最初にやる種目を決めて不足する器具だけ足すほうが、部屋も予算も圧迫しにくくなります。",
       ],
       visual: {
         title: "目的別の器具選び",
         kind: "diagram",
-        brief:
-          "目的から必要器具へつなげる3分岐の図。省スペースは可変式ダンベル、胸肩トレはベンチ、本格BIG3はラックと床対策に分ける。",
-        alt: "目的別に自宅トレ器具を選ぶフローチャート",
-        caption: "先に種目を決めると、買うべき器具の優先順位が整理できます。",
+        brief: "省スペース、自重・懸垂、BIG3の3パターンに分け、必要器具と設置注意点を示すフローチャート。",
+        alt: "目的別にホームジム器具を選ぶフローチャート",
+        caption: "先に目的を決めると、買うべき器具の優先順位が整理できます。",
       },
     },
     {
-      heading: "購入前に寸法と動線を確認する",
+      heading: "設置前に部屋の条件を確認する",
       paragraphs: [
-        "同じ予算でも、賃貸、持ち家、ガレージ、ワンルームでは最適解が変わります。幅、奥行き、高さ、可動域、収納場所をメジャーで確認し、写真付きの投稿やランキングを見比べると、自分の部屋で再現できるか判断しやすくなります。",
+        "賃貸、持ち家、ガレージ、ワンルームでは最適解が変わります。幅、奥行き、高さ、可動域、収納場所をメジャーで確認し、写真付きの実例やランキングを見比べると、自分の部屋で再現できるか判断しやすくなります。",
       ],
     },
   ];
 
   return {
-    slug: createSlug(keyword, now),
+    slug: createSlug(keyword, title),
     title,
-    excerpt: `${keyword.keyword}をテーマに、広さ、予算、器具選び、床対策まで自宅トレ環境づくりの判断ポイントを整理します。`,
+    excerpt: `${keyword.keyword}をテーマに、広さ、予算、器具選び、床対策までホームジム作りの判断ポイントを整理します。`,
     keyword: keyword.keyword,
     category,
     tags: createArticleTags(keyword.keyword, category),
@@ -435,58 +463,6 @@ function createFallbackArticle(keyword: KeywordCandidate, source: string): Omit<
     },
   };
 }
-
-function normalizeBlocks(value: unknown): BlogArticleBlock[] {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((block): BlogArticleBlock | null => {
-      if (!block || typeof block !== "object") return null;
-      const candidate = block as { heading?: unknown; paragraphs?: unknown; visual?: unknown };
-      if (typeof candidate.heading !== "string" || !Array.isArray(candidate.paragraphs)) return null;
-
-      const paragraphs = candidate.paragraphs
-        .filter((paragraph): paragraph is string => typeof paragraph === "string")
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean);
-
-      if (!candidate.heading.trim() || paragraphs.length === 0) return null;
-
-      return {
-        heading: candidate.heading.trim(),
-        paragraphs,
-        visual: normalizeVisual(candidate.visual),
-      };
-    })
-    .filter((block): block is BlogArticleBlock => Boolean(block));
-}
-
-function normalizeVisual(value: unknown): BlogArticleBlock["visual"] | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const candidate = value as {
-    title?: unknown;
-    kind?: unknown;
-    brief?: unknown;
-    alt?: unknown;
-    caption?: unknown;
-  };
-  const title = typeof candidate.title === "string" ? candidate.title.trim() : "";
-  const brief = typeof candidate.brief === "string" ? candidate.brief.trim() : "";
-  const kind = typeof candidate.kind === "string" ? candidate.kind.trim() : "";
-
-  if (!title || !brief) return undefined;
-
-  return {
-    title,
-    kind: ["diagram", "table", "checklist", "comparison"].includes(kind)
-      ? (kind as NonNullable<BlogArticleBlock["visual"]>["kind"])
-      : "diagram",
-    brief,
-    alt: typeof candidate.alt === "string" ? candidate.alt.trim() : undefined,
-    caption: typeof candidate.caption === "string" ? candidate.caption.trim() : undefined,
-  };
-}
-
 function ensureAffiliatePlacement(
   article: Omit<BlogArticle, "id">,
   affiliateProducts: AffiliateProduct[],
@@ -649,3 +625,6 @@ function openAiApiKey() {
 function requiresGeneratedImages() {
   return true;
 }
+
+
+

@@ -5,7 +5,8 @@ import { ArrowRight, CalendarDays, Clock, Tag } from "lucide-react";
 import type { ReactNode } from "react";
 import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { SiteHeader } from "@/components/site-header";
-import { getBlogArticleBySlug, getBlogArticlesPage } from "@/lib/blog-repository";
+import { getBlogArticleBySlug, getBlogArticles, getBlogArticlesPage } from "@/lib/blog-repository";
+import { createBlogArticleJsonLd, createBlogBreadcrumbJsonLd } from "@/lib/blog-seo";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductById } from "@/lib/affiliate-products-server";
@@ -169,6 +170,11 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
   );
 }
 
+export async function generateStaticParams() {
+  const articles = await getBlogArticles();
+  return articles.map((article) => ({ slug: article.slug }));
+}
+
 export async function generateMetadata({ params }: BlogArticlePageProps) {
   const { slug } = await params;
   const article = await getBlogArticleBySlug(slug);
@@ -194,6 +200,10 @@ export async function generateMetadata({ params }: BlogArticlePageProps) {
       locale: "ja_JP",
       type: "article",
       images: [article.imageUrl],
+      publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt,
+      authors: [siteName],
+      tags: [article.keyword, ...article.tags],
     },
     twitter: {
       card: "summary_large_image",
@@ -225,11 +235,35 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
   const firstAffiliateProduct = firstAffiliateMarkerId ? getAffiliateProductById(firstAffiliateMarkerId) : null;
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
+  const jsonLd = [createBlogBreadcrumbJsonLd(article), createBlogArticleJsonLd(article)];
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
       <SiteHeader showMobilePostButton={false} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto max-w-4xl px-0 py-5 sm:px-6 sm:py-6">
+        <nav className="mb-3 px-4 text-xs font-bold text-[#69756d] sm:px-0" aria-label="パンくずリスト">
+          <ol className="flex flex-wrap items-center gap-1">
+            <li>
+              <Link href="/" className="hover:text-[#e4572e]">
+                ホーム
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link href="/blog" className="hover:text-[#e4572e]">
+                ブログ
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="line-clamp-1 text-[#122018]">
+              {article.title}
+            </li>
+          </ol>
+        </nav>
         <article className="overflow-hidden sm:rounded-lg sm:border sm:border-[#cfd8cf] sm:bg-white sm:shadow-sm">
           <div className="px-4 pb-8 pt-2 sm:p-8">
             <div className="flex flex-wrap gap-2 text-xs font-bold text-[#69756d]">

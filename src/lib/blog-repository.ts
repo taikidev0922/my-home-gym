@@ -1,4 +1,4 @@
-import { cache } from "react";
+﻿import { cache } from "react";
 import { blogArticles } from "@/data/blog-articles";
 import type { BlogArticle } from "@/lib/types";
 
@@ -53,7 +53,12 @@ export async function appendBlogArticle() {
 
 function getPublishedArticles() {
   const now = Date.now();
-  return articles.filter((article) => Date.parse(article.publishedAt) <= now);
+  return articles.filter((article) => Date.parse(article.publishedAt) <= now && isReadableJapaneseArticle(article));
+}
+
+function isReadableJapaneseArticle(article: BlogArticle) {
+  const text = [article.title, article.excerpt, article.keyword, ...article.tags].join(" ");
+  return !/[\u7e1d\u7e67\u7e3a\u8708\u8b41\u87b3\u83a0\u874e\u8b6b\u8b28\u9ae6\u9035]/.test(text);
 }
 
 function createPageResult(articles: BlogArticle[], total: number, page: number, pageSize: number) {
@@ -88,3 +93,5 @@ function createFacets(articles: Array<{ category: string; tags: string[] }>) {
     tags: Array.from(tagCounts, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
   };
 }
+
+

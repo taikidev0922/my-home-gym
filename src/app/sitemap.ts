@@ -31,13 +31,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: absoluteUrl("/blog"),
       lastModified: articles[0]?.updatedAt ? new Date(articles[0].updatedAt) : now,
       changeFrequency: "daily",
-      priority: 0.8,
+      priority: 0.9,
     },
     ...articles.map((article) => ({
       url: absoluteUrl(`/blog/${article.slug}`),
       lastModified: new Date(article.updatedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.65,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     })),
     ...posts.map((post) => ({
       url: absoluteUrl(`/posts/${post.slug}`),

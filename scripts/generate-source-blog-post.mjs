@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
@@ -25,7 +25,6 @@ const keywordSeedGroups = {
   floor: ["ジムマット 防音", "ジョイントマット 筋トレ", "ホームジム 床材", "ダンベル 床 防音", "賃貸 筋トレ 防音"],
   compact: ["省スペース 筋トレ器具", "狭い部屋 筋トレ", "懸垂マシン 省スペース", "折りたたみ ベンチ", "チューブ 筋トレ 自宅"],
 };
-
 const fallbackKeywords = Object.entries(keywordSeedGroups).flatMap(([category, keywords]) =>
   keywords.map((keyword) => ({ keyword, category })),
 );
@@ -531,7 +530,6 @@ function createArticleTags(keyword, category) {
   };
   return Array.from(new Set([keyword, categoryTagById[normalizeArticleCategory(category)]].filter(Boolean))).slice(0, 5);
 }
-
 function normalizeArticleCategory(category) {
   return ["guide", "rack", "dumbbell", "bench", "floor", "compact"].includes(category) ? category : "guide";
 }
@@ -541,7 +539,7 @@ function articleCategoryToProductCategory(category, text) {
   if (category === "dumbbell" || hasAny(text, ["ダンベル", "重量変更"])) return "adjustable-dumbbell";
   if (category === "bench" || hasAny(text, ["ベンチ", "インクライン"])) return "bench";
   if (category === "floor" || hasAny(text, ["床", "マット", "防音", "防振"])) return "floor-mat";
-  if (category === "compact" || hasAny(text, ["省スペース", "狭い", "折りたたみ"])) return "compact-gym";
+  if (category === "compact" || hasAny(text, ["省スペース", "狭い", "折りたたみ", "チューブ", "ミラー"])) return "compact-gym";
   return "floor-mat";
 }
 
@@ -553,7 +551,6 @@ function inferArticleCategory(keyword) {
   if (hasAny(keyword, ["省スペース", "狭い", "折りたたみ", "チューブ", "ミラー"])) return "compact";
   return "guide";
 }
-
 function isHomeGymKeyword(candidate) {
   const keyword = normalizeKeyword(candidate.keyword);
   if (keyword.length < 4 || keyword.length > 80) return false;
@@ -561,7 +558,7 @@ function isHomeGymKeyword(candidate) {
   return hasAny(keyword, [
     "ホームジム",
     "家トレ",
-    "宅トレ",
+    "自宅トレ",
     "筋トレ器具",
     "パワーラック",
     "ダンベル",
@@ -584,7 +581,7 @@ function scoreKeywordCandidate(candidate) {
     "費用",
     "予算",
     "広さ",
-    "何畳",
+    "作り方",
     "6畳",
     "4畳",
     "賃貸",
@@ -605,7 +602,6 @@ function scoreKeywordCandidate(candidate) {
 
   return Math.round(volumeScore + intentScore + longTailScore + categoryScore - competitionPenalty);
 }
-
 function keywordIntentScore(keyword, terms) {
   return terms.reduce((score, term) => score + (keyword.includes(term) ? 8 : 0), 0);
 }
@@ -676,3 +672,7 @@ function fail(message) {
   console.error(message);
   process.exit(1);
 }
+
+
+
+

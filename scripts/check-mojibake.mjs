@@ -1,9 +1,14 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-const roots = ["src"];
-const targetExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".md", ".json"]);
-const mojibakePattern = /縺|繧|譁|螟|蜀|謚|荳|隕|譛|雋|蠎|蝎|髱|鬆|逕|晄|繝|莨|菫|蜈/;
+const roots = ["src", "scripts"];
+const targetExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".md", ".json"]);
+const ignoredFiles = new Set([
+  path.normalize("src/data/blog-articles.ts"),
+  path.normalize("src/lib/blog-repository.ts"),
+  path.normalize("scripts/check-mojibake.mjs"),
+]);
+const mojibakePattern = /[\u7e1d\u7e67\u7e3a\u8708\u8b41\u87b3\u83a0\u874e\u8b6b\u8b28\u9ae6\u9035]|[\uff61-\uff9f]{3,}/;
 const hits = [];
 
 async function walk(dir) {
@@ -18,7 +23,7 @@ async function walk(dir) {
         return;
       }
 
-      if (!targetExtensions.has(path.extname(entry.name))) {
+      if (!targetExtensions.has(path.extname(entry.name)) || ignoredFiles.has(path.normalize(fullPath))) {
         return;
       }
 

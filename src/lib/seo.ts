@@ -4,8 +4,10 @@ export const siteName = "マイホームジム";
 
 export const siteUrl = "https://www.my-home-gym.jp";
 
+export const siteAuthorName = "マイホームジム編集部";
+
 export const defaultSeoDescription =
-  "ホームジムの写真投稿を、畳数・予算・器具カテゴリで比較できる共有サイト。パワーラック、可変式ダンベル、トレーニングベンチ、防音マット、床補強など、自宅ジム作りの実例と用品ランキングを確認できます。";
+  "ホームジムの実例投稿を広さ・予算・器具カテゴリで比較できる共有サイト。パワーラック、可変式ダンベル、トレーニングベンチ、防音マットなど、自宅ジム作りに役立つ器具ランキングとお助け記事を掲載しています。";
 
 export const baseSeoKeywords = [
   "ホームジム",
