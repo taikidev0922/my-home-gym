@@ -1,19 +1,19 @@
 import { affiliateProducts } from "@/data/affiliate-products";
 import type { ProductCategory } from "@/lib/types";
 
-export async function getAffiliateProducts() {
+export function getAffiliateProducts() {
   return affiliateProducts;
 }
 
-export async function getAffiliateProductsForGeneration() {
+export function getAffiliateProductsForGeneration() {
   return affiliateProducts;
 }
 
-export async function getAffiliateProductById(id: string) {
+export function getAffiliateProductById(id: string) {
   return affiliateProducts.find((product) => product.id === id) ?? null;
 }
 
-export async function getAffiliateProductsByIds(ids: string[]) {
+export function getAffiliateProductsByIds(ids: string[]) {
   const allowedIds = new Set(ids);
   const productMap = new Map<string, (typeof affiliateProducts)[number]>();
 
@@ -24,6 +24,6 @@ export async function getAffiliateProductsByIds(ids: string[]) {
   return productMap;
 }
 
-export async function getAffiliateProductsByCategory(category: ProductCategory) {
+export function getAffiliateProductsByCategory(category: ProductCategory) {
   return affiliateProducts.filter((product) => product.category === category);
 }

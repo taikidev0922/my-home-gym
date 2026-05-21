@@ -1,13 +1,10 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
-import { BlogArticleListPending, BlogPendingLink } from "@/components/blog-pending-link";
-import { BlogListLoadingSkeleton } from "@/components/page-skeletons";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleFacets, getBlogArticlesPage } from "@/lib/blog-repository";
-import { getHeaderUser } from "@/lib/header-user";
 import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
 import type { BlogArticle } from "@/lib/types";
 
@@ -49,25 +46,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage(props: BlogPageProps) {
-  return (
-    <Suspense fallback={<BlogListLoadingSkeleton />}>
-      <BlogContent {...props} />
-    </Suspense>
-  );
-}
-
-async function BlogContent({ searchParams }: BlogPageProps) {
+export default async function BlogPage({ searchParams }: BlogPageProps) {
   const params = (await searchParams) ?? {};
   const selectedCategory = getParam(params.category);
   const selectedTag = getParam(params.tag);
   const page = Math.max(1, Number(getParam(params.page) ?? 1) || 1);
 
-  const [articlePage, facets, latestPage, currentUser] = await Promise.all([
+  const [articlePage, facets, latestPage] = await Promise.all([
     getBlogArticlesPage({ category: selectedCategory, tag: selectedTag, page, pageSize }),
     getBlogArticleFacets(),
     getBlogArticlesPage({ page: 1, pageSize: 1 }),
-    getHeaderUser(),
   ]);
 
   const categoryCounts = new Map(facets.categories.map((category) => [category.id, category.count]));
@@ -78,7 +66,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
+      <SiteHeader showMobilePostButton={false} />
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <section className="py-2 sm:py-3">
           <h1 className="text-3xl font-bold leading-tight tracking-normal sm:text-5xl">ホームジムお助け記事</h1>
@@ -180,7 +168,6 @@ async function BlogContent({ searchParams }: BlogPageProps) {
         </section>
 
         <section className="relative mt-4 min-h-[420px] sm:mt-8">
-          <BlogArticleListPending />
           <div className="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4">
             <div className="hidden sm:block">
               <h2 className="text-2xl font-bold">記事一覧</h2>
@@ -194,9 +181,9 @@ async function BlogContent({ searchParams }: BlogPageProps) {
               </p>
             </div>
             {(selectedCategory || selectedTag) ? (
-              <BlogPendingLink href="/blog" className="rounded-lg border border-[#cfd8cf] px-3 py-2 text-sm font-bold text-[#4e5b52]">
+              <Link href="/blog" className="rounded-lg border border-[#cfd8cf] px-3 py-2 text-sm font-bold text-[#4e5b52]">
                 絞り込みを解除
-              </BlogPendingLink>
+              </Link>
             ) : null}
           </div>
 
@@ -319,7 +306,7 @@ function ArticleMeta({ article }: { article: BlogArticle }) {
 
 function FilterChip({ href, active, children }: { href: string; active?: boolean; children: ReactNode }) {
   return (
-    <BlogPendingLink
+    <Link
       href={href}
       className={
         active
@@ -328,7 +315,7 @@ function FilterChip({ href, active, children }: { href: string; active?: boolean
       }
     >
       {children}
-    </BlogPendingLink>
+    </Link>
   );
 }
 
@@ -352,7 +339,7 @@ function PageLink({
   }
 
   return (
-    <BlogPendingLink
+    <Link
       href={href}
       aria-current={active ? "page" : undefined}
       className={
@@ -362,7 +349,7 @@ function PageLink({
       }
     >
       {children}
-    </BlogPendingLink>
+    </Link>
   );
 }
 
