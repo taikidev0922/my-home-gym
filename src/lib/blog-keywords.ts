@@ -1,4 +1,3 @@
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { BlogArticle } from "@/lib/types";
 
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
@@ -87,7 +86,6 @@ export async function selectHomeGymKeyword(existingArticles: ExistingBlogKeyword
   const candidate = rakko.candidates.find((item) => !used.has(normalizeKeyword(item.keyword)));
 
   if (candidate) {
-    await upsertKeywordCandidate(candidate);
     return candidate;
   }
 
@@ -104,30 +102,12 @@ export async function selectHomeGymKeyword(existingArticles: ExistingBlogKeyword
 }
 
 export async function markKeywordUsed(keyword: KeywordCandidate, article: { slug: string; title: string }) {
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return;
-
-  const { data } = await supabase
-    .from("blog_keyword_candidates")
-    .select("usage_count")
-    .eq("keyword", keyword.keyword)
-    .maybeSingle();
-
-  await supabase.from("blog_keyword_candidates").upsert(
-    {
-      keyword: keyword.keyword,
-      source: keyword.source,
-      category: keyword.category,
-      metrics: {
-        ...keyword.metrics,
-        lastArticleSlug: article.slug,
-        lastArticleTitle: article.title,
-      },
-      usage_count: Number(data?.usage_count || 0) + 1,
-      last_used_at: new Date().toISOString(),
-    },
-    { onConflict: "keyword" },
-  );
+  console.info("[blog-source] keyword used", {
+    keyword: keyword.keyword,
+    source: keyword.source,
+    slug: article.slug,
+    title: article.title,
+  });
 }
 
 async function fetchRakkoKeywordCandidates(existingArticles: ExistingBlogKeyword[]) {
@@ -196,21 +176,6 @@ async function callRakko(endpoint: string, apiKey: string, body: Record<string, 
   } catch {
     return { ok: false, source: "rakko-fetch-error", items: [] };
   }
-}
-
-async function upsertKeywordCandidate(candidate: KeywordCandidate) {
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return;
-
-  await supabase.from("blog_keyword_candidates").upsert(
-    {
-      keyword: candidate.keyword,
-      source: candidate.source,
-      category: candidate.category,
-      metrics: candidate.metrics,
-    },
-    { onConflict: "keyword", ignoreDuplicates: true },
-  );
 }
 
 function isHomeGymKeyword(candidate: KeywordCandidate) {

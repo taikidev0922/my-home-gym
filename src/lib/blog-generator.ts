@@ -1,4 +1,5 @@
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import fs from "node:fs/promises";
+import path from "node:path";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
 import type { BlogArticle, BlogArticleBlock, ProductCategory } from "@/lib/types";
 import { buildAffiliatePromptSection, type AffiliateProduct } from "@/lib/affiliate-products";
@@ -210,24 +211,20 @@ async function generateAndAttachInlineVisuals(article: Omit<BlogArticle, "id">) 
 }
 
 async function uploadBlogImage(slug: string, base64: string) {
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return null;
-
   const bytes = Buffer.from(base64, "base64");
-  const path = `generated/${slug}.webp`;
+  const articleSlug = slug.split("-inline-")[0] ?? slug;
+  const fileName = `${slug}.webp`;
+  const publicPath = `/blog/${articleSlug}/${fileName}`;
+  const outputPath = path.join(process.cwd(), "public", "blog", articleSlug, fileName);
 
-  const { error } = await supabase.storage.from("blog-images").upload(path, bytes, {
-    contentType: "image/webp",
-    upsert: true,
-  });
-
-  if (error) {
-    console.error("Failed to upload generated blog image", error);
+  try {
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, bytes);
+    return publicPath;
+  } catch (error) {
+    console.error("Failed to store generated blog image", error);
     return null;
   }
-
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
-  return data.publicUrl;
 }
 
 function buildArticlePromptV2(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {

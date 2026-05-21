@@ -9,8 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "blog:affiliate-links": "node scripts/enrich-blog-affiliate-links.mjs",
-    "blog:affiliate-links:apply": "node scripts/enrich-blog-affiliate-links.mjs --apply"
+    "blog:auto-post": "node scripts/generate-source-blog-post.mjs",
+    "blog:auto-post:dry": "node scripts/generate-source-blog-post.mjs --dry-run"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.20.0",

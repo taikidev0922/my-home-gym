@@ -44,48 +44,16 @@ create table post_likes (
   primary key (user_id, post_id)
 );
 
-create table blog_articles (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  title text not null,
-  excerpt text not null,
-  keyword text not null,
-  category text not null default 'guide',
-  image_url text,
-  reading_minutes integer not null default 5,
-  published_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  article_source text not null default 'fallback',
-  keyword_source text not null default 'seed',
-  blocks jsonb not null default '[]'::jsonb,
-  metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
-);
-
-create table blog_keyword_candidates (
-  id uuid primary key default gen_random_uuid(),
-  keyword text not null unique,
-  source text not null default 'seed',
-  category text,
-  metrics jsonb not null default '{}'::jsonb,
-  usage_count integer not null default 0,
-  last_used_at timestamptz,
-  discovered_at timestamptz not null default now()
-);
-
 alter table profiles enable row level security;
 alter table gym_posts enable row level security;
 alter table gym_post_images enable row level security;
 alter table gym_post_categories enable row level security;
 alter table post_likes enable row level security;
-alter table blog_articles enable row level security;
-alter table blog_keyword_candidates enable row level security;
 
 insert into storage.buckets (id, name, public)
 values
   ('gym-post-images', 'gym-post-images', true),
-  ('profile-avatars', 'profile-avatars', true),
-  ('blog-images', 'blog-images', true)
+  ('profile-avatars', 'profile-avatars', true)
 on conflict (id) do nothing;
 
 create policy "Public profiles are readable" on profiles for select using (true);
@@ -104,14 +72,9 @@ create policy "Post likes are publicly readable" on post_likes for select using 
   exists (select 1 from gym_posts where gym_posts.id = post_likes.post_id and gym_posts.published = true)
 );
 
-create policy "Blog articles are publicly readable" on blog_articles for select using (true);
-create policy "Blog keywords are publicly readable" on blog_keyword_candidates for select using (true);
-
 create policy "Public gym images are readable" on storage.objects for select using (bucket_id = 'gym-post-images');
 
 create policy "Public profile avatars are readable" on storage.objects for select using (bucket_id = 'profile-avatars');
-
-create policy "Public blog images are readable" on storage.objects for select using (bucket_id = 'blog-images');
 
 create extension if not exists pg_trgm with schema extensions;
 
@@ -122,6 +85,3 @@ create index gym_posts_area_tatami_idx on gym_posts (area_tatami);
 create index gym_posts_title_trgm_idx on gym_posts using gin (title extensions.gin_trgm_ops);
 create index gym_posts_summary_trgm_idx on gym_posts using gin (summary extensions.gin_trgm_ops);
 create index gym_post_categories_category_post_id_idx on gym_post_categories (category, post_id);
-create index blog_articles_published_at_idx on blog_articles (published_at desc);
-create index blog_articles_keyword_idx on blog_articles (keyword);
-create index blog_keyword_candidates_usage_idx on blog_keyword_candidates (usage_count, last_used_at nulls first);
