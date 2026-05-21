@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "images:optimize": "node scripts/optimize-webp-assets.mjs",
     "blog:auto-post": "node scripts/generate-source-blog-post.mjs",
     "blog:auto-post:dry": "node scripts/generate-source-blog-post.mjs --dry-run"
   },

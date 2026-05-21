@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import sharp from "sharp";
 
 const ROOT = process.cwd();
 const BLOG_DATA_PATH = path.join(ROOT, "src", "data", "blog-articles.ts");
@@ -13,6 +14,8 @@ const CLAUDE_TIMEOUT_MS = 180_000;
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
 const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 const DRY_RUN = process.argv.includes("--dry-run");
+const BLOG_IMAGE_MAX_WIDTH = 1200;
+const BLOG_IMAGE_WEBP_QUALITY = 74;
 
 const keywordSeedGroups = {
   guide: ["ホームジム 器具", "家トレ 器具", "筋トレ 部屋", "ホームジム 予算", "ホームジム 広さ", "ホームジム 作り方"],
@@ -202,7 +205,7 @@ async function generateAndAttachImages(article) {
     const fileName = `image-${String(index + 1).padStart(2, "0")}.webp`;
     const outputPath = path.join(BLOG_IMAGE_ROOT, article.slug, fileName);
     const bytes = await generateImage(article, block.visual);
-    await fs.writeFile(outputPath, bytes);
+    await fs.writeFile(outputPath, await optimizeBlogImage(bytes));
     imageUrls.set(block.heading, `/blog/${article.slug}/${fileName}`);
   }
 
@@ -259,6 +262,14 @@ async function generateImage(article, visual) {
   const base64 = payload?.data?.[0]?.b64_json;
   if (typeof base64 !== "string") fail("OpenAI image response did not contain b64_json.");
   return Buffer.from(base64, "base64");
+}
+
+async function optimizeBlogImage(bytes) {
+  return sharp(bytes)
+    .rotate()
+    .resize({ width: BLOG_IMAGE_MAX_WIDTH, withoutEnlargement: true })
+    .webp({ quality: BLOG_IMAGE_WEBP_QUALITY, effort: 6 })
+    .toBuffer();
 }
 
 function buildImagePrompt(article, visual) {

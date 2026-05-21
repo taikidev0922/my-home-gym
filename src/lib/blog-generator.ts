@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import type { KeywordCandidate } from "@/lib/blog-keywords";
 import type { BlogArticle, BlogArticleBlock, ProductCategory } from "@/lib/types";
 import { buildAffiliatePromptSection, type AffiliateProduct } from "@/lib/affiliate-products";
@@ -27,6 +28,8 @@ const OPENAI_IMAGE_MODEL = "gpt-image-2";
 const OPENAI_IMAGE_QUALITY = "high";
 const CLAUDE_TIMEOUT_MS = 60_000;
 const IMAGE_TIMEOUT_MS = 260_000;
+const BLOG_IMAGE_MAX_WIDTH = 1200;
+const BLOG_IMAGE_WEBP_QUALITY = 74;
 
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
   console.info("[blog-cron] start article generation", { keyword: keyword.keyword, category: keyword.category });
@@ -219,12 +222,20 @@ async function uploadBlogImage(slug: string, base64: string) {
 
   try {
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, bytes);
+    await fs.writeFile(outputPath, await optimizeBlogImage(bytes));
     return publicPath;
   } catch (error) {
     console.error("Failed to store generated blog image", error);
     return null;
   }
+}
+
+async function optimizeBlogImage(bytes: Buffer) {
+  return sharp(bytes)
+    .rotate()
+    .resize({ width: BLOG_IMAGE_MAX_WIDTH, withoutEnlargement: true })
+    .webp({ quality: BLOG_IMAGE_WEBP_QUALITY, effort: 6 })
+    .toBuffer();
 }
 
 function buildArticlePromptV2(keyword: KeywordCandidate, affiliateProducts: AffiliateProduct[]) {
