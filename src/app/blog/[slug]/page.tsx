@@ -348,11 +348,24 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
 
             <nav className="mt-6 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-4" aria-label="記事の目次">
               <h2 className="text-base font-bold">目次</h2>
-              <ol className="mt-3 grid gap-2 text-sm font-bold text-[#4e5b52]">
-                {sectionLinks.map((section) => (
+              <ol className="mt-3 grid gap-2 text-sm font-bold">
+                {sectionLinks.map((section, index) => (
                   <li key={section.id}>
-                    <a href={`#${section.id}`} className="hover:text-[#e4572e]">
-                      {section.heading}
+                    <a
+                      href={`#${section.id}`}
+                      className="group flex min-w-0 items-center gap-3 rounded-lg border border-[#d8e0d6] bg-white px-3 py-3 text-[#122018] shadow-sm transition hover:border-[#e4572e]/60 hover:bg-[#fff8f4] hover:text-[#e4572e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e4572e]"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#e4572e] text-xs font-black leading-none text-white">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 underline decoration-[#e4572e]/40 underline-offset-4 group-hover:decoration-[#e4572e]">
+                        {section.heading}
+                      </span>
+                      <ArrowRight
+                        size={16}
+                        className="shrink-0 text-[#e4572e] transition group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
                     </a>
                   </li>
                 ))}
