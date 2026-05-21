@@ -30,6 +30,7 @@ const CLAUDE_TIMEOUT_MS = 60_000;
 const IMAGE_TIMEOUT_MS = 260_000;
 const BLOG_IMAGE_MAX_WIDTH = 1200;
 const BLOG_IMAGE_WEBP_QUALITY = 74;
+const MAX_AFFILIATE_LINKS_PER_ARTICLE = 3;
 
 export async function generateHomeGymArticle(keyword: KeywordCandidate): Promise<Omit<BlogArticle, "id">> {
   console.info("[blog-cron] start article generation", { keyword: keyword.keyword, category: keyword.category });
@@ -252,7 +253,9 @@ ${buildAffiliatePromptSection(affiliateProducts)}
 - 結論を先に書き、その後に選び方、注意点、失敗回避、代替案を具体的に説明する。
 - サイズ、重量、設置条件、床保護、防音、予算、レビュー数など、購入前に判断できる情報を優先する。
 - 医療的・断定的な効果保証、過度な販売表現は避ける。
-- 商品カードは1記事につき最大1つ。入れる場合は、直前の段落で判断軸を説明してから {{affiliate:商品ID}} を単独段落として置く。
+- 商品カードは1記事につき最大3つ。本文で個別商品の詳細、価格、サイズ、重量、レビュー、設置条件などに触れる場合は、その商品に対応する {{affiliate:商品ID}} を必ず直後または同じ小見出し内の自然な位置に置く。
+- 複数の商品を比較・紹介する場合は、本文で具体的に説明した商品ごとに商品カードを入れる。1つだけに絞らない。
+- 商品カードを入れる場合は、直前の段落で判断軸を説明してから {{affiliate:商品ID}} を単独段落として置く。
 - JSONだけを返す。Markdownや説明文は不要。
 
 JSON形式:
@@ -467,7 +470,7 @@ function ensureAffiliatePlacement(
   article: Omit<BlogArticle, "id">,
   affiliateProducts: AffiliateProduct[],
 ): Omit<BlogArticle, "id"> {
-  const normalizedBlocks = keepFirstAffiliateMarker(article.blocks);
+  const normalizedBlocks = keepAffiliateMarkers(article.blocks, affiliateProducts, MAX_AFFILIATE_LINKS_PER_ARTICLE);
   const markers = collectAffiliateMarkers(normalizedBlocks);
   if (markers.length > 0) {
     return {
@@ -475,26 +478,30 @@ function ensureAffiliatePlacement(
       blocks: normalizedBlocks,
       metadata: {
         ...article.metadata,
-        affiliateLinks: markers.slice(0, 1),
+        affiliateLinks: markers,
       },
     };
   }
 
-  const product = selectAffiliateProduct(article, affiliateProducts);
-  if (!product) return article;
+  const products = selectAffiliateProducts(article, affiliateProducts, MAX_AFFILIATE_LINKS_PER_ARTICLE);
+  if (!products.length) return article;
 
   return {
     ...article,
-    blocks: insertAffiliateMarker(article.blocks, product.id),
+    blocks: insertAffiliateMarkers(article.blocks, products.map((product) => product.id)),
     metadata: {
       ...article.metadata,
-      affiliateLinks: [product.id],
+      affiliateLinks: products.map((product) => product.id),
       affiliateInsertedByFallback: true,
     },
   };
 }
 
-function selectAffiliateProduct(article: Omit<BlogArticle, "id">, affiliateProducts: AffiliateProduct[]) {
+function selectAffiliateProducts(
+  article: Omit<BlogArticle, "id">,
+  affiliateProducts: AffiliateProduct[],
+  limit: number,
+) {
   const text = `${article.keyword} ${article.title} ${article.excerpt} ${article.blocks
     .flatMap((block) => [block.heading, ...block.paragraphs])
     .join(" ")}`.toLowerCase();
@@ -502,23 +509,32 @@ function selectAffiliateProduct(article: Omit<BlogArticle, "id">, affiliateProdu
   const categoryProducts = affiliateProducts.filter((product) => product.category === category);
   const candidates = categoryProducts.length ? categoryProducts : affiliateProducts;
 
-  return (
-    candidates.find((product) =>
-      [product.name, product.maker, product.genre, ...product.keywords].some((keyword) =>
+  const scored = candidates
+    .map((product) => {
+      const matches = [product.name, product.maker, product.genre, ...product.keywords].filter((keyword) =>
         text.includes(keyword.toLowerCase()),
-      ),
-    ) ??
-    categoryProducts[0] ??
-    affiliateProducts[0]
-  );
+      );
+      return {
+        product,
+        score: matches.length * 10 + Math.max(0, 6 - product.rank),
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.product.rank - b.product.rank)
+    .map((item) => item.product);
+
+  const fallback = categoryProducts.length ? categoryProducts : affiliateProducts;
+  return Array.from(new Map([...scored, ...fallback].map((product) => [product.id, product])).values()).slice(0, limit);
 }
 
-function insertAffiliateMarker(blocks: BlogArticleBlock[], productId: string) {
+function insertAffiliateMarkers(blocks: BlogArticleBlock[], productIds: string[]) {
   if (!blocks.length) return blocks;
-  const insertIndex = blocks.length >= 3 ? 1 : 0;
+  const uniqueProductIds = Array.from(new Set(productIds)).slice(0, MAX_AFFILIATE_LINKS_PER_ARTICLE);
+  const startIndex = blocks.length >= 3 ? 1 : 0;
 
   return blocks.map((block, index) => {
-    if (index !== insertIndex) return block;
+    const productId = uniqueProductIds[index - startIndex];
+    if (!productId) return block;
     const paragraphs = [...block.paragraphs];
     const position = Math.min(1, paragraphs.length);
     paragraphs.splice(position, 0, `{{affiliate:${productId}}}`);
@@ -538,16 +554,17 @@ function collectAffiliateMarkers(blocks: BlogArticleBlock[]) {
   );
 }
 
-function keepFirstAffiliateMarker(blocks: BlogArticleBlock[]) {
-  let hasMarker = false;
+function keepAffiliateMarkers(blocks: BlogArticleBlock[], affiliateProducts: AffiliateProduct[], limit: number) {
+  const allowedIds = new Set(affiliateProducts.map((product) => product.id));
+  const seenIds = new Set<string>();
 
   return blocks.map((block) => ({
     ...block,
     paragraphs: block.paragraphs.filter((paragraph) => {
       const markerId = paragraph.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/)?.[1];
       if (!markerId) return true;
-      if (hasMarker) return false;
-      hasMarker = true;
+      if (!allowedIds.has(markerId) || seenIds.has(markerId) || seenIds.size >= limit) return false;
+      seenIds.add(markerId);
       return true;
     }),
   }));

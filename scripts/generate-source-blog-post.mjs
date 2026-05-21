@@ -16,6 +16,7 @@ const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 const DRY_RUN = process.argv.includes("--dry-run");
 const BLOG_IMAGE_MAX_WIDTH = 1200;
 const BLOG_IMAGE_WEBP_QUALITY = 74;
+const MAX_AFFILIATE_LINKS_PER_ARTICLE = 3;
 
 const keywordSeedGroups = {
   guide: ["ホームジム 器具", "家トレ 器具", "筋トレ 部屋", "ホームジム 予算", "ホームジム 広さ", "ホームジム 作り方"],
@@ -120,10 +121,12 @@ Search keyword: ${keyword.keyword}
 Expected category: ${keyword.category}
 
 Affiliate card rules:
-- Insert at most one affiliate card marker in the article.
+- Insert up to three affiliate card markers in the article.
 - Use only ids from the product list below.
 - Insert the marker as a standalone paragraph inside paragraphs, for example "{{affiliate:power-rack-1}}".
-- Choose a product only when it naturally helps the reader decide. Avoid hard-sell language.
+- If you write details about a specific product, including price, size, weight, reviews, setup conditions, or Amazon facts, you must add that product's affiliate marker immediately after that paragraph or inside the same section.
+- When comparing or explaining multiple specific products, add a matching affiliate card for each product you discuss. Do not limit the article to one product when the text contains multiple product details.
+- Choose products only when they naturally help the reader decide. Avoid hard-sell language.
 - Right before the marker, explain the relevant decision point such as size, weight, setup conditions, price range, reviews, or failure avoidance.
 - Prioritize scraped Amazon facts, specs, size, weight, price, rating, review count, and availability over guesswork.
 
@@ -371,28 +374,35 @@ async function fetchRakkoKeywordCandidates(articles) {
 }
 
 function ensureAffiliatePlacement(article, products) {
-  const normalizedBlocks = keepFirstAffiliateMarker(article.blocks, products);
+  const normalizedBlocks = keepAffiliateMarkers(article.blocks, products, MAX_AFFILIATE_LINKS_PER_ARTICLE);
   const markers = collectAffiliateMarkers(normalizedBlocks);
   if (markers.length > 0) {
     return {
       ...article,
       blocks: normalizedBlocks,
-      metadata: { ...article.metadata, affiliateLinks: markers.slice(0, 1) },
+      metadata: { ...article.metadata, affiliateLinks: markers },
     };
   }
 
-  const product = selectAffiliateProduct(article, products);
-  if (!product) return article;
-  const blocks = insertAffiliateMarker(article.blocks, product.id);
+  const selectedProducts = selectAffiliateProducts(article, products, MAX_AFFILIATE_LINKS_PER_ARTICLE);
+  if (!selectedProducts.length) return article;
+  const blocks = insertAffiliateMarkers(
+    article.blocks,
+    selectedProducts.map((product) => product.id),
+  );
 
   return {
     ...article,
     blocks,
-    metadata: { ...article.metadata, affiliateLinks: [product.id], affiliateInsertedByFallback: true },
+    metadata: {
+      ...article.metadata,
+      affiliateLinks: selectedProducts.map((product) => product.id),
+      affiliateInsertedByFallback: true,
+    },
   };
 }
 
-function selectAffiliateProduct(article, products) {
+function selectAffiliateProducts(article, products, limit) {
   const text = `${article.keyword} ${article.title} ${article.excerpt} ${article.blocks
     .flatMap((block) => [block.heading, ...block.paragraphs])
     .join(" ")}`.toLowerCase();
@@ -400,41 +410,49 @@ function selectAffiliateProduct(article, products) {
   const categoryProducts = products.filter((product) => product.category === category);
   const candidates = categoryProducts.length ? categoryProducts : products;
 
-  return (
-    candidates.find((product) =>
-      [product.name, product.maker, product.genre, ...(product.keywords || [])].some((keyword) =>
+  const scored = candidates
+    .map((product) => {
+      const matches = [product.name, product.maker, product.genre, ...(product.keywords || [])].filter((keyword) =>
         text.includes(String(keyword).toLowerCase()),
-      ),
-    ) ??
-    categoryProducts[0] ??
-    products[0] ??
-    null
-  );
+      );
+      return {
+        product,
+        score: matches.length * 10 + Math.max(0, 6 - Number(product.rank || 0)),
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || Number(a.product.rank || 0) - Number(b.product.rank || 0))
+    .map((item) => item.product);
+
+  const fallback = categoryProducts.length ? categoryProducts : products;
+  return Array.from(new Map([...scored, ...fallback].map((product) => [product.id, product])).values()).slice(0, limit);
 }
 
-function insertAffiliateMarker(blocks, productId) {
+function insertAffiliateMarkers(blocks, productIds) {
   if (!blocks.length) return blocks;
-  const insertIndex = blocks.length >= 3 ? 1 : 0;
+  const uniqueProductIds = Array.from(new Set(productIds)).slice(0, MAX_AFFILIATE_LINKS_PER_ARTICLE);
+  const startIndex = blocks.length >= 3 ? 1 : 0;
 
   return blocks.map((block, index) => {
-    if (index !== insertIndex) return block;
+    const productId = uniqueProductIds[index - startIndex];
+    if (!productId) return block;
     const paragraphs = [...block.paragraphs];
     paragraphs.splice(Math.min(1, paragraphs.length), 0, `{{affiliate:${productId}}}`);
     return { ...block, paragraphs };
   });
 }
 
-function keepFirstAffiliateMarker(blocks, products) {
+function keepAffiliateMarkers(blocks, products, limit) {
   const allowedIds = new Set(products.map((product) => product.id));
-  let hasMarker = false;
+  const seenIds = new Set();
 
   return blocks.map((block) => ({
     ...block,
     paragraphs: block.paragraphs.filter((paragraph) => {
       const markerId = getAffiliateMarkerId(paragraph);
       if (!markerId) return true;
-      if (hasMarker || !allowedIds.has(markerId)) return false;
-      hasMarker = true;
+      if (!allowedIds.has(markerId) || seenIds.has(markerId) || seenIds.size >= limit) return false;
+      seenIds.add(markerId);
       return true;
     }),
   }));

@@ -9,7 +9,7 @@ import { getBlogArticleBySlug, getBlogArticles, getBlogArticlesPage } from "@/li
 import { createBlogArticleJsonLd, createBlogBreadcrumbJsonLd, createBlogFaqJsonLd, createBlogFaqs } from "@/lib/blog-seo";
 import { absoluteUrl, baseSeoKeywords, siteAuthorName, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
-import { getAffiliateProductById } from "@/lib/affiliate-products-server";
+import { getAffiliateProductsByIds } from "@/lib/affiliate-products-server";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { BlogArticle } from "@/lib/types";
 
@@ -271,9 +271,8 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
         block.paragraphs.map((paragraph) => getAffiliateProductMarkerId(paragraph)).filter((id): id is string => Boolean(id)),
       ),
     ),
-  ).slice(0, 1);
-  const firstAffiliateMarkerId = affiliateMarkerIds[0] ?? null;
-  const firstAffiliateProduct = firstAffiliateMarkerId ? getAffiliateProductById(firstAffiliateMarkerId) : null;
+  );
+  const affiliateProductsById = getAffiliateProductsByIds(affiliateMarkerIds);
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
   const faqs = createBlogFaqs(article);
@@ -384,10 +383,10 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
                   <div className="mt-4 grid gap-4 text-base leading-8 text-[#4e5b52]">
                     {block.paragraphs.map((paragraph) => {
                       const affiliateMarkerId = getAffiliateProductMarkerId(paragraph);
-                      if (affiliateMarkerId && affiliateMarkerId !== firstAffiliateMarkerId) return null;
 
                       if (affiliateMarkerId) {
-                        return firstAffiliateProduct ? <AffiliateProductCard key={paragraph} product={firstAffiliateProduct} /> : null;
+                        const affiliateProduct = affiliateProductsById.get(affiliateMarkerId);
+                        return affiliateProduct ? <AffiliateProductCard key={paragraph} product={affiliateProduct} /> : null;
                       }
 
                       return <p key={paragraph}>{renderInlineLinks(paragraph)}</p>;
