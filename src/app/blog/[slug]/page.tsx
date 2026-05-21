@@ -161,10 +161,17 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
       </a>
       <Link
         href={`/rankings?category=${product.category}`}
-        className="pressable-card inline-flex w-fit items-center gap-2 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60 hover:text-[#e4572e]"
+        className="pressable-card group flex min-w-0 items-center justify-between gap-3 rounded-lg border-2 border-[#e4572e] bg-[#fff8f4] px-4 py-3 text-[#122018] shadow-sm transition hover:bg-[#e4572e] hover:text-white"
       >
-        {categoryLabel}ランキングを見る
-        <ArrowRight size={15} />
+        <span className="min-w-0">
+          <span className="block text-[11px] font-black uppercase tracking-normal text-[#e4572e] group-hover:text-white/85">
+            比較して選ぶ
+          </span>
+          <span className="mt-0.5 block truncate text-sm font-black">{categoryLabel}ランキングを見る</span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#e4572e] text-white transition group-hover:bg-white group-hover:text-[#e4572e]">
+          <ArrowRight size={17} />
+        </span>
       </Link>
     </div>
   );
