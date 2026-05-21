@@ -30,27 +30,52 @@ type BlogPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export const metadata: Metadata = {
-  title: "ホームジムお助け記事",
-  description: "ホームジム作りの広さ、予算、器具選び、床材、防音、畳数の考え方をまとめた記事一覧。",
-  keywords: [...baseSeoKeywords, "ホームジム お助け記事", "ホームジム 作り方", "ホームジム 初心者"],
-  alternates: {
-    canonical: absoluteUrl("/blog"),
-  },
-  openGraph: {
-    title: `ホームジムお助け記事 | ${siteName}`,
-    description: "ホームジム作りの広さ、予算、器具選び、床材、防音、畳数の考え方をまとめた記事一覧。",
-    url: absoluteUrl("/blog"),
-    siteName,
-    locale: "ja_JP",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `ホームジムお助け記事 | ${siteName}`,
-    description: "ホームジム作りの広さ、予算、器具選び、床材、防音、畳数の考え方をまとめた記事一覧。",
-  },
-};
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const params = (await searchParams) ?? {};
+  const selectedCategory = getParam(params.category);
+  const selectedTag = getParam(params.tag);
+  const page = Math.max(1, Number(getParam(params.page) ?? 1) || 1);
+  const categoryLabel = selectedCategory ? getCategoryLabel(selectedCategory) : null;
+  const filterLabel = selectedTag || categoryLabel;
+  const title = filterLabel
+    ? `${filterLabel}の記事${page > 1 ? ` ${page}ページ目` : ""}`
+    : `ホームジムお助け記事${page > 1 ? ` ${page}ページ目` : ""}`;
+  const description = filterLabel
+    ? `${filterLabel}に関するホームジム記事一覧。広さ、予算、器具選び、床材、防音、設置条件を具体的に確認できます。`
+    : "ホームジム作りの広さ、予算、器具選び、床材、防音、畳数の考え方をまとめた記事一覧。";
+  const canonicalPath = blogHref({
+    category: selectedCategory,
+    tag: selectedTag,
+    page: page > 1 ? page : undefined,
+  });
+
+  return {
+    title,
+    description,
+    keywords: [...baseSeoKeywords, "ホームジム お助け記事", "ホームジム 作り方", "ホームジム 初心者", filterLabel].filter(
+      (keyword): keyword is string => Boolean(keyword),
+    ),
+    alternates: {
+      canonical: absoluteUrl(canonicalPath),
+      types: {
+        "application/rss+xml": absoluteUrl("/feed.xml"),
+      },
+    },
+    openGraph: {
+      title: `${title} | ${siteName}`,
+      description,
+      url: absoluteUrl(canonicalPath),
+      siteName,
+      locale: "ja_JP",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${siteName}`,
+      description,
+    },
+  };
+}
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const params = (await searchParams) ?? {};

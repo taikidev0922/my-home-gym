@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
-import { absoluteUrl, baseSeoKeywords, defaultSeoDescription, rankingSeoKeywords, siteName, siteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  baseSeoKeywords,
+  defaultSeoDescription,
+  rankingSeoKeywords,
+  siteAuthorName,
+  siteName,
+  siteUrl,
+} from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +23,31 @@ const geistMono = Geist_Mono({
 });
 
 const defaultTitle = `${siteName} | ホームジム実例と器具ランキング`;
+const siteJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: siteName,
+    url: siteUrl,
+    logo: absoluteUrl("/brand/favicon-512.webp"),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteName,
+    alternateName: siteAuthorName,
+    url: siteUrl,
+    inLanguage: "ja-JP",
+    publisher: {
+      "@type": "Organization",
+      name: siteName,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/brand/favicon-512.webp"),
+      },
+    },
+  },
+];
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -41,6 +74,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: absoluteUrl("/"),
+    types: {
+      "application/rss+xml": absoluteUrl("/feed.xml"),
+    },
   },
   openGraph: {
     title: defaultTitle,
@@ -77,6 +113,9 @@ export default function RootLayout({
     <html lang="ja" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <Script id="site-json-ld" type="application/ld+json" strategy="beforeInteractive">
+          {JSON.stringify(siteJsonLd).replace(/</g, "\\u003c")}
+        </Script>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-41RHRTCWKW" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`

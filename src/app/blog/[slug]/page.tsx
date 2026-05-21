@@ -6,8 +6,8 @@ import type { ReactNode } from "react";
 import { AffiliateDisclosure } from "@/components/affiliate-disclosure";
 import { SiteHeader } from "@/components/site-header";
 import { getBlogArticleBySlug, getBlogArticles, getBlogArticlesPage } from "@/lib/blog-repository";
-import { createBlogArticleJsonLd, createBlogBreadcrumbJsonLd } from "@/lib/blog-seo";
-import { absoluteUrl, baseSeoKeywords, siteName } from "@/lib/seo";
+import { createBlogArticleJsonLd, createBlogBreadcrumbJsonLd, createBlogFaqJsonLd, createBlogFaqs } from "@/lib/blog-seo";
+import { absoluteUrl, baseSeoKeywords, siteAuthorName, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductById } from "@/lib/affiliate-products-server";
 import { productCategoryLabels } from "@/lib/product-rankings";
@@ -170,6 +170,38 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
   );
 }
 
+function getArticleInternalLinks(article: BlogArticle) {
+  const categoryToRanking = {
+    rack: "power-rack",
+    dumbbell: "adjustable-dumbbell",
+    bench: "bench",
+    floor: "floor-mat",
+    compact: "compact-gym",
+    guide: null,
+  } as const;
+  const rankingCategory = categoryToRanking[article.category as keyof typeof categoryToRanking] ?? null;
+
+  return [
+    {
+      href: `/blog?category=${article.category}`,
+      label: "同じカテゴリの記事を見る",
+    },
+    rankingCategory
+      ? {
+          href: `/rankings?category=${rankingCategory}`,
+          label: `${productCategoryLabels[rankingCategory]}ランキングを見る`,
+        }
+      : {
+          href: "/rankings",
+          label: "ホームジム用品ランキングを見る",
+        },
+    {
+      href: "/",
+      label: "ホームジム実例を見る",
+    },
+  ];
+}
+
 export async function generateStaticParams() {
   const articles = await getBlogArticles();
   return articles.map((article) => ({ slug: article.slug }));
@@ -199,17 +231,26 @@ export async function generateMetadata({ params }: BlogArticlePageProps) {
       siteName,
       locale: "ja_JP",
       type: "article",
-      images: [article.imageUrl],
+      images: article.imageUrl
+        ? [
+            {
+              url: absoluteUrl(article.imageUrl),
+              width: 1200,
+              height: 675,
+              alt: article.title,
+            },
+          ]
+        : undefined,
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt,
-      authors: [siteName],
+      authors: [siteAuthorName],
       tags: [article.keyword, ...article.tags],
     },
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description: article.excerpt,
-      images: [article.imageUrl],
+      images: article.imageUrl ? [absoluteUrl(article.imageUrl)] : undefined,
     },
   };
 }
@@ -235,7 +276,13 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
   const firstAffiliateProduct = firstAffiliateMarkerId ? getAffiliateProductById(firstAffiliateMarkerId) : null;
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
-  const jsonLd = [createBlogBreadcrumbJsonLd(article), createBlogArticleJsonLd(article)];
+  const faqs = createBlogFaqs(article);
+  const jsonLd = [createBlogBreadcrumbJsonLd(article), createBlogArticleJsonLd(article), createBlogFaqJsonLd(faqs)];
+  const sectionLinks = article.blocks.map((block, index) => ({
+    id: `section-${index + 1}`,
+    heading: block.heading,
+  }));
+  const internalLinks = getArticleInternalLinks(article);
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
@@ -300,9 +347,37 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
               </div>
             ) : null}
 
+            <nav className="mt-6 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-4" aria-label="記事の目次">
+              <h2 className="text-base font-bold">目次</h2>
+              <ol className="mt-3 grid gap-2 text-sm font-bold text-[#4e5b52]">
+                {sectionLinks.map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`} className="hover:text-[#e4572e]">
+                      {section.heading}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+
+            <aside className="mt-4 rounded-lg border border-[#cfd8cf] bg-white p-4" aria-label="関連リンク">
+              <h2 className="text-base font-bold">関連リンク</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {internalLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-2 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e]/60 hover:text-[#e4572e]"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </aside>
+
             <div className="mt-8 grid gap-8">
-              {article.blocks.map((block) => (
-                <section key={block.heading}>
+              {article.blocks.map((block, index) => (
+                <section key={block.heading} id={`section-${index + 1}`} className="scroll-mt-20">
                   <h2 className="border-l-4 border-[#e4572e] pl-3 text-2xl font-bold leading-tight">
                     {block.heading}
                   </h2>
@@ -335,6 +410,18 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
             </div>
 
             <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
+              <section>
+                <h2 className="text-xl font-bold">よくある質問</h2>
+                <div className="mt-3 grid gap-3">
+                  {faqs.map((faq) => (
+                    <details key={faq.question} className="rounded-lg border border-[#cfd8cf] bg-white p-4">
+                      <summary className="cursor-pointer text-base font-bold text-[#122018]">{faq.question}</summary>
+                      <p className="mt-3 text-sm leading-7 text-[#4e5b52]">{faq.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+
               <RelatedArticles article={article} />
 
               <section className="mt-6">
@@ -379,7 +466,7 @@ async function RelatedArticles({ article }: { article: BlogArticle }) {
   if (!relatedArticles.length) return null;
 
   return (
-    <section>
+    <section className="mt-6">
       <h2 className="text-xl font-bold">関連記事</h2>
       <div className="mt-3 grid gap-2">
         {relatedArticles.map((related) => (
