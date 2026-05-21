@@ -335,8 +335,6 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
             </div>
 
             <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
-              <AffiliateDisclosure className="mb-6" />
-
               <RelatedArticles article={article} />
 
               <section className="mt-6">
@@ -364,6 +362,8 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
                   </Link>
                 </div>
               </section>
+
+              <AffiliateDisclosure className="mt-6" />
             </footer>
           </div>
         </article>
