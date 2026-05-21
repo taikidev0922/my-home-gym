@@ -9,9 +9,23 @@ const BLOG_IMAGE_ROOT = path.join(ROOT, "public", "blog");
 
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-5-20250929";
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
+const CLAUDE_TIMEOUT_MS = 180_000;
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
 const RAKKO_KEYWORD_FETCH_LIMIT = 20;
 const DRY_RUN = process.argv.includes("--dry-run");
+
+const keywordSeedGroups = {
+  guide: ["ホームジム 器具", "家トレ 器具", "筋トレ 部屋", "ホームジム 予算", "ホームジム 広さ", "ホームジム 作り方"],
+  rack: ["パワーラック", "ハーフラック", "スミスマシン 自宅", "パワーラック 必要スペース", "パワーラック 床 補強"],
+  dumbbell: ["可変式ダンベル", "可変式ダンベル 選び方", "可変式ダンベル 40kg", "ダンベル 家トレ", "ダンベルプレス ベンチ"],
+  bench: ["トレーニングベンチ", "インクラインベンチ", "アジャスタブルベンチ", "ベンチプレス ベンチ 自宅"],
+  floor: ["ジムマット 防音", "ジョイントマット 筋トレ", "ホームジム 床材", "ダンベル 床 防音", "賃貸 筋トレ 防音"],
+  compact: ["省スペース 筋トレ器具", "狭い部屋 筋トレ", "懸垂マシン 省スペース", "折りたたみ ベンチ", "チューブ 筋トレ 自宅"],
+};
+
+const fallbackKeywords = Object.entries(keywordSeedGroups).flatMap(([category, keywords]) =>
+  keywords.map((keyword) => ({ keyword, category })),
+);
 
 await loadEnvFile(".env.local");
 
@@ -53,7 +67,7 @@ async function generateArticleWithClaude(keyword, products) {
         },
       ],
     }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -606,19 +620,6 @@ function selectSeedKeyword(articles) {
   const seeds = keywordSeedGroups[category] || keywordSeedGroups.guide;
   return seeds[(categoryCounts.get(category) ?? 0) % seeds.length];
 }
-
-const keywordSeedGroups = {
-  guide: ["ホームジム 器具", "家トレ 器具", "筋トレ 部屋", "ホームジム 予算", "ホームジム 広さ", "ホームジム 作り方"],
-  rack: ["パワーラック", "ハーフラック", "スミスマシン 自宅", "パワーラック 必要スペース", "パワーラック 床 補強"],
-  dumbbell: ["可変式ダンベル", "可変式ダンベル 選び方", "可変式ダンベル 40kg", "ダンベル 家トレ", "ダンベルプレス ベンチ"],
-  bench: ["トレーニングベンチ", "インクラインベンチ", "アジャスタブルベンチ", "ベンチプレス ベンチ 自宅"],
-  floor: ["ジムマット 防音", "ジョイントマット 筋トレ", "ホームジム 床材", "ダンベル 床 防音", "賃貸 筋トレ 防音"],
-  compact: ["省スペース 筋トレ器具", "狭い部屋 筋トレ", "懸垂マシン 省スペース", "折りたたみ ベンチ", "チューブ 筋トレ 自宅"],
-};
-
-const fallbackKeywords = Object.entries(keywordSeedGroups).flatMap(([category, keywords]) =>
-  keywords.map((keyword) => ({ keyword, category })),
-);
 
 function parseJson(text) {
   const trimmed = text.trim();
