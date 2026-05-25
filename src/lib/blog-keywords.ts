@@ -1,4 +1,5 @@
 import type { BlogArticle } from "@/lib/types";
+import keywordStockData from "@/data/keyword-stock.json";
 
 const RAKKO_API_BASE_URL = "https://api.rakkokeyword.com";
 const RAKKO_KEYWORD_FETCH_LIMIT = 20;
@@ -81,14 +82,32 @@ export type KeywordCandidate = {
 };
 
 export async function selectHomeGymKeyword(existingArticles: ExistingBlogKeyword[]): Promise<KeywordCandidate> {
-  const rakko = await fetchRakkoKeywordCandidates(existingArticles);
   const used = new Set(existingArticles.map((article) => normalizeKeyword(article.keyword)));
-  const candidate = rakko.candidates.find((item) => !used.has(normalizeKeyword(item.keyword)));
 
+  // 1. キーワードストック（keyword-stock.json）を優先
+  type StockItem = { keyword: string; category: string; source: string; searchVolume: number; score: number };
+  const stockCandidate = (keywordStockData as StockItem[])
+    .filter((item) => item.score > 0 && !used.has(normalizeKeyword(item.keyword)))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+
+  if (stockCandidate) {
+    return {
+      keyword: stockCandidate.keyword,
+      source: `stock:${stockCandidate.source}`,
+      category: stockCandidate.category,
+      metrics: { searchVolume: stockCandidate.searchVolume },
+      score: stockCandidate.score,
+    };
+  }
+
+  // 2. Rakko API
+  const rakko = await fetchRakkoKeywordCandidates(existingArticles);
+  const candidate = rakko.candidates.find((item) => !used.has(normalizeKeyword(item.keyword)));
   if (candidate) {
     return candidate;
   }
 
+  // 3. ハードコードフォールバック
   const fallback =
     fallbackKeywords.find((keyword) => !used.has(normalizeKeyword(keyword))) ??
     `${fallbackKeywords[existingArticles.length % fallbackKeywords.length]} ${existingArticles.length + 1}`;

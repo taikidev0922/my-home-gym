@@ -6,6 +6,7 @@ import sharp from "sharp";
 const ROOT = process.cwd();
 const BLOG_DATA_PATH = path.join(ROOT, "src", "data", "blog-articles.ts");
 const AFFILIATE_DATA_PATH = path.join(ROOT, "src", "data", "affiliate-products.ts");
+const KEYWORD_STOCK_PATH = path.join(ROOT, "src", "data", "keyword-stock.json");
 const BLOG_IMAGE_ROOT = path.join(ROOT, "public", "blog");
 
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-5-20250929";
@@ -37,6 +38,7 @@ if (!DRY_RUN && !process.env.OPENAI_API_KEY) fail("OPENAI_API_KEY is required.")
 
 const existingArticles = await readDataArray(BLOG_DATA_PATH, "blogArticles");
 const affiliateProducts = await readDataArray(AFFILIATE_DATA_PATH, "affiliateProducts");
+const keywordStock = await loadKeywordStock();
 
 const keyword = await selectKeyword(existingArticles);
 const generated = await generateArticleWithClaude(keyword, affiliateProducts);
@@ -310,10 +312,28 @@ async function appendArticle(article) {
 
 async function selectKeyword(articles) {
   const used = new Set(articles.map((article) => normalizeKeyword(article.keyword)));
+
+  // 1. キーワードストック（keyword-stock.json）を優先
+  const stockCandidate = keywordStock
+    .filter((item) => item.score > 0 && !used.has(normalizeKeyword(item.keyword)))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+  if (stockCandidate) {
+    console.log(`[keyword] stock: "${stockCandidate.keyword}" (score: ${stockCandidate.score})`);
+    return {
+      keyword: stockCandidate.keyword,
+      source: `stock:${stockCandidate.source}`,
+      category: stockCandidate.category,
+      metrics: { searchVolume: stockCandidate.searchVolume },
+      score: stockCandidate.score,
+    };
+  }
+
+  // 2. Rakko API
   const rakko = await fetchRakkoKeywordCandidates(articles);
   const rakkoCandidate = rakko.candidates.find((candidate) => !used.has(normalizeKeyword(candidate.keyword)));
   if (rakkoCandidate) return rakkoCandidate;
 
+  // 3. ハードコードフォールバック
   const fallback =
     fallbackKeywords.find((item) => !used.has(normalizeKeyword(item.keyword))) ??
     fallbackKeywords[articles.length % fallbackKeywords.length];
@@ -324,6 +344,15 @@ async function selectKeyword(articles) {
     category: fallback.category,
     metrics: {},
   };
+}
+
+async function loadKeywordStock() {
+  try {
+    const contents = await fs.readFile(KEYWORD_STOCK_PATH, "utf8");
+    return JSON.parse(contents);
+  } catch {
+    return [];
+  }
 }
 
 async function fetchRakkoKeywordCandidates(articles) {
