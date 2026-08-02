@@ -10,6 +10,8 @@ import { createBlogArticleJsonLd, createBlogBreadcrumbJsonLd, createBlogFaqJsonL
 import { absoluteUrl, baseSeoKeywords, siteAuthorName, siteName } from "@/lib/seo";
 import type { AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductsByIds } from "@/lib/affiliate-products-server";
+import { affiliateOfferKindLabels, type AffiliateOffer } from "@/lib/affiliate-offers";
+import { getAffiliateOffersByIds } from "@/lib/affiliate-offers-server";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { BlogArticle } from "@/lib/types";
 
@@ -60,6 +62,13 @@ function renderInlineLinks(text: string): ReactNode[] {
 
 function getAffiliateProductMarkerId(text: string) {
   const match = text.trim().match(/^\{\{affiliate:([a-z0-9-]+)\}\}$/);
+  if (!match) return null;
+
+  return match[1];
+}
+
+function getAffiliateOfferMarkerId(text: string) {
+  const match = text.trim().match(/^\{\{offer:([a-z0-9-]+)\}\}$/);
   if (!match) return null;
 
   return match[1];
@@ -177,6 +186,49 @@ function AffiliateProductCard({ product }: { product: AffiliateProduct }) {
   );
 }
 
+function AffiliateOfferCard({ offer }: { offer: AffiliateOffer }) {
+  return (
+    <aside className="grid gap-3 rounded-lg border-2 border-[#cfd8cf] bg-[#f8faf7] p-4 sm:p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-md bg-[#122018] px-2.5 py-1 text-[11px] font-black leading-none text-white">
+          {affiliateOfferKindLabels[offer.kind]}
+        </span>
+        <span className="text-[11px] font-bold text-[#69756d]">PR / {offer.provider}</span>
+      </div>
+
+      <p className="text-base font-black leading-snug text-[#122018] sm:text-lg">{offer.headline}</p>
+      <p className="text-sm leading-7 text-[#4e5b52]">{offer.description}</p>
+
+      {offer.points.length ? (
+        <ul className="grid gap-1.5">
+          {offer.points.map((point) => (
+            <li key={point} className="flex gap-2 text-sm leading-6 text-[#4e5b52]">
+              <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#e4572e]" />
+              <span className="min-w-0">{point}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <a
+        href={offer.affiliateUrl}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="pressable-card group flex items-center justify-between gap-3 rounded-lg bg-[#e4572e] px-4 py-3 text-white transition hover:bg-[#cf4925]"
+      >
+        <span className="min-w-0 text-sm font-black">
+          {offer.serviceName}で{offer.actionLabel}
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
+          <ArrowRight size={17} />
+        </span>
+      </a>
+
+      {offer.note ? <p className="text-xs leading-6 text-[#69756d]">{offer.note}</p> : null}
+    </aside>
+  );
+}
+
 function getArticleInternalLinks(article: BlogArticle) {
   const categoryToRanking = {
     rack: "power-rack",
@@ -280,6 +332,14 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
     ),
   );
   const affiliateProductsById = getAffiliateProductsByIds(affiliateMarkerIds);
+  const offerMarkerIds = Array.from(
+    new Set(
+      article.blocks.flatMap((block) =>
+        block.paragraphs.map((paragraph) => getAffiliateOfferMarkerId(paragraph)).filter((id): id is string => Boolean(id)),
+      ),
+    ),
+  );
+  const affiliateOffersById = getAffiliateOffersByIds(offerMarkerIds);
   const firstVisual = article.blocks.find((block) => block.visual?.imageUrl)?.visual;
   const firstVisualImageUrl = firstVisual?.imageUrl;
   const faqs = createBlogFaqs(article);
@@ -353,26 +413,21 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
               </div>
             ) : null}
 
-            <nav className="mt-6 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-4" aria-label="記事の目次">
-              <h2 className="text-base font-bold">目次</h2>
-              <ol className="mt-3 grid gap-2 text-sm font-bold">
+            <nav className="mt-6 border-y border-[#d8e0d6] py-4" aria-label="記事の目次">
+              <h2 className="text-sm font-bold text-[#69756d]">目次</h2>
+              <ol className="mt-2 divide-y divide-[#d8e0d6] text-sm font-bold">
                 {sectionLinks.map((section, index) => (
                   <li key={section.id}>
                     <a
                       href={`#${section.id}`}
-                      className="group flex min-w-0 items-center gap-3 rounded-lg border border-[#d8e0d6] bg-white px-3 py-3 text-[#122018] shadow-sm transition hover:border-[#e4572e]/60 hover:bg-[#fff8f4] hover:text-[#e4572e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e4572e]"
+                      className="flex min-w-0 items-start gap-3 py-2.5 text-[#122018] transition hover:text-[#e4572e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e4572e]"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#e4572e] text-xs font-black leading-none text-white">
-                        {index + 1}
+                      <span className="w-5 shrink-0 pt-0.5 text-xs font-black text-[#e4572e]">
+                        {String(index + 1).padStart(2, "0")}
                       </span>
-                      <span className="min-w-0 flex-1 underline decoration-[#e4572e]/40 underline-offset-4 group-hover:decoration-[#e4572e]">
+                      <span className="min-w-0 flex-1 leading-6">
                         {section.heading}
                       </span>
-                      <ArrowRight
-                        size={16}
-                        className="shrink-0 text-[#e4572e] transition group-hover:translate-x-0.5"
-                        aria-hidden="true"
-                      />
                     </a>
                   </li>
                 ))}
@@ -409,6 +464,13 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
                         return affiliateProduct ? <AffiliateProductCard key={paragraph} product={affiliateProduct} /> : null;
                       }
 
+                      const offerMarkerId = getAffiliateOfferMarkerId(paragraph);
+
+                      if (offerMarkerId) {
+                        const offer = affiliateOffersById.get(offerMarkerId);
+                        return offer ? <AffiliateOfferCard key={paragraph} offer={offer} /> : null;
+                      }
+
                       return <p key={paragraph}>{renderInlineLinks(paragraph)}</p>;
                     })}
                   </div>
@@ -431,11 +493,17 @@ async function BlogArticleContent({ params }: BlogArticlePageProps) {
             <footer className="mt-10 border-t border-[#cfd8cf] pt-6">
               <section>
                 <h2 className="text-xl font-bold">よくある質問</h2>
-                <div className="mt-3 grid gap-3">
+                <div className="mt-3 divide-y divide-[#d8e0d6] border-y border-[#d8e0d6]">
                   {faqs.map((faq) => (
-                    <details key={faq.question} className="rounded-lg border border-[#cfd8cf] bg-white p-4">
-                      <summary className="cursor-pointer text-base font-bold text-[#122018]">{faq.question}</summary>
-                      <p className="mt-3 text-sm leading-7 text-[#4e5b52]">{faq.answer}</p>
+                    <details key={faq.question} className="group py-3">
+                      <summary className="cursor-pointer list-none text-base font-bold leading-7 text-[#122018] marker:hidden">
+                        <span className="inline text-[#e4572e]">Q. </span>
+                        {faq.question}
+                      </summary>
+                      <p className="mt-2 text-sm leading-7 text-[#4e5b52]">
+                        <span className="font-bold text-[#69756d]">A. </span>
+                        {faq.answer}
+                      </p>
                     </details>
                   ))}
                 </div>
