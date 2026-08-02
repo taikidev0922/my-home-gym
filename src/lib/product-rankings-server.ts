@@ -49,6 +49,7 @@ function affiliateProductToRankingProduct(affiliateProduct: AffiliateProductForR
     price: parsePrice(affiliateProduct.priceText) ?? 0,
     image: affiliateProduct.imageUrl,
     rating: parseRating(affiliateProduct.ratingText) ?? 4,
+    reviewCount: parseReviewCount(affiliateProduct.reviewCountText),
     summary: copy.summary,
     bestFor: copy.bestFor,
     pros: copy.pros,
@@ -74,6 +75,11 @@ function parseRating(value: string) {
     value.match(/([0-5](?:\.\d+)?)(?!.*[0-5](?:\.\d+)?)/)?.[1];
   const rating = Number(ratingText);
   return Number.isFinite(rating) && rating > 0 ? rating : null;
+}
+
+function parseReviewCount(value: string) {
+  const reviewCount = Number(value.replace(/[^\d]/g, ""));
+  return Number.isFinite(reviewCount) && reviewCount > 0 ? reviewCount : null;
 }
 
 function createRankingCopy(product: AffiliateProductForRanking): RankingCopy {
