@@ -95,7 +95,9 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
       <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(createRankingJsonLd(products, activeCategory)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(createRankingJsonLd(products, activeCategory)).replace(/</g, "\\u003c"),
+        }}
       />
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
         <section className="grid gap-2">
@@ -139,16 +141,22 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-[#cfd8cf] bg-white p-5 sm:p-6">
+        <section className="mt-8 border-t border-[#cfd8cf] pt-6">
           <div className="max-w-3xl">
             <p className="text-sm font-bold text-[#e4572e]">ホームジム用品の選び方</p>
             <h2 className="mt-2 text-2xl font-bold">畳数、予算、騒音リスクから逆算する</h2>
           </div>
-          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+          <div className="mt-5 divide-y divide-[#d8e0d6] border-y border-[#d8e0d6]">
             {rankingFaqs.map((item) => (
-              <div key={item.question} className="rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-4">
-                <h3 className="font-bold leading-7">{item.question}</h3>
-                <p className="mt-2 text-sm leading-7 text-[#3c4941]">{item.answer}</p>
+              <div key={item.question} className="py-3">
+                <h3 className="font-bold leading-7">
+                  <span className="text-[#e4572e]">Q. </span>
+                  {item.question}
+                </h3>
+                <p className="mt-1 text-sm leading-7 text-[#3c4941]">
+                  <span className="font-bold text-[#69756d]">A. </span>
+                  {item.answer}
+                </p>
               </div>
             ))}
           </div>
@@ -163,29 +171,34 @@ function resolveActiveCategory(category: ProductCategory | string | undefined, c
 }
 
 function createRankingJsonLd(products: RankingProduct[], activeCategory: ProductCategory | null) {
-  const itemList = products.map((product, index) => ({
-    "@type": "ListItem",
-    position: activeCategory ? product.rank : index + 1,
-    url: absoluteUrl(`/rankings${activeCategory ? `?category=${activeCategory}` : ""}`),
-    item: {
-      "@type": "Product",
-      name: product.name,
-      brand: {
-        "@type": "Brand",
-        name: product.maker,
+  const itemList = products.map((product, index) => {
+    const aggregateRating = createAggregateRating(product);
+
+    return {
+      "@type": "ListItem",
+      position: activeCategory ? product.rank : index + 1,
+      url: absoluteUrl(`/rankings${activeCategory ? `?category=${activeCategory}` : ""}`),
+      item: {
+        "@type": "Product",
+        name: product.name,
+        brand: {
+          "@type": "Brand",
+          name: product.maker,
+        },
+        category: productCategoryLabels[product.category],
+        image: product.image,
+        description: product.summary,
+        ...(aggregateRating ? { aggregateRating } : {}),
+        offers: {
+          "@type": "Offer",
+          price: product.price,
+          priceCurrency: "JPY",
+          availability: "https://schema.org/InStock",
+          url: product.productUrl,
+        },
       },
-      category: productCategoryLabels[product.category],
-      image: product.image,
-      description: product.summary,
-      offers: {
-        "@type": "Offer",
-        price: product.price,
-        priceCurrency: "JPY",
-        availability: "https://schema.org/InStock",
-        url: product.productUrl,
-      },
-    },
-  }));
+    };
+  });
 
   return {
     "@context": "https://schema.org",
@@ -215,6 +228,20 @@ function createRankingJsonLd(products: RankingProduct[], activeCategory: Product
         })),
       },
     ],
+  };
+}
+
+function createAggregateRating(product: RankingProduct) {
+  if (!product.reviewCount) return null;
+
+  const ratingValue = Math.min(5, Math.max(1, product.rating));
+
+  return {
+    "@type": "AggregateRating",
+    ratingValue,
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: product.reviewCount,
   };
 }
 
@@ -311,7 +338,7 @@ function RankingCard({
           <div className="shrink-0 rounded-lg bg-[#f7f8f5] p-3 md:min-w-40">
             <p className="text-xs font-bold text-[#69756d]">目安価格</p>
             <p className="mt-1 text-xl font-bold">{yen.format(product.price)}</p>
-            <AmazonRating rating={product.rating} />
+            <AmazonRating rating={product.rating} reviewCount={product.reviewCount} />
           </div>
         </div>
 
@@ -346,11 +373,14 @@ function getRankStyle(rank: number) {
   return "bg-[#e4572e] text-white";
 }
 
-function AmazonRating({ rating }: { rating: number }) {
+function AmazonRating({ rating, reviewCount }: { rating: number; reviewCount: number | null }) {
   const safeRating = Math.min(5, Math.max(0, rating));
 
   return (
-    <div className="mt-2 flex items-center gap-2" aria-label={`5つ星のうち${safeRating.toFixed(1)}`}>
+    <div
+      className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1"
+      aria-label={`5つ星のうち${safeRating.toFixed(1)}${reviewCount ? `、レビュー${reviewCount}件` : ""}`}
+    >
       <span className="flex text-[18px] leading-none text-[#ffa41c]" aria-hidden="true">
         {Array.from({ length: 5 }).map((_, index) => {
           const fillPercent = Math.min(100, Math.max(0, (safeRating - index) * 100));
@@ -366,6 +396,7 @@ function AmazonRating({ rating }: { rating: number }) {
         })}
       </span>
       <span className="text-sm font-bold text-[#007185]">{safeRating.toFixed(1)}</span>
+      {reviewCount ? <span className="text-xs font-bold text-[#69756d]">({reviewCount.toLocaleString("ja-JP")}件)</span> : null}
     </div>
   );
 }
