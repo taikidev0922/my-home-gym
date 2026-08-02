@@ -36,7 +36,7 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-white ring-1 sm:h-auto sm:w-auto sm:aspect-[4/3] ${
-                  activeIndex === index ? "ring-2 ring-[#e4572e]" : "ring-[#cfd8cf]"
+                  activeIndex === index ? "ring-transparent shadow-[inset_0_0_0_2px_#e4572e]" : "ring-[#cfd8cf]"
                 }`}
                 aria-label={`${index + 1}枚目の写真を表示`}
               >
@@ -91,8 +91,8 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
                     key={`modal-${image}-${index}`}
                     type="button"
                     onClick={() => setActiveIndex(index)}
-                    className={`relative h-14 w-[74px] shrink-0 overflow-hidden rounded-lg bg-white ring-2 ${
-                      activeIndex === index ? "ring-[#e4572e]" : "ring-white/35"
+                    className={`relative h-14 w-[74px] shrink-0 overflow-hidden rounded-lg bg-white ring-1 ${
+                      activeIndex === index ? "ring-transparent shadow-[inset_0_0_0_2px_#e4572e]" : "ring-white/35"
                     }`}
                     aria-label={`${index + 1}枚目の写真を表示`}
                   >
