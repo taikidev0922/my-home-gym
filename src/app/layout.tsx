@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { SiteFooter } from "@/components/site-footer";
 import {
   absoluteUrl,
   baseSeoKeywords,
@@ -30,6 +31,7 @@ const siteJsonLd = [
     name: siteName,
     url: siteUrl,
     logo: absoluteUrl("/brand/favicon-512.webp"),
+    publishingPrinciples: absoluteUrl("/editorial-policy"),
   },
   {
     "@context": "https://schema.org",
@@ -113,6 +115,7 @@ export default function RootLayout({
     <html lang="ja" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <SiteFooter />
         <Script id="site-json-ld" type="application/ld+json" strategy="beforeInteractive">
           {JSON.stringify(siteJsonLd).replace(/</g, "\\u003c")}
         </Script>

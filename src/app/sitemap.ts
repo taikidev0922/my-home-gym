@@ -5,6 +5,7 @@ import { getRankingCategories } from "@/lib/product-rankings";
 import { absoluteUrl } from "@/lib/seo";
 
 const blogCategories = ["guide", "rack", "dumbbell", "bench", "floor", "compact"];
+const trustPages = ["/about", "/editorial-policy", "/advertising-policy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [posts, articles] = await Promise.all([getPublishedPostSitemapEntries(), getBlogSitemapArticles()]);
@@ -41,6 +42,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.4,
     },
+    ...trustPages.map((path) => ({
+      url: absoluteUrl(path),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     ...blogCategories.map((category) => ({
       url: absoluteUrl(`/blog?category=${category}`),
       lastModified: articles[0]?.updatedAt ? new Date(articles[0].updatedAt) : now,
