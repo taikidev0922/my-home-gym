@@ -47,6 +47,7 @@ export type RankingProduct = {
   price: number;
   image: string;
   rating: number;
+  reviewCount: number | null;
   summary: string;
   bestFor: string;
   pros: string[];

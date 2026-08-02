@@ -5,6 +5,8 @@ import type { KeywordCandidate } from "@/lib/blog-keywords";
 import type { BlogArticle, BlogArticleBlock, ProductCategory } from "@/lib/types";
 import { buildAffiliatePromptSection, type AffiliateProduct } from "@/lib/affiliate-products";
 import { getAffiliateProductsForGeneration } from "@/lib/affiliate-products-server";
+import { buildAffiliateOfferPromptSection } from "@/lib/affiliate-offers";
+import { getAffiliateOffersForGeneration } from "@/lib/affiliate-offers-server";
 
 type ClaudeArticlePayload = {
   title?: unknown;
@@ -246,6 +248,7 @@ function buildArticlePromptV2(keyword: KeywordCandidate, affiliateProducts: Affi
 検索キーワード: ${keyword.keyword}
 想定カテゴリ: ${keyword.category}
 ${buildAffiliatePromptSection(affiliateProducts)}
+${buildAffiliateOfferPromptSection(getAffiliateOffersForGeneration())}
 
 記事の条件:
 - 本文は日本語のみ。
@@ -256,6 +259,7 @@ ${buildAffiliatePromptSection(affiliateProducts)}
 - 商品カードは1記事につき最大3つ。本文で個別商品の詳細、価格、サイズ、重量、レビュー、設置条件などに触れる場合は、その商品に対応する {{affiliate:商品ID}} を必ず直後または同じ小見出し内の自然な位置に置く。
 - 複数の商品を比較・紹介する場合は、本文で具体的に説明した商品ごとに商品カードを入れる。1つだけに絞らない。
 - 商品カードを入れる場合は、直前の段落で判断軸を説明してから {{affiliate:商品ID}} を単独段落として置く。
+- 器具の購入では解決しない悩み(工事、設計、指導など)に触れる場合は、上のサービス紹介カード方針に従って {{offer:サービスID}} を最大1つだけ置いてもよい。該当がなければ入れない。
 - JSONだけを返す。Markdownや説明文は不要。
 
 JSON形式:
