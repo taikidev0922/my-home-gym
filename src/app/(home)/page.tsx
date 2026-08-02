@@ -1,9 +1,11 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { HomeGymExplorer } from "@/components/home-gym-explorer";
 import { HomeLoadingSkeleton } from "@/components/page-skeletons";
 import { getRankingCategories } from "@/lib/product-rankings";
 import { getHeaderUser } from "@/lib/header-user";
 import { getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
+import { absoluteUrl, baseSeoKeywords, defaultSeoDescription, rankingSeoKeywords, siteName } from "@/lib/seo";
 import type { GymScale, ProductCategory } from "@/lib/types";
 
 type PageSearchParams = Record<string, string | string[] | undefined>;
@@ -13,6 +15,28 @@ const categoryValues = new Set<ProductCategory>(getRankingCategories());
 const budgetFilterMax = 900000;
 const areaFilterMax = 12;
 const defaultPerPage = 12;
+
+export const metadata: Metadata = {
+  title: "ホームジム実例と器具ランキング",
+  description: defaultSeoDescription,
+  keywords: [...baseSeoKeywords, ...rankingSeoKeywords],
+  alternates: {
+    canonical: absoluteUrl("/"),
+  },
+  openGraph: {
+    title: `ホームジム実例と器具ランキング | ${siteName}`,
+    description: defaultSeoDescription,
+    url: absoluteUrl("/"),
+    siteName,
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: `ホームジム実例と器具ランキング | ${siteName}`,
+    description: defaultSeoDescription,
+  },
+};
 
 export default function Home(props: {
   searchParams: Promise<PageSearchParams>;
