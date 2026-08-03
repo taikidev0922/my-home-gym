@@ -225,6 +225,11 @@ function AffiliateOfferCard({ offer }: { offer: AffiliateOffer }) {
       </a>
 
       {offer.note ? <p className="text-xs leading-6 text-[#69756d]">{offer.note}</p> : null}
+
+      {offer.impressionPixelUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={offer.impressionPixelUrl} alt="" width={1} height={1} className="hidden" />
+      ) : null}
     </aside>
   );
 }
