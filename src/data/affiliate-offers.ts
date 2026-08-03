@@ -15,6 +15,9 @@ import type { AffiliateOffer } from "@/lib/affiliate-offers";
  * 広告リンクは A8 管理画面の「広告リンク作成」で、掲載サイトに
  * 「マイホームジム」(websiteId=003) を選んでから取得すること。
  * 別サイトを選んだまま取得すると成果が別サイトに計上される。
+ *
+ * カードを新しい記事に置いたら、A8 の「広告掲載URL管理」にその記事URLを提出する。
+ * 未提出だと広告主が掲載面を確認できず、成果キャンセルや提携解除の対象になり得る。
  */
 export const affiliateOffers: AffiliateOffer[] = [
   {
