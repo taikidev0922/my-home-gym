@@ -8,6 +8,8 @@ export type AffiliateOffer = {
   serviceName: string;
   /** ASPで発行した広告リンク。未提携・未承認の間は空文字にしておく（空ならカードは描画されない） */
   affiliateUrl: string;
+  /** ASPのインプレッション計測用1x1ピクセル。A8の広告リンクに同梱されているものをそのまま入れる */
+  impressionPixelUrl?: string;
   /** 成果地点の種類 */
   kind: AffiliateOfferKind;
   /** カード見出し。読者の状況を言い当てる一文にする */
