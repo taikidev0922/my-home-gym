@@ -2,8 +2,11 @@ name: Auto Blog Post
 
 on:
   schedule:
-    # 06:00 JST every day. GitHub Actions cron uses UTC.
-    - cron: "0 21 * * *"
+    # 06:00 JST every 3rd day of the month (1st, 4th, 7th, ... 31st).
+    # GitHub Actions cron uses UTC, so 21:00 UTC = 06:00 JST next day.
+    # Note: the day-of-month step resets each month, so the 31st -> 1st
+    # boundary is a 1-day gap rather than 3. Roughly 10 posts per month.
+    - cron: "0 21 */3 * *"
   workflow_dispatch:
 
 permissions:
