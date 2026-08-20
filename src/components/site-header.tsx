@@ -90,10 +90,10 @@ export function SiteHeader({ showMobilePostButton = true }: SiteHeaderProps) {
       {showMobilePostButton ? (
         <Link
           href="/submit"
-          className="fixed bottom-5 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#e4572e] text-white shadow-xl shadow-black/20 sm:hidden"
-          aria-label="投稿"
+          className="fixed bottom-5 right-4 z-40 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#e4572e] px-5 text-base font-bold text-white shadow-xl shadow-black/20 sm:hidden"
         >
-          <Camera size={22} />
+          <Camera size={20} />
+          投稿する
         </Link>
       ) : null}
     </>
