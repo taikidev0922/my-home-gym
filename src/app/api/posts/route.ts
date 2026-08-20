@@ -45,6 +45,7 @@ export async function POST(request: Request) {
   const instagramUrl = normalizeSnsUrl(formData.get("instagramUrl"));
   const tiktokUrl = normalizeSnsUrl(formData.get("tiktokUrl"));
   const xUrl = normalizeSnsUrl(formData.get("xUrl"));
+  const websiteUrl = normalizeSnsUrl(formData.get("websiteUrl"));
   const avatarFile = formData.get("avatarFile");
 
   if (!title) {
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
       instagram_url: instagramUrl,
       tiktok_url: tiktokUrl,
       x_url: xUrl,
+      ...(websiteUrl ? { website_url: websiteUrl } : {}),
       published: true,
     })
     .select("id")

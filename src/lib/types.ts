@@ -22,6 +22,7 @@ export type HomeGymPost = {
     instagram?: string;
     tiktok?: string;
     x?: string;
+    website?: string;
   };
 };
 

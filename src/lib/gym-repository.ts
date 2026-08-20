@@ -21,6 +21,7 @@ type GymPostRow = {
   instagram_url: string | null;
   tiktok_url: string | null;
   x_url: string | null;
+  website_url?: string | null;
   gym_post_images: Array<{
     storage_path: string;
     alt: string;
@@ -53,21 +54,10 @@ export type PostSitemapEntry = {
   lastModified: string;
 };
 
+// Selecting * keeps reads working while an optional column (e.g. website_url)
+// exists in the code but not yet in the database.
 const postSelect = `
-  id,
-  title,
-  slug,
-  scale,
-  area_tatami,
-  budget,
-  summary,
-  tags,
-  published,
-  author_name,
-  author_avatar_url,
-  instagram_url,
-  tiktok_url,
-  x_url,
+  *,
   gym_post_images(storage_path, alt, sort_order),
   gym_post_categories(category)
 `;
@@ -251,6 +241,7 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
       instagram: row.instagram_url ?? undefined,
       tiktok: row.tiktok_url ?? undefined,
       x: row.x_url ?? undefined,
+      website: row.website_url ?? undefined,
     },
   };
 }

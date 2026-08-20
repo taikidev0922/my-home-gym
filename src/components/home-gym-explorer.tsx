@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ExternalLink,
   Filter,
+  Link2 as LinkIcon,
   Ruler,
   Search,
   SlidersHorizontal,
@@ -526,7 +527,7 @@ function PostCard({
             </span>
           ))}
         </div>
-        {post.sns.instagram || post.sns.x || post.sns.tiktok ? (
+        {post.sns.instagram || post.sns.x || post.sns.tiktok || post.sns.website ? (
           <div className="mt-4 flex items-center justify-end border-t border-[#cfd8cf] pt-4">
             <SocialLinks sns={post.sns} />
           </div>
@@ -545,6 +546,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
     { key: "instagram", label: "Instagram", href: sns.instagram, icon: <InstagramIcon /> },
     { key: "x", label: "X", href: sns.x, icon: <XIcon /> },
     { key: "tiktok", label: "TikTok", href: sns.tiktok, icon: <TikTokIcon /> },
+    { key: "website", label: "その他リンク", href: sns.website, icon: <LinkIcon size={19} className="text-[#4e5b52]" /> },
   ].filter((item) => Boolean(item.href));
 
   if (!links.length) {

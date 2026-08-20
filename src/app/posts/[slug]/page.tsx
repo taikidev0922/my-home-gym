@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense, type ReactNode } from "react";
-import { Ruler, Tags, WalletCards } from "lucide-react";
+import { Link2 as LinkIcon, Ruler, Tags, WalletCards } from "lucide-react";
 import { DeletionRequestForm } from "@/components/deletion-request-form";
 import { PostDetailLoadingSkeleton } from "@/components/page-skeletons";
 import { PostImageGallery } from "@/components/post-image-gallery";
@@ -192,6 +192,7 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
     { key: "instagram", label: "Instagram", href: sns.instagram, icon: <InstagramIcon />, className: "text-[#e4405f]" },
     { key: "x", label: "X", href: sns.x, icon: <XIcon />, className: "text-black" },
     { key: "tiktok", label: "TikTok", href: sns.tiktok, icon: <TikTokIcon />, className: "" },
+    { key: "website", label: "その他リンク", href: sns.website, icon: <LinkIcon size={19} />, className: "text-[#4e5b52]" },
   ].filter((item): item is (typeof item) & { href: string } => Boolean(item.href));
 
   if (!links.length) {

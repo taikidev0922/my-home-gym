@@ -279,6 +279,7 @@ export function SubmitForm() {
           <Field name="instagramUrl" label="Instagram" placeholder="https://www.instagram.com/..." type="url" />
           <Field name="xUrl" label="X (Twitter)" placeholder="https://x.com/..." type="url" />
           <Field name="tiktokUrl" label="TikTok" placeholder="https://www.tiktok.com/@..." type="url" />
+          <Field name="websiteUrl" label="その他リンク" placeholder="https://example.com（サイト・YouTubeなど）" type="url" />
         </div>
       </div>
 
