@@ -20,7 +20,7 @@ export function SiteFooter() {
           ))}
         </nav>
         <p className="text-xs leading-6 text-[#69756d]">
-          My Home Gym は、自宅トレーニング環境づくりの実例、器具選び、床・防音対策を整理する情報サイトです。
+          マイホームジムは、自宅トレーニング環境づくりの実例、器具選び、床・防音対策を整理する情報サイトです。
         </p>
       </div>
     </footer>

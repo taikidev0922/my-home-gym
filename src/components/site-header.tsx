@@ -18,18 +18,18 @@ export function SiteHeader({ showMobilePostButton = true }: SiteHeaderProps) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-1 sm:px-6">
           <div className="min-w-0 shrink-0">
             <Link href="/" className="flex items-center" aria-label="マイホームジム">
-              <span className="block h-11 w-11 shrink-0 overflow-hidden sm:h-12 sm:w-12">
+              <span className="block h-8 w-8 shrink-0 overflow-hidden sm:h-9 sm:w-9">
                 <Image
                   src="/brand/favicon.webp"
                   alt=""
-                  width={48}
-                  height={48}
+                  width={36}
+                  height={36}
                   priority
                   className="h-full w-full scale-[1.16] object-contain"
                 />
               </span>
-              <span className="ml-2 translate-y-0.5 whitespace-nowrap text-xl font-black leading-none tracking-normal text-[#24313d] sm:text-2xl">
-                My <span className="text-[#fe4d25]">Home</span> Gym
+              <span className="ml-2 whitespace-nowrap text-xl font-black leading-none tracking-normal text-[#24313d] sm:text-2xl">
+                マイ<span className="text-[#fe4d25]">ホーム</span>ジム
               </span>
             </Link>
           </div>
