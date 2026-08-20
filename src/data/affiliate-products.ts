@@ -10,7 +10,7 @@ export const affiliateProducts: AffiliateProduct[] = [
     "name": "KENSUI kaku 突っ張り式 懸垂バー【設置面積18cm×18cm/耐荷重130kg/工事不要】懸垂 ディップス チンニング TEDDY WORKS",
     "maker": "TEDDY WORKS",
     "affiliateUrl": "https://px.a8.net/svt/ejp?a8mat=4BAA9G+AFOL1E+4XX0+626XU",
-    "imageUrl": "https://www28.a8.net/svt/bgt?aid=260820340631&wid=003&eno=01&mid=s00000023058001007000&mc=1",
+    "imageUrl": "/affiliate-products/kensui-kaku.webp",
     "asin": "",
     "sourceUrl": "https://teddyworks.co.jp/products/kensui-1",
     "priceText": "¥39,800〜",
