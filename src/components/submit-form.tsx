@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Tags, X } from "lucide-react";
+import { ImagePlus, Tags, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { ProductCategory } from "@/lib/types";
@@ -22,38 +22,21 @@ const gearCategories: ProductCategory[] = [
 
 const maxWebpImageBytes = 1_800_000;
 const maxPostImageCount = 5;
+const maxAvatarBytes = 2_000_000;
 
 type UploadedPostImage = {
   publicUrl: string;
 };
 
-type SubmitFormInitialPost = {
-  id: string;
-  slug: string;
-  title: string;
-  areaTatami: number;
-  budget: number;
-  scale: string;
-  summary: string;
-  tags: string[];
-  images: string[];
-  categories: ProductCategory[];
-};
-
-type SubmitFormProps = {
-  mode?: "create" | "edit";
-  initialPost?: SubmitFormInitialPost;
-};
-
-export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
+export function SubmitForm() {
   const router = useRouter();
-  const isEditMode = mode === "edit" && Boolean(initialPost);
-  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>(initialPost?.categories ?? []);
+  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>(initialPost?.images ?? []);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
+  const [avatarPreview, setAvatarPreview] = useState("");
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>(initialPost?.tags ?? []);
+  const [tags, setTags] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isConvertingImages, setIsConvertingImages] = useState(false);
@@ -70,45 +53,49 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
     formData.set("categories", JSON.stringify(selectedCategories));
     formData.set("thumbnailIndex", String(thumbnailIndex));
 
-    if (!selectedImages.length && !initialPost?.images.length) {
+    const avatarFile = formData.get("avatarFile");
+    if (avatarFile instanceof File && avatarFile.size > maxAvatarBytes) {
+      setMessage("アイコン画像は2MB以下の画像を選択してください。");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!selectedImages.length) {
       setMessage("写真を選択してください。");
       setIsSaving(false);
       return;
     }
 
-    let uploadedImages: UploadedPostImage[] = (initialPost?.images ?? []).map((publicUrl) => ({ publicUrl }));
+    let convertedImages: File[];
+    try {
+      setIsConvertingImages(true);
+      setMessage("画像を高画質WebPに変換しています...");
+      const targetBytes = getTargetWebpSize();
+      convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
+    } catch (error) {
+      console.error("Failed to convert images to WebP", error);
+      setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
+      setIsConvertingImages(false);
+      setIsSaving(false);
+      return;
+    }
 
-    if (selectedImages.length) {
-      let convertedImages: File[];
-      try {
-        setIsConvertingImages(true);
-        setMessage("画像を高画質WebPに変換しています...");
-        const targetBytes = getTargetWebpSize();
-        convertedImages = await Promise.all(selectedImages.map((file) => convertImageToWebp(file, targetBytes)));
-      } catch (error) {
-        console.error("Failed to convert images to WebP", error);
-        setMessage("画像をWebPに変換できませんでした。別の写真を選択してください。");
-        setIsConvertingImages(false);
-        setIsSaving(false);
-        return;
-      }
-
-      try {
-        setIsConvertingImages(false);
-        setMessage("画像をアップロードしています...");
-        uploadedImages = await uploadPostImages(convertedImages);
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
-        setIsConvertingImages(false);
-        setIsSaving(false);
-        return;
-      }
+    let uploadedImages: UploadedPostImage[];
+    try {
+      setIsConvertingImages(false);
+      setMessage("画像をアップロードしています...");
+      uploadedImages = await uploadPostImages(convertedImages);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "画像のアップロードに失敗しました。");
+      setIsConvertingImages(false);
+      setIsSaving(false);
+      return;
     }
 
     formData.set("uploadedImages", JSON.stringify(uploadedImages));
 
-    const response = await fetch(isEditMode ? `/api/posts/${initialPost?.id}` : "/api/posts", {
-      method: isEditMode ? "PATCH" : "POST",
+    const response = await fetch("/api/posts", {
+      method: "POST",
       body: formData,
     });
     const result = (await response.json().catch(() => null)) as { slug?: string; error?: string } | null;
@@ -120,21 +107,14 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
       return;
     }
 
-    if (isEditMode) {
-      setMessage("投稿を更新しました。");
-      setIsConvertingImages(false);
-      setIsSaving(false);
-      router.refresh();
-      router.push(`/posts/${encodeURIComponent(result?.slug ?? initialPost?.slug ?? "")}`);
-      return;
-    }
-
     form.reset();
     setSelectedCategories([]);
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
     setSelectedImages([]);
     setImagePreviews([]);
     setThumbnailIndex(0);
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview("");
     setTagInput("");
     setTags([]);
     setMessage("投稿を保存しました。一覧に公開されます。");
@@ -146,7 +126,7 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
 
   return (
     <form className="mt-7 grid min-w-0 gap-5" onSubmit={handleSubmit}>
-      <Field name="title" label="タイトル" placeholder="例: ガレージに作った本格パワーラック部屋" defaultValue={initialPost?.title} required />
+      <Field name="title" label="タイトル" placeholder="例: ガレージに作った本格パワーラック部屋" required />
 
       <div className="grid min-w-0 gap-5 md:grid-cols-3">
         <label className="block min-w-0">
@@ -157,7 +137,6 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
               type="number"
               min="0"
               step="0.1"
-              defaultValue={initialPost?.areaTatami}
               required
               className="min-w-0 flex-1 bg-transparent px-3 py-3 outline-none"
               placeholder="7.5"
@@ -165,10 +144,10 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
             <span className="grid w-16 shrink-0 place-items-center border-l border-[#cfd8cf] bg-white text-sm font-bold">畳</span>
           </div>
         </label>
-        <Field name="budget" label="初期費用" placeholder="860000" type="number" defaultValue={initialPost?.budget} required />
+        <Field name="budget" label="初期費用" placeholder="860000" type="number" required />
         <label className="block min-w-0">
           <span className="text-sm font-bold">規模感</span>
-          <select name="scale" defaultValue={initialPost?.scale ?? "compact"} className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none">
+          <select name="scale" defaultValue="compact" className="mt-2 w-full rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none">
             <option value="compact">コンパクト</option>
             <option value="standard">標準</option>
             <option value="serious">本格派</option>
@@ -241,7 +220,6 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
         name="description"
         label="説明"
         placeholder="どんな空間か、使っている器具、床材や防音の工夫、気に入っている点などをまとめて書いてください。"
-        defaultValue={initialPost?.summary}
         required
       />
       <TagInput tags={tags} value={tagInput} onChange={setTagInput} onTagsChange={setTags} />
@@ -269,8 +247,43 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
         </div>
       </div>
 
+      <div className="min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 sm:p-4">
+        <p className="flex items-center gap-2 font-bold">
+          <UserRound size={18} />
+          投稿者情報（任意）
+        </p>
+        <p className="mt-1 text-sm font-semibold leading-6 text-[#69756d]">
+          投稿カードや詳細ページに表示されるニックネーム、アイコン、SNSリンクです。未入力の場合は「匿名」で表示されます。
+        </p>
+
+        <div className="mt-4 flex items-center gap-4">
+          <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-xl font-bold text-white ring-1 ring-[#cfd8cf]">
+            {avatarPreview ? (
+              <Image src={avatarPreview} alt="アイコンのプレビュー" width={64} height={64} className="h-full w-full object-cover" />
+            ) : (
+              <UserRound size={28} />
+            )}
+          </span>
+          <label
+            htmlFor="author-avatar"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#cfd8cf] bg-white px-4 py-2 text-sm font-bold text-[#122018] transition hover:border-[#e4572e] hover:text-[#e4572e]"
+          >
+            <ImagePlus size={17} />
+            アイコンを選ぶ
+          </label>
+          <input id="author-avatar" name="avatarFile" type="file" accept="image/*" onChange={handleAvatarChange} disabled={isSaving} className="sr-only" />
+        </div>
+
+        <div className="mt-4 grid gap-4">
+          <Field name="authorName" label="ニックネーム" placeholder="例: タイキ" />
+          <Field name="instagramUrl" label="Instagram" placeholder="https://www.instagram.com/..." type="url" />
+          <Field name="xUrl" label="X (Twitter)" placeholder="https://x.com/..." type="url" />
+          <Field name="tiktokUrl" label="TikTok" placeholder="https://www.tiktok.com/@..." type="url" />
+        </div>
+      </div>
+
       <button type="submit" disabled={isSaving} className="rounded-lg bg-[#e4572e] px-4 py-3 font-bold text-white disabled:opacity-60">
-        {isConvertingImages ? "画像変換中..." : isSaving ? "保存中..." : isEditMode ? "投稿を更新" : "投稿を保存"}
+        {isConvertingImages ? "画像変換中..." : isSaving ? "保存中..." : "投稿を保存"}
       </button>
       {message ? <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#4e5b52]">{message}</p> : null}
     </form>
@@ -300,6 +313,18 @@ export function SubmitForm({ mode = "create", initialPost }: SubmitFormProps) {
 
     setSelectedImages(files);
     setImagePreviews(files.map((file) => URL.createObjectURL(file)));
+  }
+
+  function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) {
+      setAvatarPreview("");
+      return;
+    }
+
+    setAvatarPreview(URL.createObjectURL(file));
   }
 }
 
@@ -378,14 +403,12 @@ function Field({
   label,
   placeholder,
   type = "text",
-  defaultValue,
   required = false,
 }: {
   name: string;
   label: string;
   placeholder: string;
   type?: string;
-  defaultValue?: string | number;
   required?: boolean;
 }) {
   return (
@@ -394,7 +417,6 @@ function Field({
       <input
         name={name}
         type={type}
-        defaultValue={defaultValue}
         required={required}
         className="mt-2 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-3 py-3 outline-none"
         placeholder={placeholder}
@@ -407,19 +429,17 @@ function TextArea({
   name,
   label,
   placeholder,
-  defaultValue,
   required = false,
 }: {
   name: string;
   label: string;
   placeholder: string;
-  defaultValue?: string;
   required?: boolean;
 }) {
   return (
     <label className="block min-w-0">
       <span className="text-sm font-bold">{label}</span>
-      <textarea name={name} defaultValue={defaultValue} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 outline-none" placeholder={placeholder} />
+      <textarea name={name} required={required} className="mt-2 min-h-40 w-full min-w-0 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] p-3 outline-none" placeholder={placeholder} />
     </label>
   );
 }
@@ -528,7 +548,6 @@ function formatFileSize(bytes: number) {
 function createSubmitErrorMessage(status: number, serverMessage?: string) {
   if (serverMessage) return serverMessage;
   if (status === 413) return "写真の容量が大きすぎます。別の写真を選ぶか、少し時間をおいて再度お試しください。";
-  if (status === 401) return "投稿にはログインが必要です。もう一度ログインしてください。";
 
   return `投稿の保存に失敗しました。時間をおいて再度お試しください。(${status})`;
 }
@@ -558,7 +577,6 @@ async function uploadPostImages(files: File[]) {
 
 function createImageUploadErrorMessage(status: number) {
   if (status === 413) return "画像の容量が大きすぎます。別の写真を選ぶか、少し時間をおいて再度お試しください。";
-  if (status === 401) return "画像のアップロードにはログインが必要です。もう一度ログインしてください。";
 
   return `画像のアップロードに失敗しました。(${status})`;
 }

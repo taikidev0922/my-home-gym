@@ -23,7 +23,6 @@ export type HomeGymPost = {
     tiktok?: string;
     x?: string;
   };
-  likes: number;
 };
 
 export type ProductCategory =

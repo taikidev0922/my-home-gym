@@ -14,7 +14,6 @@
     "blog:auto-post:dry": "node scripts/generate-source-blog-post.mjs --dry-run"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.20.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "lucide-react": "^1.14.0",

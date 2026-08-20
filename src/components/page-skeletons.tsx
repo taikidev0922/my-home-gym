@@ -275,25 +275,6 @@ export function BlogArticleLoadingSkeleton() {
   );
 }
 
-export function AccountLoadingSkeleton() {
-  return (
-    <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">
-      <SiteHeader showMobilePostButton={false} />
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <SkeletonCard className="h-32" />
-        <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <SkeletonCard className="h-96" />
-          <div className="grid gap-4">
-            <SkeletonCard className="h-24" />
-            <SkeletonCard className="h-24" />
-            <SkeletonCard className="h-24" />
-          </div>
-        </section>
-      </div>
-    </main>
-  );
-}
-
 export function SubmitLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]" aria-busy="true">

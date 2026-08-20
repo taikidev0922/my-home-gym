@@ -1,8 +1,10 @@
 import { cache } from "react";
-import { defaultAvatarUrl, defaultDisplayName } from "@/lib/auth-user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { GymScale, HomeGymPost, PostCategoryItem, ProductCategory } from "@/lib/types";
+
+export const defaultDisplayName = "匿名";
+export const defaultAvatarUrl = "/brand/default-user.webp";
 
 type GymPostRow = {
   id: string;
@@ -14,13 +16,11 @@ type GymPostRow = {
   summary: string;
   tags: string[] | null;
   published?: boolean;
-  profiles: {
-    display_name: string;
-    avatar_url: string | null;
-    instagram_url: string | null;
-    tiktok_url: string | null;
-    x_url: string | null;
-  } | null;
+  author_name: string | null;
+  author_avatar_url: string | null;
+  instagram_url: string | null;
+  tiktok_url: string | null;
+  x_url: string | null;
   gym_post_images: Array<{
     storage_path: string;
     alt: string;
@@ -29,15 +29,6 @@ type GymPostRow = {
   gym_post_categories: Array<{
     category: ProductCategory;
   }> | null;
-  post_likes: Array<{ user_id: string }> | null;
-};
-
-export type ProfileData = {
-  displayName: string;
-  avatarUrl: string;
-  instagramUrl: string;
-  tiktokUrl: string;
-  xUrl: string;
 };
 
 export type PostSearchFilters = {
@@ -72,10 +63,13 @@ const postSelect = `
   summary,
   tags,
   published,
-  profiles!gym_posts_user_id_fkey(display_name, avatar_url, instagram_url, tiktok_url, x_url),
+  author_name,
+  author_avatar_url,
+  instagram_url,
+  tiktok_url,
+  x_url,
   gym_post_images(storage_path, alt, sort_order),
-  gym_post_categories(category),
-  post_likes(user_id)
+  gym_post_categories(category)
 `;
 
 export async function getPublishedPosts(filters: PostSearchFilters = {}): Promise<PublishedPostsResult> {
@@ -230,109 +224,6 @@ export async function getPublishedPostSitemapEntries(limit = 50000): Promise<Pos
   return entries;
 }
 
-export async function getUserPosts(userId: string): Promise<HomeGymPost[]> {
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("gym_posts")
-    .select(postSelect)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error || !data) {
-    console.error("Failed to load user posts", error);
-    return [];
-  }
-
-  return (data as unknown as GymPostRow[]).map(mapPostRow);
-}
-
-export async function getUserPostBySlug(slug: string, userId: string): Promise<HomeGymPost | null> {
-  const supabase = await createSupabaseServerClient();
-  const slugCandidates = createSlugCandidates(slug);
-
-  if (!supabase) {
-    return null;
-  }
-
-  const { data, error } = await supabase
-    .from("gym_posts")
-    .select(postSelect)
-    .in("slug", slugCandidates)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error || !data) {
-    console.error("Failed to load user gym post", error);
-    return null;
-  }
-
-  return mapPostRow(data as unknown as GymPostRow);
-}
-
-export async function getLikedPosts(userId: string): Promise<HomeGymPost[]> {
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("post_likes")
-    .select(`gym_posts(${postSelect})`)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error || !data) {
-    console.error("Failed to load liked posts", error);
-    return [];
-  }
-
-  return (data as unknown as Array<{ gym_posts: GymPostRow | null }>)
-    .map((row) => row.gym_posts)
-    .filter((post): post is GymPostRow => Boolean(post))
-    .map(mapPostRow);
-}
-
-export const getProfile = cache(async function getProfile(
-  userId: string,
-  fallbackEmail?: string,
-  fallbackDisplayName?: string,
-  fallbackAvatarUrl?: string,
-): Promise<ProfileData> {
-  const fallbackName = getSafeDisplayName(fallbackDisplayName, fallbackEmail);
-  const fallbackAvatar = fallbackAvatarUrl || defaultAvatarUrl;
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return {
-      displayName: fallbackName,
-      avatarUrl: fallbackAvatar,
-      instagramUrl: "",
-      tiktokUrl: "",
-      xUrl: "",
-    };
-  }
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("display_name, avatar_url, instagram_url, tiktok_url, x_url")
-    .eq("id", userId)
-    .maybeSingle();
-
-  return {
-    displayName: getSafeDisplayName(data?.display_name, fallbackEmail),
-    avatarUrl: getSafeAvatarUrl(data?.avatar_url) ?? fallbackAvatar,
-    instagramUrl: data?.instagram_url ?? "",
-    tiktokUrl: data?.tiktok_url ?? "",
-    xUrl: data?.x_url ?? "",
-  };
-});
-
 function mapPostRow(row: GymPostRow): HomeGymPost {
   const images = [...(row.gym_post_images ?? [])]
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -347,8 +238,8 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    owner: getSafeDisplayName(row.profiles?.display_name),
-    ownerAvatarUrl: getSafeAvatarUrl(row.profiles?.avatar_url) ?? defaultAvatarUrl,
+    owner: getSafeDisplayName(row.author_name),
+    ownerAvatarUrl: getSafeAvatarUrl(row.author_avatar_url) ?? defaultAvatarUrl,
     scale: row.scale,
     areaTatami: Number(row.area_tatami),
     budget: row.budget,
@@ -357,17 +248,16 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
     images: images.length ? images : ["/window.webp"],
     gear,
     sns: {
-      instagram: row.profiles?.instagram_url ?? undefined,
-      tiktok: row.profiles?.tiktok_url ?? undefined,
-      x: row.profiles?.x_url ?? undefined,
+      instagram: row.instagram_url ?? undefined,
+      tiktok: row.tiktok_url ?? undefined,
+      x: row.x_url ?? undefined,
     },
-    likes: row.post_likes?.length ?? 0,
   };
 }
 
-function getSafeDisplayName(value?: string | null, fallbackEmail?: string) {
+function getSafeDisplayName(value?: string | null) {
   const name = value?.trim();
-  if (!name || name === fallbackEmail || name.includes("@")) {
+  if (!name || name.includes("@")) {
     return defaultDisplayName;
   }
 
@@ -381,10 +271,7 @@ function getSafeAvatarUrl(value?: string | null) {
   }
 
   try {
-    const host = new URL(url, "https://example.com").hostname.toLowerCase();
-    if (host.includes("gravatar") || host === "cdn.auth0.com" || host.endsWith(".auth0.com")) {
-      return null;
-    }
+    new URL(url, "https://example.com");
   } catch {
     return null;
   }

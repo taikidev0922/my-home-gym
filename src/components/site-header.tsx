@@ -1,28 +1,15 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { Camera, Menu } from "lucide-react";
-import type { MouseEvent } from "react";
 import { useState } from "react";
 
-export type HeaderUser = {
-  email: string;
-  name: string;
-  avatarUrl: string;
-} | null;
-
 type SiteHeaderProps = {
-  currentUser?: HeaderUser;
-  onSubmitNav?: (event: MouseEvent<HTMLAnchorElement>) => void;
   showMobilePostButton?: boolean;
 };
 
-export function SiteHeader({
-  currentUser,
-  onSubmitNav,
-  showMobilePostButton = true,
-}: SiteHeaderProps) {
+export function SiteHeader({ showMobilePostButton = true }: SiteHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -54,36 +41,6 @@ export function SiteHeader({
           </nav>
 
           <div className="flex items-center gap-2">
-            {currentUser === undefined ? (
-              <span
-                className="grid h-10 w-10 place-items-center rounded-full bg-[#e6ece5] ring-1 ring-[#cfd8cf]"
-                aria-hidden="true"
-              />
-            ) : currentUser ? (
-              <Link href="/me" aria-label="マイページ" title="マイページ" className="flex items-center rounded-full">
-                <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#e4572e] text-sm font-bold text-white ring-1 ring-[#cfd8cf]">
-                  {currentUser.avatarUrl ? (
-                    <Image
-                      src={currentUser.avatarUrl}
-                      alt={currentUser.name}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    currentUser.name.slice(0, 1).toUpperCase()
-                  )}
-                </span>
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="inline-flex h-10 items-center rounded-lg bg-[#e4572e] px-3 text-sm font-bold text-white shadow-sm"
-              >
-                ログイン
-              </Link>
-            )}
-
             <button
               type="button"
               onClick={() => setIsMenuOpen((value) => !value)}
@@ -96,7 +53,6 @@ export function SiteHeader({
 
             <Link
               href="/submit"
-              onClick={onSubmitNav}
               className="hidden items-center gap-2 rounded-lg bg-[#e4572e] px-3 py-2 text-sm font-semibold text-white shadow-sm sm:inline-flex"
             >
               <Camera size={16} />
@@ -115,15 +71,6 @@ export function SiteHeader({
             onClick={() => setIsMenuOpen(false)}
           />
           <nav className="fixed right-4 top-16 z-50 grid w-[min(320px,calc(100vw-2rem))] gap-2 rounded-2xl border border-[#cfd8cf] bg-white p-3 text-base font-bold text-[#4e5b52] shadow-2xl shadow-black/25 md:hidden">
-            {currentUser ? (
-              <Link
-                href="/me"
-                onClick={() => setIsMenuOpen(false)}
-                className="rounded-xl bg-[#f7f8f5] px-4 py-3.5 text-[#122018] hover:bg-[#e1e8df]"
-              >
-                マイページ
-              </Link>
-            ) : null}
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3.5 hover:bg-[#f7f8f5]">
               みんなのホームジム
             </Link>
@@ -133,6 +80,9 @@ export function SiteHeader({
             <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="rounded-xl px-4 py-3.5 hover:bg-[#f7f8f5]">
               ホームジムお助け記事
             </Link>
+            <Link href="/submit" onClick={() => setIsMenuOpen(false)} className="rounded-xl bg-[#f7f8f5] px-4 py-3.5 text-[#122018] hover:bg-[#e1e8df]">
+              ホームジムを投稿
+            </Link>
           </nav>
         </>
       ) : null}
@@ -140,7 +90,6 @@ export function SiteHeader({
       {showMobilePostButton ? (
         <Link
           href="/submit"
-          onClick={onSubmitNav}
           className="fixed bottom-5 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#e4572e] text-white shadow-xl shadow-black/20 sm:hidden"
           aria-label="投稿"
         >

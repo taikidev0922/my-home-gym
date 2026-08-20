@@ -10,7 +10,6 @@ import {
   productCategoryLabels,
 } from "@/lib/product-rankings";
 import { getRankingProductsWithAffiliateLinks } from "@/lib/product-rankings-server";
-import { getHeaderUser } from "@/lib/header-user";
 import { absoluteUrl, baseSeoKeywords, categorySeoKeywords, rankingSeoKeywords, siteName } from "@/lib/seo";
 import type { ProductCategory, RankingProduct } from "@/lib/types";
 
@@ -84,15 +83,12 @@ export default async function RankingsPage({ searchParams }: RankingsPageProps) 
   const { category } = await searchParams;
   const categories = getRankingProductCategories();
   const activeCategory = resolveActiveCategory(category, categories);
-  const [products, currentUser] = await Promise.all([
-    getRankingProductsWithAffiliateLinks(activeCategory ?? undefined),
-    getHeaderUser(),
-  ]);
+  const products = await getRankingProductsWithAffiliateLinks(activeCategory ?? undefined);
   const pageTitle = activeCategory ? `${productCategoryLabels[activeCategory]}ランキング` : "カテゴリ別おすすめ商品";
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader currentUser={currentUser} showMobilePostButton={false} />
+      <SiteHeader showMobilePostButton={false} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

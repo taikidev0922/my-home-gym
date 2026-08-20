@@ -1,6 +1,5 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getRankingCategories } from "@/lib/product-rankings";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { GymScale, ProductCategory } from "@/lib/types";
@@ -9,20 +8,18 @@ export const runtime = "nodejs";
 
 const gymScales = new Set<GymScale>(["compact", "standard", "serious"]);
 const productCategories = new Set<ProductCategory>(getRankingCategories());
-const loginRequiredMessage = "投稿にはログインが必要です。";
 const invalidInputMessage = "入力内容を確認してください。";
 const serverErrorMessage = "サーバー設定に問題があります。時間をおいて再度お試しください。";
+const defaultAuthorName = "匿名";
+const maxAuthorNameLength = 40;
+const maxSnsUrlLength = 300;
+const maxAvatarBytes = 2_000_000;
 
 type UploadedPostImage = {
   publicUrl: string;
 };
 
 export async function POST(request: Request) {
-  const user = await getCurrentAuthUser();
-  if (!user) {
-    return NextResponse.json({ error: loginRequiredMessage }, { status: 401 });
-  }
-
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
@@ -44,6 +41,11 @@ export async function POST(request: Request) {
   const imageFiles = formData
     .getAll("images")
     .filter((file): file is File => file instanceof File && file.size > 0 && file.type.startsWith("image/"));
+  const authorName = String(formData.get("authorName") ?? "").trim().slice(0, maxAuthorNameLength) || defaultAuthorName;
+  const instagramUrl = normalizeSnsUrl(formData.get("instagramUrl"));
+  const tiktokUrl = normalizeSnsUrl(formData.get("tiktokUrl"));
+  const xUrl = normalizeSnsUrl(formData.get("xUrl"));
+  const avatarFile = formData.get("avatarFile");
 
   if (!title) {
     return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
@@ -65,25 +67,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: invalidInputMessage }, { status: 400 });
   }
 
-  const existingProfile = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
-  if (!existingProfile.data) {
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: user.id,
-      display_name: user.name,
-      avatar_url: user.avatarUrl,
-    });
-
-    if (profileError) {
-      console.error("Failed to create Auth0 profile", profileError);
-      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
-    }
+  const hasAvatar = avatarFile instanceof File && avatarFile.size > 0 && avatarFile.type.startsWith("image/");
+  if (hasAvatar && avatarFile.size > maxAvatarBytes) {
+    return NextResponse.json({ error: "アイコン画像の容量が大きすぎます。" }, { status: 413 });
   }
 
   const slug = `${slugify(title)}-${Date.now()}`;
   const { data: post, error: postError } = await supabase
     .from("gym_posts")
     .insert({
-      user_id: user.id,
       title,
       slug,
       scale,
@@ -91,6 +83,10 @@ export async function POST(request: Request) {
       budget,
       summary: description,
       tags,
+      author_name: authorName,
+      instagram_url: instagramUrl,
+      tiktok_url: tiktokUrl,
+      x_url: xUrl,
       published: true,
     })
     .select("id")
@@ -99,6 +95,31 @@ export async function POST(request: Request) {
   if (postError || !post) {
     console.error("Failed to create gym post", postError);
     return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
+  }
+
+  if (hasAvatar) {
+    const extension = getImageExtension(avatarFile);
+    const storagePath = `posts/${post.id}/avatar.${extension}`;
+    const { error: uploadError } = await supabase.storage.from("profile-avatars").upload(storagePath, avatarFile, {
+      contentType: avatarFile.type,
+      upsert: true,
+    });
+
+    if (uploadError) {
+      console.error("Failed to upload post author avatar", uploadError);
+      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
+    }
+
+    const { data: publicUrl } = supabase.storage.from("profile-avatars").getPublicUrl(storagePath);
+    const { error: avatarUpdateError } = await supabase
+      .from("gym_posts")
+      .update({ author_avatar_url: publicUrl.publicUrl })
+      .eq("id", post.id);
+
+    if (avatarUpdateError) {
+      console.error("Failed to save post author avatar", avatarUpdateError);
+      return NextResponse.json({ error: serverErrorMessage }, { status: 500 });
+    }
   }
 
   const imageRows = [];
@@ -117,7 +138,7 @@ export async function POST(request: Request) {
     const orderedFiles = moveItemToFront(imageFiles, thumbnailIndex);
     for (const [index, file] of orderedFiles.entries()) {
       const extension = getImageExtension(file);
-      const storagePath = `${safeStorageKey(user.id)}/${post.id}/${index}.${extension}`;
+      const storagePath = `posts/${post.id}/${index}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("gym-post-images").upload(storagePath, file, {
         contentType: file.type,
         upsert: true,
@@ -159,7 +180,6 @@ export async function POST(request: Request) {
   }
 
   revalidatePath("/");
-  revalidatePath("/me");
   revalidatePath(`/posts/${slug}`);
   revalidatePath("/sitemap.xml");
 
@@ -194,6 +214,20 @@ function parseUploadedImages(value: FormDataEntryValue | null): UploadedPostImag
   }
 }
 
+function normalizeSnsUrl(value: FormDataEntryValue | null) {
+  const text = typeof value === "string" ? value.trim().slice(0, maxSnsUrlLength) : "";
+  if (!text) return null;
+
+  try {
+    const url = new URL(text);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  } catch {
+    return null;
+  }
+
+  return text;
+}
+
 function moveItemToFront<T>(items: T[], index: number) {
   if (index <= 0 || index >= items.length) return items;
   return [items[index], ...items.slice(0, index), ...items.slice(index + 1)];
@@ -207,10 +241,6 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 
   return normalized || "post";
-}
-
-function safeStorageKey(value: string) {
-  return value.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "user";
 }
 
 function getImageExtension(file: File) {

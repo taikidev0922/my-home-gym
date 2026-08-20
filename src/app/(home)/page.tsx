@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { HomeGymExplorer } from "@/components/home-gym-explorer";
 import { HomeLoadingSkeleton } from "@/components/page-skeletons";
 import { getRankingCategories } from "@/lib/product-rankings";
-import { getHeaderUser } from "@/lib/header-user";
 import { getPublishedPosts, type PostSearchFilters } from "@/lib/gym-repository";
 import { absoluteUrl, baseSeoKeywords, defaultSeoDescription, rankingSeoKeywords, siteName } from "@/lib/seo";
 import type { GymScale, ProductCategory } from "@/lib/types";
@@ -54,10 +53,7 @@ async function HomeContent({
   searchParams: Promise<PageSearchParams>;
 }) {
   const filters = parsePostSearchFilters(await searchParams);
-  const [postResult, currentUser] = await Promise.all([
-    getPublishedPosts(filters),
-    getHeaderUser(),
-  ]);
+  const postResult = await getPublishedPosts(filters);
 
   return (
     <HomeGymExplorer
@@ -66,7 +62,6 @@ async function HomeContent({
       page={postResult.page}
       perPage={postResult.perPage}
       initialFilters={filters}
-      currentUser={currentUser}
     />
   );
 }

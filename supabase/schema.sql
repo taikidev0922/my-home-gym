@@ -1,16 +1,5 @@
-create table profiles (
-  id text primary key,
-  display_name text not null,
-  avatar_url text,
-  instagram_url text,
-  tiktok_url text,
-  x_url text,
-  created_at timestamptz not null default now()
-);
-
 create table gym_posts (
   id uuid primary key default gen_random_uuid(),
-  user_id text not null references profiles(id) on delete cascade,
   title text not null,
   slug text unique not null,
   scale text not null check (scale in ('compact', 'standard', 'serious')),
@@ -18,6 +7,11 @@ create table gym_posts (
   budget integer not null,
   summary text not null,
   tags text[] not null default '{}',
+  author_name text not null default '匿名',
+  author_avatar_url text,
+  instagram_url text,
+  tiktok_url text,
+  x_url text,
   published boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -37,26 +31,24 @@ create table gym_post_categories (
   primary key (post_id, category)
 );
 
-create table post_likes (
-  user_id text not null references profiles(id) on delete cascade,
+create table post_deletion_requests (
+  id uuid primary key default gen_random_uuid(),
   post_id uuid not null references gym_posts(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key (user_id, post_id)
+  reason text not null,
+  contact text,
+  created_at timestamptz not null default now()
 );
 
-alter table profiles enable row level security;
 alter table gym_posts enable row level security;
 alter table gym_post_images enable row level security;
 alter table gym_post_categories enable row level security;
-alter table post_likes enable row level security;
+alter table post_deletion_requests enable row level security;
 
 insert into storage.buckets (id, name, public)
 values
   ('gym-post-images', 'gym-post-images', true),
   ('profile-avatars', 'profile-avatars', true)
 on conflict (id) do nothing;
-
-create policy "Public profiles are readable" on profiles for select using (true);
 
 create policy "Published posts are readable" on gym_posts for select using (published = true);
 
@@ -66,10 +58,6 @@ create policy "Published images are readable" on gym_post_images for select usin
 
 create policy "Published categories are readable" on gym_post_categories for select using (
   exists (select 1 from gym_posts where gym_posts.id = gym_post_categories.post_id and gym_posts.published = true)
-);
-
-create policy "Post likes are publicly readable" on post_likes for select using (
-  exists (select 1 from gym_posts where gym_posts.id = post_likes.post_id and gym_posts.published = true)
 );
 
 create policy "Public gym images are readable" on storage.objects for select using (bucket_id = 'gym-post-images');
@@ -85,3 +73,4 @@ create index gym_posts_area_tatami_idx on gym_posts (area_tatami);
 create index gym_posts_title_trgm_idx on gym_posts using gin (title extensions.gin_trgm_ops);
 create index gym_posts_summary_trgm_idx on gym_posts using gin (summary extensions.gin_trgm_ops);
 create index gym_post_categories_category_post_id_idx on gym_post_categories (category, post_id);
+create index post_deletion_requests_post_id_idx on post_deletion_requests (post_id);

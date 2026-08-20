@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getCurrentAuthUser } from "@/lib/auth-user";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -7,11 +6,6 @@ export const runtime = "nodejs";
 const maxImageBytes = 4_000_000;
 
 export async function POST(request: Request) {
-  const user = await getCurrentAuthUser();
-  if (!user) {
-    return NextResponse.json({ error: "画像のアップロードにはログインが必要です。" }, { status: 401 });
-  }
-
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return NextResponse.json({ error: "サーバー設定に問題があります。時間をおいて再度お試しください。" }, { status: 500 });
@@ -29,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   const extension = getImageExtension(imageFile);
-  const storagePath = `${safeStorageKey(user.id)}/pending/${crypto.randomUUID()}.${extension}`;
+  const storagePath = `pending/${crypto.randomUUID()}.${extension}`;
   const { error: uploadError } = await supabase.storage.from("gym-post-images").upload(storagePath, imageFile, {
     contentType: imageFile.type,
     upsert: false,
@@ -46,10 +40,6 @@ export async function POST(request: Request) {
     publicUrl: publicUrl.publicUrl,
     storagePath,
   });
-}
-
-function safeStorageKey(value: string) {
-  return value.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "user";
 }
 
 function getImageExtension(file: File) {

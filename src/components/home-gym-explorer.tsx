@@ -4,13 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Bookmark,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
   Filter,
-  Heart,
   Ruler,
   Search,
   SlidersHorizontal,
@@ -25,12 +23,6 @@ import { scaleLabels } from "@/lib/gym-data";
 import type { PostSearchFilters } from "@/lib/gym-repository";
 import { productCategoryLabels } from "@/lib/product-rankings";
 import type { GymScale, HomeGymPost, ProductCategory } from "@/lib/types";
-
-type CurrentUser = {
-  email: string;
-  name: string;
-  avatarUrl: string;
-} | null;
 
 const scaleOptions: Array<"all" | GymScale> = ["all", "compact", "standard", "serious"];
 const BUDGET_FILTER_MAX = 900000;
@@ -51,14 +43,12 @@ export function HomeGymExplorer({
   totalPosts,
   page,
   perPage,
-  currentUser,
   initialFilters,
 }: {
   posts: HomeGymPost[];
   totalPosts: number;
   page: number;
   perPage: number;
-  currentUser: CurrentUser;
   initialFilters: PostSearchFilters;
 }) {
   const router = useRouter();
@@ -70,7 +60,6 @@ export function HomeGymExplorer({
   const [selectedGear, setSelectedGear] = useState<string[]>(initialFilters.categories ?? []);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(Boolean(initialFilters.categories?.length));
-  const [notice, setNotice] = useState("");
   const [isSearchPending, startSearchTransition] = useTransition();
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const searchRequestedRef = useRef(false);
@@ -91,23 +80,6 @@ export function HomeGymExplorer({
     setSelectedGear((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
-  }
-
-  function requireLogin(action: string) {
-    if (currentUser) {
-      setNotice(`${action}しました。`);
-    } else {
-      setNotice(`${action}には会員登録またはログインが必要です。`);
-    }
-    window.setTimeout(() => setNotice(""), 2600);
-  }
-
-  function handleSubmitNav(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (currentUser) return;
-
-    event.preventDefault();
-    setNotice("投稿には会員登録またはログインが必要です。先にアカウントを作成してください。");
-    window.setTimeout(() => setNotice(""), 3200);
   }
 
   const buildSearchParams = useCallback((nextPage?: number) => {
@@ -162,7 +134,7 @@ export function HomeGymExplorer({
 
   return (
     <main className="min-h-screen bg-[#eef2ed] text-[#122018]">
-      <SiteHeader currentUser={currentUser} onSubmitNav={handleSubmitNav} />
+      <SiteHeader />
 
       <section className="mx-auto max-w-7xl px-4 pb-1 pt-2 sm:px-6 sm:pb-3 sm:pt-6">
         <div className="pb-1 sm:border-b sm:border-[#cfd8cf] sm:pb-5">
@@ -345,9 +317,6 @@ export function HomeGymExplorer({
                 </p>
               ) : null}
             </div>
-            <div className="flex flex-col gap-2 sm:items-end">
-              {notice ? <div className="rounded-lg bg-[#e4572e] px-4 py-2 text-sm font-semibold text-white">{notice}</div> : null}
-            </div>
           </div>
 
           {isSearching ? (
@@ -361,7 +330,6 @@ export function HomeGymExplorer({
                     post={post}
                     onOpen={() => router.push(createPostHref(post.slug))}
                     onPrefetch={() => router.prefetch(createPostHref(post.slug))}
-                    onRequireLogin={requireLogin}
                   />
                 ))
               ) : (
@@ -502,12 +470,10 @@ function PostCard({
   post,
   onOpen,
   onPrefetch,
-  onRequireLogin,
 }: {
   post: HomeGymPost;
   onOpen: () => void;
   onPrefetch: () => void;
-  onRequireLogin: (action: string) => void;
 }) {
   const href = createPostHref(post.slug);
 
@@ -537,24 +503,11 @@ function PostCard({
         </div>
       </Link>
       <div className="hidden p-4 sm:block">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <Link href={href} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
-              {post.title}
-            </Link>
-            <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>
-          </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onRequireLogin("お気に入り登録");
-            }}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cfd8cf]"
-            aria-label="お気に入り"
-          >
-            <Bookmark size={18} />
-          </button>
+        <div>
+          <Link href={href} onClick={(event) => event.stopPropagation()} className="font-bold leading-6 hover:underline">
+            {post.title}
+          </Link>
+          <p className="mt-1 text-sm text-[#69756d]">{post.owner}</p>
         </div>
         <p className="mt-3 line-clamp-1 text-sm leading-6 text-[#4e5b52]">{post.summary}</p>
         <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -573,20 +526,11 @@ function PostCard({
             </span>
           ))}
         </div>
-        <div className="mt-4 flex items-center justify-between border-t border-[#cfd8cf] pt-4">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onRequireLogin("いいね");
-            }}
-            className="inline-flex items-center gap-2 text-sm font-bold text-[#e4572e]"
-          >
-            <Heart size={17} />
-            {post.likes}
-          </button>
-          <SocialLinks sns={post.sns} />
-        </div>
+        {post.sns.instagram || post.sns.x || post.sns.tiktok ? (
+          <div className="mt-4 flex items-center justify-end border-t border-[#cfd8cf] pt-4">
+            <SocialLinks sns={post.sns} />
+          </div>
+        ) : null}
       </div>
     </article>
   );
