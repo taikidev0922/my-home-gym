@@ -29,16 +29,19 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
         </button>
 
         {images.length > 1 ? (
-          <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
+          <div className="flex gap-2 overflow-x-auto p-1 sm:grid sm:grid-cols-5 sm:overflow-visible">
             {images.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-white ring-1 sm:h-auto sm:w-auto sm:aspect-[4/3] ${
-                  activeIndex === index ? "ring-transparent shadow-[inset_0_0_0_2px_#e4572e]" : "ring-[#cfd8cf]"
+                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition sm:h-auto sm:w-auto sm:aspect-[4/3] ${
+                  activeIndex === index
+                    ? "border-[#e4572e] ring-2 ring-[#e4572e]/35"
+                    : "border-[#cfd8cf] opacity-65 hover:opacity-100"
                 }`}
                 aria-label={`${index + 1}枚目の写真を表示`}
+                aria-current={activeIndex === index ? "true" : undefined}
               >
                 <Image src={image} alt={`${title} ${index + 1}枚目`} fill className="object-cover" sizes="160px" />
               </button>
@@ -85,16 +88,19 @@ export function PostImageGallery({ images, title }: { images: string[]; title: s
               {activeIndex + 1} / {images.length}
             </p>
             {images.length > 1 ? (
-              <div className="flex max-w-[92vw] gap-2 overflow-x-auto px-1 pb-1">
+              <div className="flex max-w-[92vw] gap-2 overflow-x-auto p-1">
                 {images.map((image, index) => (
                   <button
                     key={`modal-${image}-${index}`}
                     type="button"
                     onClick={() => setActiveIndex(index)}
-                    className={`relative h-14 w-[74px] shrink-0 overflow-hidden rounded-lg bg-white ring-1 ${
-                      activeIndex === index ? "ring-transparent shadow-[inset_0_0_0_2px_#e4572e]" : "ring-white/35"
+                    className={`relative h-14 w-[74px] shrink-0 overflow-hidden rounded-lg border-2 bg-white transition ${
+                      activeIndex === index
+                        ? "border-[#e4572e] ring-2 ring-[#e4572e]/50"
+                        : "border-white/35 opacity-55 hover:opacity-100"
                     }`}
                     aria-label={`${index + 1}枚目の写真を表示`}
+                    aria-current={activeIndex === index ? "true" : undefined}
                   >
                     <Image src={image} alt={`${title} ${index + 1}枚目`} fill className="object-cover" sizes="96px" />
                   </button>
