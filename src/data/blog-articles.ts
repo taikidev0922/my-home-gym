@@ -2202,8 +2202,8 @@ export const blogArticles: BlogArticle[] = [
   {
     "id": "0451c289-2b9d-4c20-bbd0-c221816283f6",
     "slug": "home-gym-dumbbell-20260601-9fbccb6e",
-    "title": "ダンベルフライ初心者が選ぶべき重量と安全な始め方",
-    "excerpt": "初心者のダンベルフライは男性5〜8kg、女性2〜4kgからスタート。フォームが崩れない重量選びと段階的な負荷増加が怪我を防ぐ鍵です。",
+    "title": "ダンベルフライの重量目安|男性5〜8kg・女性2〜4kgから始める理由",
+    "excerpt": "ダンベルフライの重量は男性片手5〜8kg、女性2〜4kgが目安。プレス系の30〜40%を基準に、フォームが崩れない重量選びと段階的な増やし方を解説します。",
     "keyword": "ダンベル フライ 初心者 重量",
     "category": "dumbbell",
     "tags": [
@@ -2213,7 +2213,7 @@ export const blogArticles: BlogArticle[] = [
     "imageUrl": "/blog/home-gym-dumbbell-20260601-9fbccb6e/image-01.webp",
     "readingMinutes": 4,
     "publishedAt": "2026-06-01T22:02:45.007Z",
-    "updatedAt": "2026-06-01T22:02:45.007Z",
+    "updatedAt": "2026-08-20T09:00:00.000Z",
     "articleSource": "claude",
     "keywordSource": "stock:rakko:ダンベル 初心者:inc",
     "blocks": [
@@ -4245,18 +4245,18 @@ export const blogArticles: BlogArticle[] = [
   {
     "id": "294576eb-1b0f-4bad-954e-fa4095fe1923",
     "slug": "home-gym-rack-20260511-0zjuns",
-    "title": "スミスマシンでインクラインベンチプレスを行う際の角度とセーフティ設定",
-    "excerpt": "スミスマシンでインクラインベンチプレスを行う際は、ベンチ角度30〜45度、バーの軌道とベンチ位置のずれ、セーフティフックの高さが重要です。",
-    "keyword": "スミスマシンインクラインベンチプレス",
+    "title": "インクラインスミスプレスの角度は30〜45度|ベンチ位置とセーフティ設定",
+    "excerpt": "インクラインスミスプレス（スミスマシンのインクラインベンチプレス）はベンチ角度30〜45度が目安。角度別に効く部位、バー軌道に合わせたベンチ位置、セーフティフックの高さを解説します。",
+    "keyword": "インクラインスミスプレス",
     "category": "rack",
     "tags": [
-      "スミスマシンインクラインベンチプレス",
+      "インクラインスミスプレス",
       "パワーラック"
     ],
     "imageUrl": "/blog/home-gym-rack-20260511-0zjuns/image-01.webp",
     "readingMinutes": 4,
     "publishedAt": "2026-05-11T22:01:04.368+00:00",
-    "updatedAt": "2026-05-17T04:00:31.941515+00:00",
+    "updatedAt": "2026-08-20T09:00:00.000Z",
     "articleSource": "claude",
     "keywordSource": "rakko",
     "blocks": [
@@ -4848,8 +4848,8 @@ export const blogArticles: BlogArticle[] = [
   {
     "id": "b777a5b7-9d36-4b49-b04e-ffa7a4a542b9",
     "slug": "home-gym-floor-20260508-p5jxjv",
-    "title": "ホームジムで床が抜けた事例から学ぶ安全な設計と補強方法",
-    "excerpt": "ホームジムで床が抜けるのはどんな条件か、補強が必要なケースと不要なケースを整理し、マットで足りる場合と工事を検討すべき場合の判断基準を解説します。",
+    "title": "ホームジムで床は抜ける？耐荷重180kg/㎡の現実と補強の判断基準",
+    "excerpt": "ホームジムで床が抜けるのはどんな条件か。実際に抜けた事例、木造2階の限界、マットで足りるケースと補強工事を検討すべきケースの判断基準を解説します。",
     "keyword": "ホームジム 床 抜けた",
     "category": "floor",
     "tags": [
@@ -4859,7 +4859,7 @@ export const blogArticles: BlogArticle[] = [
     "imageUrl": "/blog/home-gym-floor-20260508-p5jxjv/image-01.webp",
     "readingMinutes": 6,
     "publishedAt": "2026-05-06T22:00:00+00:00",
-    "updatedAt": "2026-08-03T00:00:00+00:00",
+    "updatedAt": "2026-08-20T09:00:00.000Z",
     "articleSource": "claude",
     "keywordSource": "rakko",
     "blocks": [

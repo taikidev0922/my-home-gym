@@ -1,5 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Tag } from "lucide-react";
@@ -55,6 +56,8 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
     keywords: [...baseSeoKeywords, "ホームジム お助け記事", "ホームジム 作り方", "ホームジム 初心者", filterLabel].filter(
       (keyword): keyword is string => Boolean(keyword),
     ),
+    // タグ絞り込みビューはファセットURLとして無限に増えるため、インデックス対象から外す
+    robots: selectedTag ? { index: false, follow: true } : undefined,
     alternates: {
       canonical: absoluteUrl(canonicalPath),
       types: {
@@ -89,8 +92,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     getBlogArticlesPage({ page: 1, pageSize: 1 }),
   ]);
 
+  // 該当0件の絞り込みや範囲外ページはソフト404にせず、本物の404を返す
+  if ((selectedCategory || selectedTag || page > 1) && articlePage.articles.length === 0) {
+    notFound();
+  }
+
   const categoryCounts = new Map(facets.categories.map((category) => [category.id, category.count]));
-  const visibleCategories = blogCategories;
+  const visibleCategories = blogCategories.filter((category) => (categoryCounts.get(category.id) ?? 0) > 0);
   const visibleTags = facets.tags.slice(0, 6);
   const latestSlug = latestPage.articles[0]?.slug;
   const pageNumbers = getPageNumbers(articlePage.page, articlePage.totalPages);
@@ -142,7 +150,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               {visibleCategories.map((category) => (
                 <FilterChip
                   key={category.id}
-                  href={blogHref({ category: category.id, tag: selectedTag })}
+                  href={blogHref({ category: category.id })}
                   active={selectedCategory === category.id}
                 >
                   {category.label}
@@ -161,7 +169,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 {visibleTags.map((tag) => (
                   <FilterChip
                     key={tag.name}
-                    href={blogHref({ category: selectedCategory, tag: tag.name })}
+                    href={blogHref({ tag: tag.name })}
                     active={selectedTag === tag.name}
                   >
                     {tag.name}
@@ -188,7 +196,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               {visibleCategories.map((category) => (
                 <FilterChip
                   key={category.id}
-                  href={blogHref({ category: category.id, tag: selectedTag })}
+                  href={blogHref({ category: category.id })}
                   active={selectedCategory === category.id}
                 >
                   {category.label}
@@ -208,7 +216,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 {visibleTags.map((tag) => (
                   <FilterChip
                     key={tag.name}
-                    href={blogHref({ category: selectedCategory, tag: tag.name })}
+                    href={blogHref({ tag: tag.name })}
                     active={selectedTag === tag.name}
                   >
                     {tag.name}
