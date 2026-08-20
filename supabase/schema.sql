@@ -13,6 +13,7 @@ create table gym_posts (
   tiktok_url text,
   x_url text,
   website_url text,
+  website_label text,
   published boolean not null default false,
   created_at timestamptz not null default now()
 );

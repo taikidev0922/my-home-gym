@@ -192,29 +192,51 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
     { key: "instagram", label: "Instagram", href: sns.instagram, icon: <InstagramIcon />, className: "text-[#e4405f]" },
     { key: "x", label: "X", href: sns.x, icon: <XIcon />, className: "text-black" },
     { key: "tiktok", label: "TikTok", href: sns.tiktok, icon: <TikTokIcon />, className: "" },
-    { key: "website", label: "その他リンク", href: sns.website, icon: <LinkIcon size={19} />, className: "text-[#4e5b52]" },
   ].filter((item): item is (typeof item) & { href: string } => Boolean(item.href));
 
-  if (!links.length) {
+  if (!links.length && !sns.website) {
     return <p className="mt-1 text-sm font-semibold text-[#7a817b]">SNSリンク未設定</p>;
   }
 
   return (
-    <div className="mt-2 flex items-center gap-2">
-      {links.map((item) => (
+    <div className="mt-2 grid gap-2">
+      {links.length ? (
+        <div className="flex items-center gap-2">
+          {links.map((item) => (
+            <a
+              key={item.key}
+              href={item.href}
+              target="_blank"
+              rel="noreferrer nofollow ugc"
+              aria-label={item.label}
+              className={`grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] hover:border-[#e4572e] ${item.className}`}
+            >
+              {item.icon}
+            </a>
+          ))}
+        </div>
+      ) : null}
+      {sns.website ? (
         <a
-          key={item.key}
-          href={item.href}
+          href={sns.website}
           target="_blank"
-          rel="noreferrer"
-          aria-label={item.label}
-          className={`grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] hover:border-[#e4572e] ${item.className}`}
+          rel="noreferrer nofollow ugc"
+          className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-lg border border-[#cfd8cf] bg-[#f7f8f5] px-2.5 py-1.5 text-sm font-bold text-[#4e5b52] hover:border-[#e4572e] hover:text-[#e4572e]"
         >
-          {item.icon}
+          <LinkIcon size={15} className="shrink-0" />
+          <span className="truncate">{sns.websiteLabel || getLinkHostname(sns.website)}</span>
         </a>
-      ))}
+      ) : null}
     </div>
   );
+}
+
+function getLinkHostname(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "リンク";
+  }
 }
 
 function InstagramIcon() {

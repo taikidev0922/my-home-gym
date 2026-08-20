@@ -12,6 +12,7 @@ const invalidInputMessage = "入力内容を確認してください。";
 const serverErrorMessage = "サーバー設定に問題があります。時間をおいて再度お試しください。";
 const defaultAuthorName = "匿名";
 const maxAuthorNameLength = 40;
+const maxLinkLabelLength = 60;
 const maxSnsUrlLength = 300;
 const maxAvatarBytes = 2_000_000;
 
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
   const tiktokUrl = normalizeSnsUrl(formData.get("tiktokUrl"));
   const xUrl = normalizeSnsUrl(formData.get("xUrl"));
   const websiteUrl = normalizeSnsUrl(formData.get("websiteUrl"));
+  const websiteLabel = String(formData.get("websiteLabel") ?? "").trim().slice(0, maxLinkLabelLength);
   const avatarFile = formData.get("avatarFile");
 
   if (!title) {
@@ -88,7 +90,9 @@ export async function POST(request: Request) {
       instagram_url: instagramUrl,
       tiktok_url: tiktokUrl,
       x_url: xUrl,
-      ...(websiteUrl ? { website_url: websiteUrl } : {}),
+      ...(websiteUrl
+        ? { website_url: websiteUrl, ...(websiteLabel ? { website_label: websiteLabel } : {}) }
+        : {}),
       published: true,
     })
     .select("id")

@@ -280,6 +280,7 @@ export function SubmitForm() {
           <Field name="xUrl" label="X (Twitter)" placeholder="https://x.com/..." type="url" />
           <Field name="tiktokUrl" label="TikTok" placeholder="https://www.tiktok.com/@..." type="url" />
           <Field name="websiteUrl" label="その他リンク" placeholder="https://example.com（サイト・YouTubeなど）" type="url" />
+          <Field name="websiteLabel" label="その他リンクの表示名" placeholder="例: FITSTAGE江坂店（未入力ならドメイン名）" />
         </div>
       </div>
 

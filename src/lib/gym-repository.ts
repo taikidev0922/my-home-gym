@@ -22,6 +22,7 @@ type GymPostRow = {
   tiktok_url: string | null;
   x_url: string | null;
   website_url?: string | null;
+  website_label?: string | null;
   gym_post_images: Array<{
     storage_path: string;
     alt: string;
@@ -242,6 +243,7 @@ function mapPostRow(row: GymPostRow): HomeGymPost {
       tiktok: row.tiktok_url ?? undefined,
       x: row.x_url ?? undefined,
       website: row.website_url ?? undefined,
+      websiteLabel: row.website_label?.trim() || undefined,
     },
   };
 }

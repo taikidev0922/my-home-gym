@@ -546,7 +546,12 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
     { key: "instagram", label: "Instagram", href: sns.instagram, icon: <InstagramIcon /> },
     { key: "x", label: "X", href: sns.x, icon: <XIcon /> },
     { key: "tiktok", label: "TikTok", href: sns.tiktok, icon: <TikTokIcon /> },
-    { key: "website", label: "その他リンク", href: sns.website, icon: <LinkIcon size={19} className="text-[#4e5b52]" /> },
+    {
+      key: "website",
+      label: sns.websiteLabel || "その他リンク",
+      href: sns.website,
+      icon: <LinkIcon size={19} className="text-[#4e5b52]" />,
+    },
   ].filter((item) => Boolean(item.href));
 
   if (!links.length) {
@@ -560,8 +565,9 @@ function SocialLinks({ sns }: { sns: HomeGymPost["sns"] }) {
           key={item.key}
           href={item.href ?? "#"}
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer nofollow ugc"
           aria-label={item.label}
+          title={item.label}
           onClick={(event) => event.stopPropagation()}
           className="grid h-9 w-9 place-items-center rounded-lg border border-[#cfd8cf] bg-white hover:border-[#e4572e]"
         >

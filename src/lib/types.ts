@@ -23,6 +23,7 @@ export type HomeGymPost = {
     tiktok?: string;
     x?: string;
     website?: string;
+    websiteLabel?: string;
   };
 };
 
