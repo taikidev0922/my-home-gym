@@ -30,6 +30,12 @@ where p.id = gym_posts.user_id;
 
 drop table if exists post_likes;
 
+-- These user-scoped policies were already dropped by the Auth0 migration,
+-- but drop them defensively so the column drop below cannot fail on a
+-- database where they still exist.
+drop policy if exists "Users read own posts" on gym_posts;
+drop policy if exists "Users read images for own posts" on gym_post_images;
+
 alter table gym_posts drop column if exists user_id;
 
 drop table if exists profiles;
