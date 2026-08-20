@@ -2,6 +2,89 @@ import type { AffiliateProduct } from "@/lib/affiliate-products";
 
 export const affiliateProducts: AffiliateProduct[] = [
   {
+    "id": "pull-up-stand-1",
+    "slotKey": "pull-up-stand-1",
+    "category": "pull-up-stand",
+    "rank": 1,
+    "genre": "Pull-up stand",
+    "name": "KENSUI kaku 突っ張り式 懸垂バー【設置面積18cm×18cm/耐荷重130kg/工事不要】懸垂 ディップス チンニング TEDDY WORKS",
+    "maker": "TEDDY WORKS",
+    "affiliateUrl": "https://px.a8.net/svt/ejp?a8mat=4BAA9G+AFOL1E+4XX0+626XU",
+    "imageUrl": "https://www28.a8.net/svt/bgt?aid=260820340631&wid=003&eno=01&mid=s00000023058001007000&mc=1",
+    "asin": "",
+    "sourceUrl": "https://teddyworks.co.jp/products/kensui-1",
+    "priceText": "¥39,800〜",
+    "ratingText": "",
+    "reviewCountText": "",
+    "brand": "TEDDY WORKS",
+    "sellerText": "TEDDY WORKS 公式ストア",
+    "availabilityText": "国内送料無料・公式ストアは30日間返金保証",
+    "dimensionsText": "設置面積 18cm×18cm（天井×床 突っ張り式）",
+    "weightText": "",
+    "featureBullets": [
+      "設置面積は手のひらサイズの18cm×18cm。従来型チンニングスタンドの約1/25のスペースで自宅に懸垂環境を作れる",
+      "天井と床で突っ張るだけで設置でき、工事・穴あけ不要。特許技術による85度の傾斜角で、ぶら下がっても手前に倒れにくい",
+      "耐荷重130kg。パラレルグリップ付きハンドルならハンドル位置を下げてディップストレーニングにも対応",
+      "model 2E（¥39,800）/ model 1（¥46,800）/ model 4（¥56,800）の3モデル展開（いずれも税込・送料込）",
+      "1年保証・全数検品。公式ストア購入なら30日間返金保証つき"
+    ],
+    "productDescription": "天井と床を突っ張って固定する省スペース型の懸垂バー。設置面積は18cm×18cmで、特許技術の85度傾斜により手前への転倒を防ぐ設計。耐荷重130kg。ディップスハンドルやトレーニングベンチを追加してトレーニング環境を拡張できる。",
+    "specTable": {
+      "設置面積": "18cm×18cm",
+      "設置方法": "天井と床の突っ張り式（工事不要）",
+      "傾斜角": "85度（特許技術・転倒防止）",
+      "耐荷重": "130kg",
+      "モデル": "model 2E / model 1 / model 4",
+      "価格": "¥39,800〜¥56,800（税込・送料込）",
+      "保証": "1年保証・30日間返金保証（公式ストア購入時）"
+    },
+    "detailSections": {},
+    "scrapedFacts": {
+      "brand": "TEDDY WORKS",
+      "title": "KENSUI kaku 突っ張り式懸垂バー",
+      "priceText": "¥39,800〜¥56,800（税込・送料込）",
+      "sourceUrl": "https://teddyworks.co.jp/products/kensui-1"
+    },
+    "rawScrapedJson": {},
+    "scrapedAt": "2026-08-20T09:00:00+00:00",
+    "keywords": [
+      "KENSUI",
+      "KENSUI kaku",
+      "懸垂バー",
+      "突っ張り式懸垂バー",
+      "懸垂バー 自宅",
+      "懸垂バー 賃貸",
+      "懸垂バー 省スペース",
+      "チンニングバー"
+    ],
+    "targetContexts": [
+      "賃貸や狭い部屋で懸垂環境を作りたい",
+      "チンニングスタンドの設置面積が確保できない",
+      "ドア枠式の懸垂バーの強度や落下に不安がある",
+      "工事や壁の穴あけをせずに懸垂バーを設置したい"
+    ],
+    "avoidContexts": [
+      "天井の強度が確認できない、または突っ張りに耐えない天井",
+      "屋外での使用",
+      "130kgを超える総重量で使いたいケース"
+    ],
+    "recommendedAnchorKeywords": [
+      "KENSUI kaku",
+      "突っ張り式懸垂バー"
+    ],
+    "placementNote": "A8.net（TEDDY WORKS）案件。リンク先は公式ストアの商品ページ。",
+    "productRole": "Pull-up stand",
+    "suitableFor": [
+      "省スペースで懸垂を習慣化したい人",
+      "賃貸で床置きスタンドを避けたい人"
+    ],
+    "notSuitableFor": [
+      "天井の強度を確認できない住まいの人",
+      "加重懸垂で総重量130kgを超える人"
+    ],
+    "priority": 10
+  },
+  {
     "id": "accessory-1",
     "slotKey": "accessory-1",
     "category": "accessory",
@@ -920,10 +1003,10 @@ export const affiliateProducts: AffiliateProduct[] = [
     "priority": 10
   },
   {
-    "id": "pull-up-stand-1",
-    "slotKey": "pull-up-stand-1",
+    "id": "pull-up-stand-2",
+    "slotKey": "pull-up-stand-2",
     "category": "pull-up-stand",
-    "rank": 1,
+    "rank": 2,
     "genre": "Pull-up stand",
     "name": "WASAI(ワサイ) 懸垂 懸垂マシン 懸垂器具 ぶら下がり健康器 【耐荷重150kg/コンパクト】筋肉トレーニング 背筋 腹筋 大胸筋 懸垂バー チンニングスタンド けんすいマシン 懸垂バー ぶらさがり【正規品】",
     "maker": "WASAIのストアを表示",
@@ -2057,10 +2140,10 @@ export const affiliateProducts: AffiliateProduct[] = [
     "priority": 20
   },
   {
-    "id": "pull-up-stand-2",
-    "slotKey": "pull-up-stand-2",
+    "id": "pull-up-stand-3",
+    "slotKey": "pull-up-stand-3",
     "category": "pull-up-stand",
-    "rank": 2,
+    "rank": 3,
     "genre": "Pull-up stand",
     "name": "【日本企業】 ぶら下がり健康器 懸垂バー 懸垂マシン [コンパクト/耐荷重150kg/2年保証/日本語説明書/10段調節] 筋トレ チンニングスタンド",
     "maker": "HANASUNOUのストアを表示",
@@ -3320,10 +3403,10 @@ export const affiliateProducts: AffiliateProduct[] = [
     "priority": 30
   },
   {
-    "id": "pull-up-stand-3",
-    "slotKey": "pull-up-stand-3",
+    "id": "pull-up-stand-4",
+    "slotKey": "pull-up-stand-4",
     "category": "pull-up-stand",
-    "rank": 3,
+    "rank": 4,
     "genre": "Pull-up stand",
     "name": "WASAI(ワサイ) 懸垂 懸垂マシン 懸垂器具 ぶら下がり健康器 【耐荷重150kg/コンパクト】筋肉トレーニング 背筋 腹筋 大胸筋 懸垂バー チンニングスタンド けんすいマシン 懸垂バー ぶらさがり【正規品】",
     "maker": "WASAIのストアを表示",
@@ -4209,10 +4292,10 @@ export const affiliateProducts: AffiliateProduct[] = [
     "priority": 40
   },
   {
-    "id": "pull-up-stand-4",
-    "slotKey": "pull-up-stand-4",
+    "id": "pull-up-stand-5",
+    "slotKey": "pull-up-stand-5",
     "category": "pull-up-stand",
-    "rank": 4,
+    "rank": 5,
     "genre": "Pull-up stand",
     "name": "STEADY 懸垂 懸垂マシン ぶら下がり健康器 【10or12段階調整/耐荷重150kg/特許庁実案取得/コンパクト/組立簡単】 けんすいマシーン ぶらさがり健康器 pull up bar 懸垂機 懸垂器 懸垂バー 健康器具 ホームジム 筋力トレーニング ラック・ゲージ 背筋 チンニングスタンド",
     "maker": "STEADYのストアを表示",
@@ -5313,10 +5396,10 @@ export const affiliateProducts: AffiliateProduct[] = [
     "priority": 50
   },
   {
-    "id": "pull-up-stand-5",
-    "slotKey": "pull-up-stand-5",
+    "id": "pull-up-stand-6",
+    "slotKey": "pull-up-stand-6",
     "category": "pull-up-stand",
-    "rank": 5,
+    "rank": 6,
     "genre": "Pull-up stand",
     "name": "【アワード受賞・人気ブランド】 YouTen(ユーテン) 懸垂マシン ぶらさがり健康器 懸垂バー 筋トレ 懸垂 筋トレグッズ ぶら下がり健康器 きんとれグッズ 懸垂機 チンニングスタンド トレーニングベンチ 筋トレ器具 【高さ223cm/コンパクト】",
     "maker": "YouTen(ユーテン)のストアを表示",

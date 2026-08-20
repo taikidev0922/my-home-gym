@@ -334,7 +334,7 @@ function RankingCard({
           <div className="shrink-0 rounded-lg bg-[#f7f8f5] p-3 md:min-w-40">
             <p className="text-xs font-bold text-[#69756d]">目安価格</p>
             <p className="mt-1 text-xl font-bold">{yen.format(product.price)}</p>
-            <AmazonRating rating={product.rating} reviewCount={product.reviewCount} />
+            {product.reviewCount ? <AmazonRating rating={product.rating} reviewCount={product.reviewCount} /> : null}
           </div>
         </div>
 
